@@ -1,0 +1,141 @@
+# GitLab CI/CD Pipeline - edugo-shared
+# Este archivo debe estar en la raíz del repositorio edugo-shared como .gitlab-ci.yml
+
+stages:
+  - test
+  - lint
+  - release
+
+variables:
+  GO_VERSION: "1.23"
+  COVERAGE_THRESHOLD: "70"
+
+# Cache de dependencias Go
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - .go/pkg/mod/
+
+before_script:
+  - echo "🚀 Pipeline started for ${CI_PROJECT_NAME}"
+  - echo "📦 Commit: ${CI_COMMIT_SHORT_SHA}"
+  - echo "🌿 Branch: ${CI_COMMIT_REF_NAME}"
+
+# ========================================
+# STAGE: TEST
+# ========================================
+
+test:
+  stage: test
+  image: golang:${GO_VERSION}-alpine
+  tags:
+    - docker
+  before_script:
+    - apk add --no-cache git gcc musl-dev
+    - go version
+  script:
+    - echo "📥 Downloading dependencies..."
+    - go mod download
+    - go mod verify
+
+    - echo "🧪 Running tests..."
+    - go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
+
+    - echo "📊 Generating coverage report..."
+    - go tool cover -func coverage.txt | tee coverage-summary.txt
+
+    - echo "🎯 Checking coverage threshold..."
+    - |
+      COVERAGE=$(go tool cover -func coverage.txt | grep total | awk '{print $3}' | sed 's/%//')
+      echo "Coverage: ${COVERAGE}%"
+      if (( $(echo "$COVERAGE < $COVERAGE_THRESHOLD" | bc -l) )); then
+        echo "❌ Coverage ${COVERAGE}% is below threshold ${COVERAGE_THRESHOLD}%"
+        exit 1
+      fi
+      echo "✅ Coverage ${COVERAGE}% meets threshold ${COVERAGE_THRESHOLD}%"
+  coverage: '/total:.*\d+.\d+%/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.txt
+    paths:
+      - coverage.txt
+      - coverage-summary.txt
+    expire_in: 30 days
+  only:
+    - branches
+    - merge_requests
+    - main
+    - develop
+
+# ========================================
+# STAGE: LINT
+# ========================================
+
+lint:
+  stage: lint
+  image: golang:${GO_VERSION}-alpine
+  tags:
+    - docker
+  before_script:
+    - apk add --no-cache git gcc musl-dev
+  script:
+    - echo "🔍 Running staticcheck..."
+    - go install honnef.co/go/tools/cmd/staticcheck@latest
+    - staticcheck ./...
+
+    - echo "🔍 Running go vet..."
+    - go vet ./...
+
+    - echo "🔍 Checking formatting..."
+    - test -z "$(gofmt -l .)"
+
+    - echo "✅ All linters passed"
+  allow_failure: true  # No bloquear merge si falla lint
+  only:
+    - merge_requests
+    - develop
+    - main
+
+# ========================================
+# STAGE: RELEASE
+# ========================================
+
+release:
+  stage: release
+  image: alpine:latest
+  tags:
+    - docker
+  script:
+    - echo "🎉 Creating release for tag ${CI_COMMIT_TAG}"
+    - echo "📦 Module: github.com/edugo/edugo-shared@${CI_COMMIT_TAG}"
+    - echo ""
+    - echo "Para usar esta versión en tus servicios:"
+    - echo "  go get github.com/edugo/edugo-shared@${CI_COMMIT_TAG}"
+    - echo ""
+    - echo "✅ Release completed"
+  only:
+    - tags
+  except:
+    - branches
+
+# ========================================
+# NOTIFICACIONES
+# ========================================
+
+# Job que siempre corre al final
+pipeline-status:
+  stage: .post
+  image: alpine:latest
+  tags:
+    - docker
+  script:
+    - |
+      if [ "$CI_PIPELINE_STATUS" == "success" ]; then
+        echo "✅ Pipeline completed successfully"
+      else
+        echo "❌ Pipeline failed"
+        exit 1
+      fi
+  when: always

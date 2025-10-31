@@ -4,9 +4,13 @@ package enum
 type SystemRole string
 
 const (
-	SystemRoleAdmin    SystemRole = "admin"
-	SystemRoleTeacher  SystemRole = "teacher"
-	SystemRoleStudent  SystemRole = "student"
+	// SystemRoleAdmin represents an administrator role
+	SystemRoleAdmin SystemRole = "admin"
+	// SystemRoleTeacher represents a teacher role
+	SystemRoleTeacher SystemRole = "teacher"
+	// SystemRoleStudent represents a student role
+	SystemRoleStudent SystemRole = "student"
+	// SystemRoleGuardian represents a guardian/parent role
 	SystemRoleGuardian SystemRole = "guardian"
 )
 

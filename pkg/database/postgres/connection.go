@@ -6,11 +6,16 @@ import (
 	"fmt"
 	"time"
 
-	_ "github.com/lib/pq" // Driver PostgreSQL
+	_ "github.com/lib/pq" // Importar el driver de PostgreSQL
+)
+
+const (
+	// DefaultHealthCheckTimeout is the default timeout for health checks
+	DefaultHealthCheckTimeout = 5 * time.Second
 )
 
 // Connect establece una conexión a PostgreSQL y retorna un pool de conexiones
-func Connect(cfg Config) (*sql.DB, error) {
+func Connect(cfg *Config) (*sql.DB, error) {
 	// Construir DSN (Data Source Name)
 	dsn := fmt.Sprintf(
 		"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s connect_timeout=%d",
@@ -39,7 +44,7 @@ func Connect(cfg Config) (*sql.DB, error) {
 	defer cancel()
 
 	if err := db.PingContext(ctx); err != nil {
-		db.Close()
+		_ = db.Close() // Ignore error on cleanup
 		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}
 
@@ -48,7 +53,7 @@ func Connect(cfg Config) (*sql.DB, error) {
 
 // HealthCheck verifica si la conexión a la base de datos está activa
 func HealthCheck(db *sql.DB) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), DefaultHealthCheckTimeout)
 	defer cancel()
 
 	if err := db.PingContext(ctx); err != nil {

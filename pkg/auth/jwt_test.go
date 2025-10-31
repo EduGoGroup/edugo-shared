@@ -4,16 +4,22 @@ import (
 	"testing"
 	"time"
 
-	"github.com/edugo/shared/pkg/types/enum"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/EduGoGroup/edugo-shared/pkg/types/enum"
 )
 
 const (
-	testSecretKey = "test-secret-key-at-least-32-chars-long-for-security"
-	testIssuer    = "edugo-test"
+	testSecretKey            = "test-secret-key-at-least-32-chars-long-for-security"
+	testIssuer               = "edugo-test"
+	testEmail                = "test@example.com"
+	invalidTokenHere         = "invalid-token-here"
+	notValidToken            = "not-valid-token"
+	unauthorizedTokenExpired = "UNAUTHORIZED: token expired"
+	unauthorizedInvalidToken = "UNAUTHORIZED: invalid token"
 )
 
 func TestNewJWTManager(t *testing.T) {
@@ -29,7 +35,7 @@ func TestNewJWTManager(t *testing.T) {
 func TestGenerateToken(t *testing.T) {
 	manager := NewJWTManager(testSecretKey, testIssuer)
 	userID := uuid.New().String()
-	email := "test@edugo.com"
+	email := testEmail
 	role := enum.SystemRoleTeacher
 	expiresIn := 24 * time.Hour
 
@@ -119,7 +125,7 @@ func TestGenerateToken(t *testing.T) {
 func TestValidateToken(t *testing.T) {
 	manager := NewJWTManager(testSecretKey, testIssuer)
 	userID := uuid.New().String()
-	email := "test@edugo.com"
+	email := testEmail
 	role := enum.SystemRoleTeacher
 
 	t.Run("valida token válido exitosamente", func(t *testing.T) {
@@ -144,7 +150,7 @@ func TestValidateToken(t *testing.T) {
 	})
 
 	t.Run("rechaza token malformado", func(t *testing.T) {
-		invalidToken := "invalid.token.here"
+		invalidToken := invalidTokenHere
 
 		claims, err := manager.ValidateToken(invalidToken)
 
@@ -177,7 +183,7 @@ func TestValidateToken(t *testing.T) {
 		assert.Error(t, err)
 		assert.Nil(t, claims)
 		// El error puede ser "token expired" o "invalid token" dependiendo de la implementación
-		assert.True(t, err.Error() == "UNAUTHORIZED: token expired" || err.Error() == "UNAUTHORIZED: invalid token",
+		assert.True(t, err.Error() == unauthorizedTokenExpired || err.Error() == unauthorizedInvalidToken,
 			"Error debe indicar token expirado o inválido, got: %s", err.Error())
 	})
 
@@ -208,7 +214,7 @@ func TestValidateToken(t *testing.T) {
 func TestRefreshToken(t *testing.T) {
 	manager := NewJWTManager(testSecretKey, testIssuer)
 	userID := uuid.New().String()
-	email := "test@edugo.com"
+	email := testEmail
 	role := enum.SystemRoleStudent
 
 	t.Run("refresca token válido exitosamente", func(t *testing.T) {
@@ -245,12 +251,12 @@ func TestRefreshToken(t *testing.T) {
 		assert.Error(t, err)
 		assert.Empty(t, newToken)
 		// El error puede ser "token expired" o "invalid token" dependiendo de la implementación
-		assert.True(t, err.Error() == "UNAUTHORIZED: token expired" || err.Error() == "UNAUTHORIZED: invalid token",
+		assert.True(t, err.Error() == unauthorizedTokenExpired || err.Error() == unauthorizedInvalidToken,
 			"Error debe indicar token expirado o inválido, got: %s", err.Error())
 	})
 
 	t.Run("falla al refrescar token inválido", func(t *testing.T) {
-		invalidToken := "invalid.token.here"
+		invalidToken := invalidTokenHere
 
 		newToken, err := manager.RefreshToken(invalidToken, 24*time.Hour)
 
@@ -258,7 +264,7 @@ func TestRefreshToken(t *testing.T) {
 		assert.Empty(t, newToken)
 	})
 
-	t.Run("mantiene los claims originales al refrescar", func(t *testing.T) {
+	t.Run("maintains original claims when refreshing", func(t *testing.T) {
 		originalToken, err := manager.GenerateToken(userID, email, role, 1*time.Hour)
 		require.NoError(t, err)
 
@@ -287,7 +293,7 @@ func TestRefreshToken(t *testing.T) {
 func TestExtractUserID(t *testing.T) {
 	manager := NewJWTManager(testSecretKey, testIssuer)
 	userID := uuid.New().String()
-	email := "test@edugo.com"
+	email := testEmail
 	role := enum.SystemRoleAdmin
 
 	t.Run("extrae userID de token válido", func(t *testing.T) {
@@ -326,7 +332,7 @@ func TestExtractUserID(t *testing.T) {
 	})
 
 	t.Run("falla con token malformado", func(t *testing.T) {
-		invalidToken := "not.a.valid.token"
+		invalidToken := notValidToken
 
 		extractedUserID, err := ExtractUserID(invalidToken)
 
@@ -345,7 +351,7 @@ func TestExtractUserID(t *testing.T) {
 func TestExtractRole(t *testing.T) {
 	manager := NewJWTManager(testSecretKey, testIssuer)
 	userID := uuid.New().String()
-	email := "test@edugo.com"
+	email := testEmail
 
 	t.Run("extrae role de token válido", func(t *testing.T) {
 		roles := []enum.SystemRole{
@@ -380,7 +386,7 @@ func TestExtractRole(t *testing.T) {
 	})
 
 	t.Run("falla con token malformado", func(t *testing.T) {
-		invalidToken := "not.a.valid.token"
+		invalidToken := notValidToken
 
 		extractedRole, err := ExtractRole(invalidToken)
 
@@ -440,7 +446,7 @@ func TestTokenSecurity(t *testing.T) {
 		manager2 := NewJWTManager("secret-key-2", "issuer2")
 
 		userID := uuid.New().String()
-		email := "test@edugo.com"
+		email := testEmail
 		role := enum.SystemRoleTeacher
 
 		token1, err := manager1.GenerateToken(userID, email, role, 24*time.Hour)
@@ -457,7 +463,7 @@ func TestTokenSecurity(t *testing.T) {
 	t.Run("tokens no pueden ser modificados sin invalidar firma", func(t *testing.T) {
 		manager := NewJWTManager(testSecretKey, testIssuer)
 		userID := uuid.New().String()
-		email := "test@edugo.com"
+		email := testEmail
 		role := enum.SystemRoleStudent
 
 		token, err := manager.GenerateToken(userID, email, role, 24*time.Hour)

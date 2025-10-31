@@ -4,9 +4,12 @@ package enum
 type MaterialStatus string
 
 const (
-	MaterialStatusDraft     MaterialStatus = "draft"
+	// MaterialStatusDraft represents a draft material not yet published
+	MaterialStatusDraft MaterialStatus = "draft"
+	// MaterialStatusPublished represents a published material available to users
 	MaterialStatusPublished MaterialStatus = "published"
-	MaterialStatusArchived  MaterialStatus = "archived"
+	// MaterialStatusArchived represents an archived material no longer active
+	MaterialStatusArchived MaterialStatus = "archived"
 )
 
 // IsValid verifica si el status es válido
@@ -36,9 +39,12 @@ func AllMaterialStatuses() []MaterialStatus {
 type ProgressStatus string
 
 const (
+	// ProgressStatusNotStarted represents content that hasn't been started
 	ProgressStatusNotStarted ProgressStatus = "not_started"
+	// ProgressStatusInProgress represents content currently being consumed
 	ProgressStatusInProgress ProgressStatus = "in_progress"
-	ProgressStatusCompleted  ProgressStatus = "completed"
+	// ProgressStatusCompleted represents completed content
+	ProgressStatusCompleted ProgressStatus = "completed"
 )
 
 // IsValid verifica si el status es válido
@@ -68,10 +74,14 @@ func AllProgressStatuses() []ProgressStatus {
 type ProcessingStatus string
 
 const (
-	ProcessingStatusPending    ProcessingStatus = "pending"
+	// ProcessingStatusPending represents content waiting to be processed
+	ProcessingStatusPending ProcessingStatus = "pending"
+	// ProcessingStatusProcessing represents content currently being processed
 	ProcessingStatusProcessing ProcessingStatus = "processing"
-	ProcessingStatusCompleted  ProcessingStatus = "completed"
-	ProcessingStatusFailed     ProcessingStatus = "failed"
+	// ProcessingStatusCompleted represents successfully processed content
+	ProcessingStatusCompleted ProcessingStatus = "completed"
+	// ProcessingStatusFailed represents content that failed processing
+	ProcessingStatusFailed ProcessingStatus = "failed"
 )
 
 // IsValid verifica si el status es válido

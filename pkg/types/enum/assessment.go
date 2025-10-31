@@ -1,12 +1,19 @@
+// Package enum provides enumeration types and constants for various
+// domain entities in the EduGo shared library.
 package enum
 
 // AssessmentType representa el tipo de pregunta en un assessment
 type AssessmentType string
 
 const (
+	// AssessmentTypeMultipleChoice represents a multiple choice question
 	AssessmentTypeMultipleChoice AssessmentType = "multiple_choice"
-	AssessmentTypeTrueFalse      AssessmentType = "true_false"
-	AssessmentTypeShortAnswer    AssessmentType = "short_answer"
+	// AssessmentTypeTrueFalse represents a true/false question
+	AssessmentTypeTrueFalse AssessmentType = "true_false"
+	// AssessmentTypeShortAnswer represents a short answer question
+	AssessmentTypeShortAnswer AssessmentType = "short_answer"
+	// AssessmentTypeEssay represents an essay question
+	AssessmentTypeEssay AssessmentType = "essay"
 )
 
 // IsValid verifica si el tipo es válido

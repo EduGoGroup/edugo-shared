@@ -21,8 +21,8 @@ func WithTransaction(ctx context.Context, db *sql.DB, fn TxFunc) error {
 	// Defer para manejar rollback en caso de panic
 	defer func() {
 		if p := recover(); p != nil {
-			tx.Rollback()
-			panic(p) // Re-throw panic después de rollback
+			_ = tx.Rollback() // Ignore error on panic rollback
+			panic(p)          // Re-throw panic después de rollback
 		}
 	}()
 
@@ -54,7 +54,7 @@ func WithTransactionIsolation(ctx context.Context, db *sql.DB, isolation sql.Iso
 
 	defer func() {
 		if p := recover(); p != nil {
-			tx.Rollback()
+			_ = tx.Rollback() // Ignore error on panic rollback
 			panic(p)
 		}
 	}()

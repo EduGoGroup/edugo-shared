@@ -10,6 +10,13 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
+const (
+	// DefaultHealthCheckTimeout is the default timeout for health checks
+	DefaultHealthCheckTimeout = 5 * time.Second
+	// DefaultDisconnectTimeout is the default timeout for disconnection
+	DefaultDisconnectTimeout = 10 * time.Second
+)
+
 // Connect establece una conexión a MongoDB y retorna el cliente
 func Connect(cfg Config) (*mongo.Client, error) {
 	// Crear opciones de cliente
@@ -31,7 +38,7 @@ func Connect(cfg Config) (*mongo.Client, error) {
 
 	// Verificar conectividad
 	if err := client.Ping(ctx, readpref.Primary()); err != nil {
-		client.Disconnect(ctx)
+		_ = client.Disconnect(ctx) // Ignore error on cleanup
 		return nil, fmt.Errorf("failed to ping mongodb: %w", err)
 	}
 
@@ -45,7 +52,7 @@ func GetDatabase(client *mongo.Client, databaseName string) *mongo.Database {
 
 // HealthCheck verifica si la conexión a MongoDB está activa
 func HealthCheck(client *mongo.Client) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), DefaultHealthCheckTimeout)
 	defer cancel()
 
 	if err := client.Ping(ctx, readpref.Primary()); err != nil {
@@ -58,7 +65,7 @@ func HealthCheck(client *mongo.Client) error {
 // Close cierra la conexión a MongoDB
 func Close(client *mongo.Client) error {
 	if client != nil {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), DefaultDisconnectTimeout)
 		defer cancel()
 
 		return client.Disconnect(ctx)

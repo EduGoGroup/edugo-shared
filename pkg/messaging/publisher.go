@@ -45,7 +45,7 @@ func (p *RabbitMQPublisher) PublishWithPriority(ctx context.Context, exchange, r
 	msg := amqp.Publishing{
 		ContentType:  "application/json",
 		Body:         bodyBytes,
-		DeliveryMode: amqp.Persistent, // Mensaje persistente
+		DeliveryMode: amqp.Persistent, // Persistent message
 		Timestamp:    time.Now(),
 		Priority:     priority,
 	}

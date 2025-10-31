@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-
 	// amqp "github.com/rabbitmq/amqp091-go" // No usado actualmente
 )
 
@@ -65,10 +64,10 @@ func (c *RabbitMQConsumer) Consume(ctx context.Context, queueName string, handle
 				if !c.config.AutoAck {
 					if err != nil {
 						// Nack con requeue si hubo error
-						msg.Nack(false, true)
+						_ = msg.Nack(false, true) // Ignore nack errors
 					} else {
 						// Ack si fue exitoso
-						msg.Ack(false)
+						_ = msg.Ack(false) // Ignore ack errors
 					}
 				}
 			}

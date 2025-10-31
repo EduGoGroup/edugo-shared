@@ -1,0 +1,179 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  GO_VERSION: '1.25.3'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: Test and Quality Checks
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ env.GO_VERSION }}
+
+    - name: Cache Go modules
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+
+    - name: Download dependencies
+      run: make deps
+
+    - name: Run format check
+      run: |
+        make fmt
+        git diff --exit-code || (echo "Code is not formatted. Please run 'make fmt'" && exit 1)
+
+    - name: Run vet
+      run: make vet
+
+    - name: Run linter
+      run: make lint
+
+    - name: Run tests
+      run: make test-race
+
+    - name: Run tests with coverage
+      run: make test-coverage
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage/coverage.out
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+    - name: Run security checks
+      run: make security
+
+  compatibility:
+    runs-on: ubuntu-latest
+    name: Go Compatibility Check
+    strategy:
+      matrix:
+        go-version: ['1.23', '1.24', '1.25']
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go ${{ matrix.go-version }}
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ matrix.go-version }}
+
+    - name: Download dependencies
+      run: go mod download
+
+    - name: Run tests
+      run: go test -v ./...
+
+    - name: Build
+      run: go build -v ./...
+
+  build:
+    runs-on: ubuntu-latest
+    name: Build Check
+    needs: [test]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ env.GO_VERSION }}
+
+    - name: Download dependencies
+      run: make deps
+
+    - name: Build
+      run: make build
+
+  release:
+    runs-on: ubuntu-latest
+    name: Release
+    needs: [test, compatibility, build]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ env.GO_VERSION }}
+
+    - name: Generate changelog
+      id: changelog
+      run: |
+        # Obtener el último tag
+        LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+        if [ -z "$LAST_TAG" ]; then
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "Initial release" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+        else
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          git log ${LAST_TAG}..HEAD --pretty=format:"- %s" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Bump version and create tag
+      id: tag
+      run: |
+        # Obtener el último tag o usar v0.0.0 si no existe
+        LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+        
+        # Extraer números de versión
+        VERSION=$(echo $LAST_TAG | sed 's/v//' | sed 's/\./\n/g')
+        MAJOR=$(echo "$VERSION" | sed -n '1p')
+        MINOR=$(echo "$VERSION" | sed -n '2p')
+        PATCH=$(echo "$VERSION" | sed -n '3p')
+        
+        # Incrementar patch version
+        PATCH=$((PATCH + 1))
+        NEW_TAG="v${MAJOR}.${MINOR}.${PATCH}"
+        
+        echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+        echo "old_tag=$LAST_TAG" >> $GITHUB_OUTPUT
+
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.tag.outputs.new_tag }}
+        release_name: Release ${{ steps.tag.outputs.new_tag }}
+        body: |
+          ## Changes
+          ${{ steps.changelog.outputs.changelog }}
+          
+          ## Installation
+          ```bash
+          go get github.com/EduGoGroup/edugo-shared@${{ steps.tag.outputs.new_tag }}
+          ```
+        draft: false
+        prerelease: false

@@ -1,7 +1,9 @@
+// Package logger provides structured logging interfaces and implementations
+// for the EduGo shared library, including Zap logger support.
 package logger
 
 // Logger define la interfaz para logging estructurado
-// Esta interfaz permite múltiples implementaciones (Zap, Logrus, etc.)
+// This interface allows multiple implementations (Zap, Logrus, etc.)
 type Logger interface {
 	// Debug registra un mensaje de nivel debug
 	Debug(msg string, fields ...interface{})

@@ -1,3 +1,5 @@
+// Package config provides environment variable loading and configuration
+// utilities for the EduGo shared library.
 package config
 
 import (

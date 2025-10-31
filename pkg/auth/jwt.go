@@ -1,31 +1,34 @@
+// Package auth provides JWT token generation, validation, and management
+// functionality for authentication and authorization in the EduGo shared library.
 package auth
 
 import (
 	"fmt"
 	"time"
 
-	"github.com/edugo/shared/pkg/errors"
-	"github.com/edugo/shared/pkg/types/enum"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+
+	"github.com/EduGoGroup/edugo-shared/pkg/errors"
+	"github.com/EduGoGroup/edugo-shared/pkg/types/enum"
 )
 
 // Claims representa los claims personalizados del JWT
 type Claims struct {
-	UserID string         `json:"user_id"`
-	Email  string         `json:"email"`
+	UserID string          `json:"user_id"`
+	Email  string          `json:"email"`
 	Role   enum.SystemRole `json:"role"`
 	jwt.RegisteredClaims
 }
 
 // JWTManager maneja la generación y validación de tokens JWT
 type JWTManager struct {
-	secretKey []byte
 	issuer    string
+	secretKey []byte
 }
 
 // NewJWTManager crea un nuevo JWTManager
-func NewJWTManager(secretKey string, issuer string) *JWTManager {
+func NewJWTManager(secretKey, issuer string) *JWTManager {
 	return &JWTManager{
 		secretKey: []byte(secretKey),
 		issuer:    issuer,

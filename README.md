@@ -146,27 +146,81 @@ Este paquete sigue [Semantic Versioning](https://semver.org/):
 
 ## Desarrollo
 
+### Comandos Make Disponibles
+
+Este proyecto incluye un Makefile con comandos útiles para desarrollo:
+
+```bash
+# Ver todos los comandos disponibles
+make help
+
+# Configurar entorno de desarrollo
+make setup
+
+# Comandos básicos
+make build          # Compilar proyecto
+make test           # Ejecutar tests
+make fmt            # Formatear código
+make lint           # Ejecutar linter
+make vet            # Análisis estático
+
+# Tests avanzados
+make test-race      # Tests con detección de race conditions
+make test-coverage  # Tests con reporte de cobertura
+make benchmark      # Ejecutar benchmarks
+
+# Verificaciones completas
+make check-all      # Todas las verificaciones
+make ci             # Pipeline CI completo
+make pre-commit     # Verificaciones rápidas antes de commit
+
+# Herramientas
+make install-tools  # Instalar herramientas de desarrollo
+make docs-serve     # Servir documentación en localhost:6060
+make security       # Análisis de seguridad
+
+# Utilidades
+make clean          # Limpiar archivos generados
+make deps           # Actualizar dependencias
+make version        # Mostrar versiones
+```
+
 ### Agregar nueva funcionalidad
 
 1. Crear nuevo paquete en `pkg/`
 2. Implementar con interfaces cuando sea posible
 3. Agregar tests unitarios
 4. Actualizar este README
-5. Hacer commit siguiendo conventional commits
+5. Ejecutar `make pre-commit` antes del commit
+6. Hacer commit siguiendo conventional commits
 
 ### Tests
 
 ```bash
-cd shared
-go test ./...
+# Tests básicos
+make test
+
+# Tests con cobertura
+make test-coverage
+
+# Tests completos (con race detection)
+make test-race
 ```
 
 ### Formato y Lint
 
 ```bash
-go fmt ./...
-go vet ./...
-golangci-lint run
+# Formatear código
+make fmt
+
+# Análisis estático
+make vet
+
+# Linter completo
+make lint
+
+# Todo junto
+make check-all
 ```
 
 ## Contribuir

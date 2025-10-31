@@ -23,7 +23,7 @@ func Connect(url string) (*Connection, error) {
 
 	channel, err := conn.Channel()
 	if err != nil {
-		conn.Close()
+		_ = conn.Close() // Ignore error on cleanup
 		return nil, fmt.Errorf("failed to open channel: %w", err)
 	}
 

@@ -1,3 +1,5 @@
+// Package errors provides structured error handling with categorized error codes
+// and HTTP status code mapping for the EduGo shared library.
 package errors
 
 import (
@@ -9,44 +11,55 @@ import (
 type ErrorCode string
 
 const (
-	// Errores de validación
+	// ErrorCodeValidation indicates validation errors in input data
 	ErrorCodeValidation ErrorCode = "VALIDATION_ERROR"
+	// ErrorCodeInvalidInput indicates malformed or invalid input data
 	ErrorCodeInvalidInput ErrorCode = "INVALID_INPUT"
 
-	// Errores de recursos
+	// ErrorCodeNotFound indicates a requested resource was not found
 	ErrorCodeNotFound ErrorCode = "NOT_FOUND"
+	// ErrorCodeAlreadyExists indicates a resource already exists when trying to create
 	ErrorCodeAlreadyExists ErrorCode = "ALREADY_EXISTS"
+	// ErrorCodeConflict indicates a conflict with current resource state
 	ErrorCodeConflict ErrorCode = "CONFLICT"
 
-	// Errores de autenticación y autorización
+	// ErrorCodeUnauthorized indicates authentication is required or has failed
 	ErrorCodeUnauthorized ErrorCode = "UNAUTHORIZED"
+	// ErrorCodeForbidden indicates the authenticated user lacks permission
 	ErrorCodeForbidden ErrorCode = "FORBIDDEN"
+	// ErrorCodeInvalidToken indicates an invalid or expired authentication token
 	ErrorCodeInvalidToken ErrorCode = "INVALID_TOKEN"
+	// ErrorCodeTokenExpired indicates an expired authentication token
 	ErrorCodeTokenExpired ErrorCode = "TOKEN_EXPIRED"
 
-	// Errores de negocio
+	// ErrorCodeBusinessRule indicates a business logic constraint was violated
 	ErrorCodeBusinessRule ErrorCode = "BUSINESS_RULE_VIOLATION"
+	// ErrorCodeInvalidState indicates an invalid state transition or operation
 	ErrorCodeInvalidState ErrorCode = "INVALID_STATE"
 
-	// Errores del sistema
+	// ErrorCodeInternal indicates an internal server error
 	ErrorCodeInternal ErrorCode = "INTERNAL_ERROR"
+	// ErrorCodeDatabaseError indicates a database operation error
 	ErrorCodeDatabaseError ErrorCode = "DATABASE_ERROR"
+	// ErrorCodeExternalService indicates an external service error
 	ErrorCodeExternalService ErrorCode = "EXTERNAL_SERVICE_ERROR"
+	// ErrorCodeTimeout indicates a timeout occurred during operation
 	ErrorCodeTimeout ErrorCode = "TIMEOUT"
 
-	// Errores de límites
+	// ErrorCodeRateLimit indicates rate limiting has been applied
 	ErrorCodeRateLimit ErrorCode = "RATE_LIMIT_EXCEEDED"
+	// ErrorCodeQuotaExceeded indicates resource quota has been exceeded
 	ErrorCodeQuotaExceeded ErrorCode = "QUOTA_EXCEEDED"
 )
 
 // AppError es el error personalizado de la aplicación
 type AppError struct {
-	Code       ErrorCode              // Código único de error
+	Fields     map[string]interface{} // Campos adicionales para contexto
+	Internal   error                  // Error interno original (no expuesto al cliente)
 	Message    string                 // Mensaje legible para humanos
 	Details    string                 // Detalles adicionales (opcional)
+	Code       ErrorCode              // Código único de error
 	StatusCode int                    // Código HTTP sugerido
-	Internal   error                  // Error interno original (no expuesto al cliente)
-	Fields     map[string]interface{} // Campos adicionales para contexto
 }
 
 // Error implementa la interfaz error

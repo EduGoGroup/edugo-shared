@@ -1,6 +1,17 @@
+// Package mongodb provides MongoDB connection utilities and configuration
+// for the EduGo shared library.
 package mongodb
 
 import "time"
+
+const (
+	// DefaultTimeout is the default timeout for MongoDB operations
+	DefaultTimeout = 10 * time.Second
+	// DefaultMaxPoolSize is the default maximum pool size
+	DefaultMaxPoolSize = 100
+	// DefaultMinPoolSize is the default minimum pool size
+	DefaultMinPoolSize = 10
+)
 
 // Config contiene la configuración para conectarse a MongoDB
 type Config struct {
@@ -26,8 +37,8 @@ func DefaultConfig() Config {
 	return Config{
 		URI:         "mongodb://localhost:27017",
 		Database:    "test",
-		Timeout:     10 * time.Second,
-		MaxPoolSize: 100,
-		MinPoolSize: 10,
+		Timeout:     DefaultTimeout,
+		MaxPoolSize: DefaultMaxPoolSize,
+		MinPoolSize: DefaultMinPoolSize,
 	}
 }

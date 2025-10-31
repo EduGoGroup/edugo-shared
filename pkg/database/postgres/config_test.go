@@ -110,15 +110,8 @@ func TestConfigConnectionPool(t *testing.T) {
 
 	t.Run("permite configurar pool pequeño", func(t *testing.T) {
 		config := Config{
-			Host:               "localhost",
-			Port:               5432,
-			User:               "test",
-			Database:           "test",
 			MaxConnections:     5,
 			MaxIdleConnections: 2,
-			MaxLifetime:        1 * time.Minute,
-			SSLMode:            "disable",
-			ConnectTimeout:     5 * time.Second,
 		}
 
 		assert.Equal(t, 5, config.MaxConnections)
@@ -127,15 +120,9 @@ func TestConfigConnectionPool(t *testing.T) {
 
 	t.Run("permite configurar pool grande para alta concurrencia", func(t *testing.T) {
 		config := Config{
-			Host:               "localhost",
-			Port:               5432,
-			User:               "test",
-			Database:           "test",
 			MaxConnections:     200,
 			MaxIdleConnections: 50,
 			MaxLifetime:        30 * time.Minute,
-			SSLMode:            "disable",
-			ConnectTimeout:     15 * time.Second,
 		}
 
 		assert.Equal(t, 200, config.MaxConnections)
@@ -174,16 +161,9 @@ func TestConfigTimeouts(t *testing.T) {
 func TestConfigForDifferentEnvironments(t *testing.T) {
 	t.Run("configuración para desarrollo local", func(t *testing.T) {
 		devConfig := Config{
-			Host:               "localhost",
-			Port:               5432,
-			User:               "dev_user",
-			Password:           "dev_password",
-			Database:           "dev_db",
-			MaxConnections:     10,
-			MaxIdleConnections: 2,
-			MaxLifetime:        5 * time.Minute,
-			SSLMode:            "disable",
-			ConnectTimeout:     5 * time.Second,
+			Host:           "localhost",
+			MaxConnections: 10,
+			SSLMode:        "disable",
 		}
 
 		assert.Equal(t, "localhost", devConfig.Host)
@@ -193,16 +173,9 @@ func TestConfigForDifferentEnvironments(t *testing.T) {
 
 	t.Run("configuración para producción", func(t *testing.T) {
 		prodConfig := Config{
-			Host:               "prod-db.example.com",
-			Port:               5432,
-			User:               "prod_user",
-			Password:           "secure_prod_password",
-			Database:           "prod_db",
-			MaxConnections:     100,
-			MaxIdleConnections: 25,
-			MaxLifetime:        30 * time.Minute,
-			SSLMode:            "verify-full",
-			ConnectTimeout:     15 * time.Second,
+			Host:           "prod-db.example.com",
+			MaxConnections: 100,
+			SSLMode:        "verify-full",
 		}
 
 		assert.NotEqual(t, "localhost", prodConfig.Host)
@@ -213,16 +186,9 @@ func TestConfigForDifferentEnvironments(t *testing.T) {
 
 	t.Run("configuración para testing", func(t *testing.T) {
 		testConfig := Config{
-			Host:               "localhost",
-			Port:               5433, // Puerto diferente
-			User:               "test_user",
-			Password:           "test_password",
-			Database:           "test_db",
-			MaxConnections:     5,
-			MaxIdleConnections: 1,
-			MaxLifetime:        1 * time.Minute,
-			SSLMode:            "disable",
-			ConnectTimeout:     3 * time.Second,
+			Host:           "localhost",
+			Port:           5433, // Puerto diferente
+			MaxConnections: 5,
 		}
 
 		assert.Equal(t, "localhost", testConfig.Host)

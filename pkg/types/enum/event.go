@@ -4,25 +4,33 @@ package enum
 type EventType string
 
 const (
-	// Eventos de materiales
-	EventMaterialUploaded   EventType = "material.uploaded"
-	EventMaterialReprocess  EventType = "material.reprocess"
-	EventMaterialDeleted    EventType = "material.deleted"
-	EventMaterialPublished  EventType = "material.published"
-	EventMaterialArchived   EventType = "material.archived"
+	// EventMaterialUploaded represents a material upload event
+	EventMaterialUploaded EventType = "material.uploaded"
+	// EventMaterialReprocess represents a material reprocessing event
+	EventMaterialReprocess EventType = "material.reprocess"
+	// EventMaterialDeleted represents a material deletion event
+	EventMaterialDeleted EventType = "material.deleted"
+	// EventMaterialPublished represents a material publishing event
+	EventMaterialPublished EventType = "material.published"
+	// EventMaterialArchived represents a material archival event
+	EventMaterialArchived EventType = "material.archived"
 
-	// Eventos de assessments
+	// EventAssessmentAttemptRecorded represents an assessment attempt recording event
 	EventAssessmentAttemptRecorded EventType = "assessment.attempt_recorded"
-	EventAssessmentCompleted       EventType = "assessment.completed"
+	// EventAssessmentCompleted represents an assessment completion event
+	EventAssessmentCompleted EventType = "assessment.completed"
 
-	// Eventos de estudiantes
+	// EventStudentEnrolled represents a student enrollment event
 	EventStudentEnrolled EventType = "student.enrolled"
+	// EventStudentProgress represents a student progress event
 	EventStudentProgress EventType = "student.progress"
 
-	// Eventos de usuarios
-	EventUserCreated      EventType = "user.created"
-	EventUserUpdated      EventType = "user.updated"
-	EventUserDeactivated  EventType = "user.deactivated"
+	// EventUserCreated represents a user creation event
+	EventUserCreated EventType = "user.created"
+	// EventUserUpdated represents a user update event
+	EventUserUpdated EventType = "user.updated"
+	// EventUserDeactivated represents a user deactivation event
+	EventUserDeactivated EventType = "user.deactivated"
 )
 
 // IsValid verifica si el tipo de evento es válido

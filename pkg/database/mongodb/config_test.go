@@ -105,11 +105,7 @@ func TestConfigURIFormats(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			config := Config{
-				URI:         tc.uri,
-				Database:    "test",
-				Timeout:     10 * time.Second,
-				MaxPoolSize: 100,
-				MinPoolSize: 10,
+				URI: tc.uri,
 			}
 
 			assert.Equal(t, tc.uri, config.URI)
@@ -128,9 +124,6 @@ func TestConfigConnectionPool(t *testing.T) {
 
 	t.Run("permite configurar pool pequeño para desarrollo", func(t *testing.T) {
 		config := Config{
-			URI:         "mongodb://localhost:27017",
-			Database:    "dev",
-			Timeout:     5 * time.Second,
 			MaxPoolSize: 10,
 			MinPoolSize: 2,
 		}
@@ -141,9 +134,6 @@ func TestConfigConnectionPool(t *testing.T) {
 
 	t.Run("permite configurar pool grande para producción", func(t *testing.T) {
 		config := Config{
-			URI:         "mongodb://prod-host:27017",
-			Database:    "prod",
-			Timeout:     30 * time.Second,
 			MaxPoolSize: 500,
 			MinPoolSize: 50,
 		}
@@ -154,9 +144,6 @@ func TestConfigConnectionPool(t *testing.T) {
 
 	t.Run("pool con tamaño mínimo = máximo (pool fijo)", func(t *testing.T) {
 		config := Config{
-			URI:         "mongodb://localhost:27017",
-			Database:    "test",
-			Timeout:     10 * time.Second,
 			MaxPoolSize: 25,
 			MinPoolSize: 25, // Pool de tamaño fijo
 		}
@@ -197,10 +184,7 @@ func TestConfigForDifferentEnvironments(t *testing.T) {
 	t.Run("configuración para desarrollo local", func(t *testing.T) {
 		devConfig := Config{
 			URI:         "mongodb://localhost:27017",
-			Database:    "dev_db",
-			Timeout:     5 * time.Second,
 			MaxPoolSize: 20,
-			MinPoolSize: 5,
 		}
 
 		assert.Contains(t, devConfig.URI, "localhost")
@@ -210,10 +194,7 @@ func TestConfigForDifferentEnvironments(t *testing.T) {
 	t.Run("configuración para producción con replica set", func(t *testing.T) {
 		prodConfig := Config{
 			URI:         "mongodb://user:pass@host1:27017,host2:27017,host3:27017/prod?replicaSet=rs0&authSource=admin",
-			Database:    "prod_db",
-			Timeout:     30 * time.Second,
 			MaxPoolSize: 300,
-			MinPoolSize: 50,
 		}
 
 		assert.NotContains(t, prodConfig.URI, "localhost")
@@ -225,10 +206,7 @@ func TestConfigForDifferentEnvironments(t *testing.T) {
 	t.Run("configuración para MongoDB Atlas", func(t *testing.T) {
 		atlasConfig := Config{
 			URI:         "mongodb+srv://user:pass@cluster0.example.mongodb.net/mydb?retryWrites=true&w=majority",
-			Database:    "atlas_db",
-			Timeout:     20 * time.Second,
 			MaxPoolSize: 150,
-			MinPoolSize: 30,
 		}
 
 		assert.Contains(t, atlasConfig.URI, "mongodb+srv")
@@ -239,10 +217,7 @@ func TestConfigForDifferentEnvironments(t *testing.T) {
 	t.Run("configuración para testing", func(t *testing.T) {
 		testConfig := Config{
 			URI:         "mongodb://localhost:27018", // Puerto diferente
-			Database:    "test_db",
-			Timeout:     3 * time.Second,
 			MaxPoolSize: 10,
-			MinPoolSize: 1,
 		}
 
 		assert.Equal(t, "mongodb://localhost:27018", testConfig.URI)
@@ -264,8 +239,6 @@ func TestConfigValidation(t *testing.T) {
 
 	t.Run("config sin timeout usa default de 0", func(t *testing.T) {
 		config := Config{
-			URI:      "mongodb://localhost:27017",
-			Database: "mydb",
 			// Timeout no especificado (valor zero)
 		}
 
@@ -275,8 +248,6 @@ func TestConfigValidation(t *testing.T) {
 
 	t.Run("config sin pool sizes usa default de 0", func(t *testing.T) {
 		config := Config{
-			URI:      "mongodb://localhost:27017",
-			Database: "mydb",
 			// Pool sizes no especificados
 		}
 

@@ -1,3 +1,5 @@
+// Package validator provides input validation utilities and error collection
+// for the EduGo shared library.
 package validator
 
 import (
@@ -5,8 +7,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/edugo/shared/pkg/errors"
 	"github.com/google/uuid"
+
+	"github.com/EduGoGroup/edugo-shared/pkg/errors"
 )
 
 var (
@@ -61,7 +64,7 @@ func (v *Validator) GetError() error {
 }
 
 // Required valida que un campo no esté vacío
-func (v *Validator) Required(value string, fieldName string) {
+func (v *Validator) Required(value, fieldName string) {
 	if strings.TrimSpace(value) == "" {
 		v.AddErrorf("%s is required", fieldName)
 	}
@@ -82,21 +85,21 @@ func (v *Validator) MaxLength(value string, maxLength int, fieldName string) {
 }
 
 // Email valida que un string sea un email válido
-func (v *Validator) Email(value string, fieldName string) {
+func (v *Validator) Email(value, fieldName string) {
 	if value != "" && !IsValidEmail(value) {
 		v.AddErrorf("%s must be a valid email address", fieldName)
 	}
 }
 
 // UUID valida que un string sea un UUID válido
-func (v *Validator) UUID(value string, fieldName string) {
+func (v *Validator) UUID(value, fieldName string) {
 	if value != "" && !IsValidUUID(value) {
 		v.AddErrorf("%s must be a valid UUID", fieldName)
 	}
 }
 
 // URL valida que un string sea una URL válida
-func (v *Validator) URL(value string, fieldName string) {
+func (v *Validator) URL(value, fieldName string) {
 	if value != "" && !IsValidURL(value) {
 		v.AddErrorf("%s must be a valid URL", fieldName)
 	}
@@ -118,28 +121,28 @@ func (v *Validator) InSlice(value string, allowed []string, fieldName string) {
 }
 
 // MinValue valida que un número sea mayor o igual a un mínimo
-func (v *Validator) MinValue(value, min int, fieldName string) {
-	if value < min {
-		v.AddErrorf("%s must be at least %d", fieldName, min)
+func (v *Validator) MinValue(value, minValue int, fieldName string) {
+	if value < minValue {
+		v.AddErrorf("%s must be at least %d", fieldName, minValue)
 	}
 }
 
 // MaxValue valida que un número sea menor o igual a un máximo
-func (v *Validator) MaxValue(value, max int, fieldName string) {
-	if value > max {
-		v.AddErrorf("%s must be at most %d", fieldName, max)
+func (v *Validator) MaxValue(value, maxValue int, fieldName string) {
+	if value > maxValue {
+		v.AddErrorf("%s must be at most %d", fieldName, maxValue)
 	}
 }
 
 // Range valida que un número esté en un rango
-func (v *Validator) Range(value, min, max int, fieldName string) {
-	if value < min || value > max {
-		v.AddErrorf("%s must be between %d and %d", fieldName, min, max)
+func (v *Validator) Range(value, minValue, maxValue int, fieldName string) {
+	if value < minValue || value > maxValue {
+		v.AddErrorf("%s must be between %d and %d", fieldName, minValue, maxValue)
 	}
 }
 
 // Name valida que un string sea un nombre válido
-func (v *Validator) Name(value string, fieldName string) {
+func (v *Validator) Name(value, fieldName string) {
 	if value != "" && !IsValidName(value) {
 		v.AddErrorf("%s must contain only letters, spaces, hyphens and apostrophes", fieldName)
 	}

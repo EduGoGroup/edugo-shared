@@ -1,4 +1,11 @@
+// Package messaging provides RabbitMQ messaging functionality including
+// publishers, consumers, and connection management for the EduGo shared library.
 package messaging
+
+const (
+	// DefaultPrefetchCount is the default number of messages to prefetch
+	DefaultPrefetchCount = 5
+)
 
 // Config contiene la configuración para RabbitMQ
 type Config struct {
@@ -23,17 +30,17 @@ type Config struct {
 type ExchangeConfig struct {
 	Name       string // Nombre del exchange
 	Type       string // Tipo: direct, topic, fanout, headers
-	Durable    bool   // Persistente al reinicio
+	Durable    bool   // Persistent across restarts
 	AutoDelete bool   // Auto-eliminar cuando no hay bindings
 }
 
 // QueueConfig configuración de la cola
 type QueueConfig struct {
+	Args       map[string]interface{} // Additional arguments (priority, TTL, etc.)
 	Name       string                 // Nombre de la cola
-	Durable    bool                   // Persistente al reinicio
+	Durable    bool                   // Persistent across restarts
 	AutoDelete bool                   // Auto-eliminar cuando no hay consumidores
 	Exclusive  bool                   // Exclusiva para esta conexión
-	Args       map[string]interface{} // Argumentos adicionales (priority, TTL, etc.)
 }
 
 // ConsumerConfig configuración del consumidor
@@ -67,6 +74,6 @@ func DefaultConfig() Config {
 			Exclusive: false,
 			NoLocal:   false,
 		},
-		PrefetchCount: 5,
+		PrefetchCount: DefaultPrefetchCount,
 	}
 }

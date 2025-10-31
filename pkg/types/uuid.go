@@ -1,3 +1,5 @@
+// Package types provides custom type definitions and utilities,
+// including UUID handling for the EduGo shared library.
 package types
 
 import (
@@ -5,6 +7,11 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+)
+
+const (
+	// MinJSONLength is the minimum length for a JSON-encoded UUID string (with quotes)
+	MinJSONLength = 2
 )
 
 // UUID es un wrapper alrededor de google/uuid con métodos de serialización
@@ -54,7 +61,7 @@ func (u UUID) MarshalJSON() ([]byte, error) {
 func (u *UUID) UnmarshalJSON(data []byte) error {
 	// Remover comillas
 	s := string(data)
-	if len(s) < 2 {
+	if len(s) < MinJSONLength {
 		return fmt.Errorf("invalid UUID JSON")
 	}
 	s = s[1 : len(s)-1]

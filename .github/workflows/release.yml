@@ -1,0 +1,136 @@
+name: Release CI/CD
+
+# Solo se ejecuta cuando creas un tag de versión
+on:
+  push:
+    tags:
+      - 'v*'  # v1.0.0, v2.0.0, etc.
+
+env:
+  GO_VERSION: '1.23'
+
+jobs:
+  validate-release:
+    name: Validate Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Descargar dependencias
+        run: go mod download
+
+      - name: Verificar formato
+        run: |
+          if ! gofmt -l . | grep -q .; then
+            echo "✓ Código formateado correctamente"
+          else
+            echo "✗ Código no está formateado:"
+            gofmt -l .
+            exit 1
+          fi
+
+      - name: Análisis estático (go vet)
+        run: go vet ./...
+
+      - name: Ejecutar tests
+        run: go test -v -race ./...
+
+      - name: Tests con cobertura
+        run: |
+          mkdir -p coverage
+          go test -v -race -coverprofile=coverage/coverage.out -covermode=atomic ./...
+          go tool cover -func=coverage/coverage.out
+
+      - name: Verificar build
+        run: go build -v ./...
+
+      - name: Subir cobertura
+        uses: codecov/codecov-action@v3
+        if: success()
+        with:
+          file: ./coverage/coverage.out
+          flags: unittests
+          name: codecov-release
+          fail_ci_if_error: false
+
+  create-github-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [validate-release]
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Obtener tag actual
+        id: tag
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "version=${TAG#v}" >> $GITHUB_OUTPUT
+
+      - name: Extraer changelog para esta versión
+        id: changelog
+        run: |
+          TAG=${{ steps.tag.outputs.tag }}
+
+          # Extraer sección del CHANGELOG para esta versión
+          if grep -q "## \[${{ steps.tag.outputs.version }}\]" CHANGELOG.md; then
+            CHANGELOG=$(sed -n "/## \[${{ steps.tag.outputs.version }}\]/,/## \[/p" CHANGELOG.md | sed '$d')
+          else
+            CHANGELOG="Release $TAG"
+          fi
+
+          {
+            echo 'changelog<<EOF'
+            echo "$CHANGELOG"
+            echo 'EOF'
+          } >> $GITHUB_OUTPUT
+
+      - name: Crear GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          release_name: Release ${{ steps.tag.outputs.tag }}
+          body: |
+            ${{ steps.changelog.outputs.changelog }}
+
+            ---
+
+            ## 📦 Installation
+
+            ### Core Module
+            ```bash
+            go get github.com/EduGoGroup/edugo-shared@${{ steps.tag.outputs.tag }}
+            ```
+
+            ### Database Modules
+            ```bash
+            # PostgreSQL
+            go get github.com/EduGoGroup/edugo-shared/database/postgres@${{ steps.tag.outputs.tag }}
+
+            # MongoDB
+            go get github.com/EduGoGroup/edugo-shared/database/mongodb@${{ steps.tag.outputs.tag }}
+            ```
+
+            ## 📚 Documentation
+            - [CHANGELOG.md](https://github.com/EduGoGroup/edugo-shared/blob/${{ steps.tag.outputs.tag }}/CHANGELOG.md)
+            - [UPGRADE_GUIDE.md](https://github.com/EduGoGroup/edugo-shared/blob/${{ steps.tag.outputs.tag }}/UPGRADE_GUIDE.md)
+
+            ---
+
+            🤖 Generated with [Claude Code](https://claude.com/claude-code)
+          draft: false
+          prerelease: false

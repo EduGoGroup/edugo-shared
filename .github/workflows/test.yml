@@ -1,20 +1,14 @@
-name: Run Tests
+name: Tests with Coverage
 
+# Manual o en PRs
 on:
-  # Trigger manual (on-demand)
-  workflow_dispatch:
-
-  # Trigger automático en PR
+  workflow_dispatch:  # Manual desde GitHub UI
   pull_request:
     branches: [ main, develop ]
 
-  # Trigger automático en push a main
-  push:
-    branches: [ main ]
-
 jobs:
-  test:
-    name: Run Tests and Coverage
+  test-coverage:
+    name: Tests with Coverage
     runs-on: ubuntu-latest
 
     steps:
@@ -32,98 +26,50 @@ jobs:
 
       - name: Ejecutar tests con cobertura
         run: |
-          echo "🧪 Ejecutando tests con cobertura..."
-          
-          # Crear directorio para reportes
           mkdir -p coverage
-          
-          # Ejecutar tests con cobertura SOLO en paquetes críticos (excluir config, errors, enums)
-          echo "📊 Generando cobertura SOLO para paquetes críticos..."
-          
-          # Paquetes críticos que SÍ necesitan cobertura
-          CRITICAL_PACKAGES="./pkg/auth/... ./pkg/database/... ./pkg/logger/... ./pkg/messaging/... ./pkg/validator/..."
-          
-          # Ejecutar tests por paquetes críticos
-          go test -v -race -coverprofile=coverage/auth.out -covermode=atomic ./pkg/auth/... || echo "⚠️  Auth tests fallaron pero continuamos"
-          go test -v -race -coverprofile=coverage/database.out -covermode=atomic ./pkg/database/... || echo "⚠️  Database tests fallaron pero continuamos"
-          
-          # Ejecutar tests en paquetes críticos juntos
-          echo "🎯 Ejecutando tests solo en paquetes críticos..."
-          go test -v -race -coverprofile=coverage/critical.out -covermode=atomic $CRITICAL_PACKAGES || echo "⚠️  Tests fallaron pero continuamos"
-          
-          # Ejecutar tests completos pero solo mostrar cobertura de críticos
-          echo "📋 Ejecutando todos los tests (incluye tipos/utils para verificar funcionalidad)..."
-          go test -v -race -coverprofile=coverage/all.out -covermode=atomic ./... || echo "⚠️  Tests completos fallaron pero continuamos"
-          
-          # Generar reporte HTML solo de paquetes críticos
-          echo "📄 Generando reporte HTML de paquetes críticos..."
-          if [ -f coverage/critical.out ]; then
-            go tool cover -html=coverage/critical.out -o coverage/coverage-critical.html
-            echo "✅ Reporte HTML crítico generado: coverage/coverage-critical.html"
-          fi
-          
-          # Generar reporte completo también
-          if [ -f coverage/all.out ]; then
-            go tool cover -html=coverage/all.out -o coverage/coverage-all.html
-            echo "✅ Reporte HTML completo generado: coverage/coverage-all.html"
-          fi
-          
-          # Mostrar resumen de cobertura
-          echo ""
-          echo "📈 RESUMEN DE COBERTURA (Solo paquetes críticos):"
-          echo "=============================================="
-          if [ -f coverage/auth.out ]; then
-            echo "🔐 Auth (crítico):" && go tool cover -func=coverage/auth.out | tail -1
-          fi
-          if [ -f coverage/database.out ]; then
-            echo "🗄️  Database (crítico):" && go tool cover -func=coverage/database.out | tail -1  
-          fi
-          if [ -f coverage/critical.out ]; then
-            echo "⭐ CRÍTICOS TOTAL:" && go tool cover -func=coverage/critical.out | tail -1
-          fi
-          
-          echo ""
-          echo "📊 Cobertura completa (incluye types/config - solo informativo):"
-          if [ -f coverage/all.out ]; then
-            echo "🎯 Proyecto completo:" && go tool cover -func=coverage/all.out | tail -1
-          fi
-          
-          echo ""
-          echo "💡 Nota: Los paquetes config/, errors/, types/enum/ están excluidos"
-          echo "   del cálculo de cobertura crítica por ser principalmente constantes."
-          echo "✅ Tests y cobertura completados"
 
-      - name: Generar reporte de cobertura
-        run: |
-          go tool cover -func=coverage.txt
-          go tool cover -html=coverage.txt -o coverage.html
+          # Tests en módulo principal
+          go test -v -race -coverprofile=coverage/core.out -covermode=atomic ./pkg/...
 
-      - name: Verificar cobertura
-        run: |
-          echo "📊 Generando reporte de cobertura..."
-          go tool cover -func=coverage.txt
+          # Tests en módulo PostgreSQL
+          cd database/postgres
+          go test -v -race -coverprofile=../../coverage/postgres.out -covermode=atomic ./...
+          cd ../..
+
+          # Tests en módulo MongoDB
+          cd database/mongodb
+          go test -v -race -coverprofile=../../coverage/mongodb.out -covermode=atomic ./...
+          cd ../..
+
+          # Mostrar resumen
           echo ""
-          echo "✅ Tests completados exitosamente"
-          echo "📈 Cobertura reportada por paquete arriba"
+          echo "📊 Resumen de Cobertura:"
+          echo "======================="
 
-            - name: Subir reportes de cobertura
+          if [ -f coverage/core.out ]; then
+            echo "Core module:" && go tool cover -func=coverage/core.out | tail -1
+          fi
+
+          if [ -f coverage/postgres.out ]; then
+            echo "PostgreSQL module:" && go tool cover -func=coverage/postgres.out | tail -1
+          fi
+
+          if [ -f coverage/mongodb.out ]; then
+            echo "MongoDB module:" && go tool cover -func=coverage/mongodb.out | tail -1
+          fi
+
+      - name: Subir reportes de cobertura
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: coverage-reports
-          path: |
-            coverage/coverage-critical.html
-            coverage/coverage-all.html
-            coverage/*.out
-            .testcoverage.yml
+          path: coverage/*.out
           retention-days: 30
 
-      - name: Ejecutar linter
-        run: |
-          echo "🔍 Verificando código con linter..."
-          if command -v staticcheck >/dev/null 2>&1; then
-            staticcheck ./... || echo "⚠️  Linter encontró advertencias (no crítico)"
-          else
-            echo "⚠️  Staticcheck no disponible, saltando linter"
-          fi
-          echo "✅ Verificación de linter completada"
+      - name: Subir a Codecov
+        uses: codecov/codecov-action@v3
+        if: success()
+        with:
+          directory: ./coverage/
+          flags: unittests
+          fail_ci_if_error: false

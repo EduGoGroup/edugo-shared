@@ -8,8 +8,18 @@ on:
 
 jobs:
   test-coverage:
-    name: Tests with Coverage
+    name: Coverage ${{ matrix.module }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - common
+          - logger
+          - auth
+          - messaging/rabbit
+          - database/postgres
+          - database/mongodb
 
     steps:
       - name: Checkout código
@@ -22,54 +32,70 @@ jobs:
           cache: true
 
       - name: Descargar dependencias
+        working-directory: ${{ matrix.module }}
         run: go mod download
 
       - name: Ejecutar tests con cobertura
+        working-directory: ${{ matrix.module }}
         run: |
           mkdir -p coverage
+          go test -v -race -coverprofile=coverage/coverage.out -covermode=atomic ./...
 
-          # Tests en módulo principal
-          go test -v -race -coverprofile=coverage/core.out -covermode=atomic ./pkg/...
-
-          # Tests en módulo PostgreSQL
-          cd database/postgres
-          go test -v -race -coverprofile=../../coverage/postgres.out -covermode=atomic ./...
-          cd ../..
-
-          # Tests en módulo MongoDB
-          cd database/mongodb
-          go test -v -race -coverprofile=../../coverage/mongodb.out -covermode=atomic ./...
-          cd ../..
-
-          # Mostrar resumen
-          echo ""
-          echo "📊 Resumen de Cobertura:"
-          echo "======================="
-
-          if [ -f coverage/core.out ]; then
-            echo "Core module:" && go tool cover -func=coverage/core.out | tail -1
+          if [ -f coverage/coverage.out ]; then
+            echo ""
+            echo "📊 Cobertura de ${{ matrix.module }}:"
+            go tool cover -func=coverage/coverage.out | tail -1
           fi
 
-          if [ -f coverage/postgres.out ]; then
-            echo "PostgreSQL module:" && go tool cover -func=coverage/postgres.out | tail -1
-          fi
-
-          if [ -f coverage/mongodb.out ]; then
-            echo "MongoDB module:" && go tool cover -func=coverage/mongodb.out | tail -1
-          fi
-
-      - name: Subir reportes de cobertura
+      - name: Subir reporte de cobertura
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: coverage-reports
-          path: coverage/*.out
+          name: coverage-${{ matrix.module }}
+          path: ${{ matrix.module }}/coverage/coverage.out
           retention-days: 30
 
       - name: Subir a Codecov
         uses: codecov/codecov-action@v3
         if: success()
         with:
-          directory: ./coverage/
-          flags: unittests
+          file: ${{ matrix.module }}/coverage/coverage.out
+          flags: ${{ matrix.module }}
           fail_ci_if_error: false
+
+  coverage-summary:
+    name: Coverage Summary
+    runs-on: ubuntu-latest
+    needs: test-coverage
+    if: always()
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - name: Download all coverage artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: coverage-artifacts
+
+      - name: Generate summary
+        run: |
+          echo "# 📊 Resumen de Cobertura por Módulo" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Módulo | Cobertura |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-----------|" >> $GITHUB_STEP_SUMMARY
+
+          for dir in coverage-artifacts/coverage-*/; do
+            if [ -d "$dir" ]; then
+              module=$(basename "$dir" | sed 's/coverage-//')
+              if [ -f "$dir/coverage.out" ]; then
+                coverage=$(go tool cover -func="$dir/coverage.out" | tail -1 | awk '{print $NF}')
+                echo "| $module | $coverage |" >> $GITHUB_STEP_SUMMARY
+              fi
+            fi
+          done

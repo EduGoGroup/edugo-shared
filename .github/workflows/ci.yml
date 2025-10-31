@@ -11,9 +11,19 @@ env:
   GO_VERSION: '1.23'
 
 jobs:
-  test:
-    name: Tests and Checks
+  test-modules:
+    name: Test ${{ matrix.module }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - common
+          - logger
+          - auth
+          - messaging/rabbit
+          - database/postgres
+          - database/mongodb
 
     steps:
       - name: Checkout código
@@ -24,21 +34,10 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
-
-      - name: Cache Go modules
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-
-      - name: Descargar dependencias
-        run: go mod download
+          cache-dependency-path: ${{ matrix.module }}/go.sum
 
       - name: Verificar formato
+        working-directory: ${{ matrix.module }}
         run: |
           if ! gofmt -l . | grep -q .; then
             echo "✓ Código formateado correctamente"
@@ -48,19 +47,35 @@ jobs:
             exit 1
           fi
 
+      - name: Descargar dependencias
+        working-directory: ${{ matrix.module }}
+        run: go mod download
+
       - name: Análisis estático (go vet)
+        working-directory: ${{ matrix.module }}
         run: go vet ./...
 
       - name: Ejecutar tests con race detection
+        working-directory: ${{ matrix.module }}
         run: go test -v -race ./...
 
       - name: Verificar build
+        working-directory: ${{ matrix.module }}
         run: go build -v ./...
 
   lint:
     name: Linter (Optional)
     runs-on: ubuntu-latest
     continue-on-error: true  # No falla el CI si el linter tiene warnings
+    strategy:
+      matrix:
+        module:
+          - common
+          - logger
+          - auth
+          - messaging/rabbit
+          - database/postgres
+          - database/mongodb
 
     steps:
       - name: Checkout código
@@ -77,15 +92,21 @@ jobs:
           curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin
           echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
 
-      - name: Ejecutar linter
+      - name: Ejecutar linter en ${{ matrix.module }}
+        working-directory: ${{ matrix.module }}
         run: golangci-lint run --timeout=5m || echo "Linter warnings found (not critical)"
 
   compatibility:
-    name: Go Version Compatibility
+    name: Go ${{ matrix.go-version }} Compatibility
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         go-version: ['1.23', '1.24', '1.25']
+        module:
+          - common
+          - auth
+          - logger
 
     steps:
       - name: Checkout código
@@ -97,10 +118,13 @@ jobs:
           go-version: ${{ matrix.go-version }}
 
       - name: Descargar dependencias
+        working-directory: ${{ matrix.module }}
         run: go mod download
 
       - name: Ejecutar tests
+        working-directory: ${{ matrix.module }}
         run: go test -v ./...
 
       - name: Verificar build
+        working-directory: ${{ matrix.module }}
         run: go build -v ./...

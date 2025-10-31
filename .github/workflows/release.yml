@@ -10,9 +10,19 @@ env:
   GO_VERSION: '1.23'
 
 jobs:
-  validate-release:
-    name: Validate Release
+  validate-modules:
+    name: Validate ${{ matrix.module }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        module:
+          - common
+          - logger
+          - auth
+          - messaging/rabbit
+          - database/postgres
+          - database/mongodb
 
     steps:
       - name: Checkout código
@@ -25,9 +35,11 @@ jobs:
           cache: true
 
       - name: Descargar dependencias
+        working-directory: ${{ matrix.module }}
         run: go mod download
 
       - name: Verificar formato
+        working-directory: ${{ matrix.module }}
         run: |
           if ! gofmt -l . | grep -q .; then
             echo "✓ Código formateado correctamente"
@@ -38,36 +50,39 @@ jobs:
           fi
 
       - name: Análisis estático (go vet)
+        working-directory: ${{ matrix.module }}
         run: go vet ./...
 
       - name: Ejecutar tests
+        working-directory: ${{ matrix.module }}
         run: go test -v -race ./...
 
       - name: Tests con cobertura
+        working-directory: ${{ matrix.module }}
         run: |
           mkdir -p coverage
-          # Solo ejecutar cobertura en paquetes con tests
-          go test -v -race -coverprofile=coverage/coverage.out -covermode=atomic ./pkg/auth/...
+          go test -v -race -coverprofile=coverage/coverage.out -covermode=atomic ./... || true
           if [ -f coverage/coverage.out ]; then
             go tool cover -func=coverage/coverage.out
           fi
 
       - name: Verificar build
+        working-directory: ${{ matrix.module }}
         run: go build -v ./...
 
       - name: Subir cobertura
         uses: codecov/codecov-action@v3
         if: success()
         with:
-          file: ./coverage/coverage.out
-          flags: unittests
-          name: codecov-release
+          file: ${{ matrix.module }}/coverage/coverage.out
+          flags: ${{ matrix.module }}
+          name: codecov-release-${{ matrix.module }}
           fail_ci_if_error: false
 
   create-github-release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
-    needs: [validate-release]
+    needs: [validate-modules]
     permissions:
       contents: write
 
@@ -107,32 +122,56 @@ jobs:
 
           # Crear release con gh CLI
           gh release create "$TAG" \
-            --title "Release $TAG" \
+            --title "Release $TAG - Arquitectura Modular" \
             --notes-file /tmp/changelog.md \
-            --notes-start-tag "---" \
             --notes "
 
           ---
 
-          ## 📦 Installation
+          ## 📦 Instalación por Módulo
 
-          ### Core Module
+          ### Common (Errors, Types, Validator, Config)
           \`\`\`bash
-          go get github.com/EduGoGroup/edugo-shared@$TAG
+          go get github.com/EduGoGroup/edugo-shared/common@$TAG
           \`\`\`
 
-          ### Database Modules
+          ### Logger (Zap)
           \`\`\`bash
-          # PostgreSQL
-          go get github.com/EduGoGroup/edugo-shared/database/postgres@$TAG
+          go get github.com/EduGoGroup/edugo-shared/logger@$TAG
+          \`\`\`
 
-          # MongoDB
+          ### Auth (JWT)
+          \`\`\`bash
+          go get github.com/EduGoGroup/edugo-shared/auth@$TAG
+          \`\`\`
+
+          ### RabbitMQ
+          \`\`\`bash
+          go get github.com/EduGoGroup/edugo-shared/messaging/rabbit@$TAG
+          \`\`\`
+
+          ### PostgreSQL
+          \`\`\`bash
+          go get github.com/EduGoGroup/edugo-shared/database/postgres@$TAG
+          \`\`\`
+
+          ### MongoDB
+          \`\`\`bash
           go get github.com/EduGoGroup/edugo-shared/database/mongodb@$TAG
           \`\`\`
 
-          ## 📚 Documentation
+          ## 🎯 Beneficios de la Arquitectura Modular
+
+          - ✅ **Dependencias selectivas**: Solo descarga lo que necesitas
+          - ✅ **Binarios optimizados**: Menor tamaño del ejecutable
+          - ✅ **Mejor mantenibilidad**: Cada módulo es independiente
+          - ✅ **Testing modular**: Tests aislados por módulo
+
+          ## 📚 Documentación
+
           - [CHANGELOG.md](https://github.com/EduGoGroup/edugo-shared/blob/$TAG/CHANGELOG.md)
           - [UPGRADE_GUIDE.md](https://github.com/EduGoGroup/edugo-shared/blob/$TAG/UPGRADE_GUIDE.md)
+          - [README.md](https://github.com/EduGoGroup/edugo-shared/blob/$TAG/README.md)
 
           ---
 

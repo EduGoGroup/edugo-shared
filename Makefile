@@ -55,14 +55,28 @@ test-race: ## Ejecutar tests con detección de race conditions
 	@go test -race -v ./...
 	@echo "$(GREEN)✓ Tests con race detection completados$(NC)"
 
-.PHONY: test-coverage
-test-coverage: ## Ejecutar tests con reporte de cobertura
-	@echo "$(BLUE)Ejecutando tests con cobertura...$(NC)"
+.PHONY: test-coverage test-coverage-critical test-coverage-all
+test-coverage: test-coverage-critical ## Ejecutar tests con cobertura (solo paquetes críticos)
+
+test-coverage-critical: ## Ejecutar tests con cobertura SOLO en paquetes críticos
+	@echo "$(BLUE)Ejecutando tests con cobertura (solo paquetes críticos)...$(NC)"
 	@mkdir -p $(COVERAGE_DIR)
-	@go test -coverprofile=$(COVERAGE_DIR)/coverage.out ./...
-	@go tool cover -html=$(COVERAGE_DIR)/coverage.out -o $(COVERAGE_DIR)/coverage.html
-	@go tool cover -func=$(COVERAGE_DIR)/coverage.out
-	@echo "$(GREEN)✓ Reporte de cobertura generado en $(COVERAGE_DIR)/coverage.html$(NC)"
+	@echo "$(YELLOW)⭐ Paquetes críticos: auth, database, logger, messaging, validator$(NC)"
+	@go test -v -race -coverprofile=$(COVERAGE_DIR)/critical.out -covermode=atomic \
+		./pkg/auth/... ./pkg/database/... ./pkg/logger/... ./pkg/messaging/... ./pkg/validator/...
+	@go tool cover -html=$(COVERAGE_DIR)/critical.out -o $(COVERAGE_DIR)/coverage-critical.html
+	@echo "$(BLUE)📊 Cobertura de paquetes críticos:$(NC)"
+	@go tool cover -func=$(COVERAGE_DIR)/critical.out | tail -1
+	@echo "$(GREEN)✓ Reporte crítico generado en $(COVERAGE_DIR)/coverage-critical.html$(NC)"
+
+test-coverage-all: ## Ejecutar tests con cobertura en TODOS los paquetes
+	@echo "$(BLUE)Ejecutando tests con cobertura completa...$(NC)"
+	@mkdir -p $(COVERAGE_DIR)
+	@go test -v -race -coverprofile=$(COVERAGE_DIR)/all.out -covermode=atomic ./...
+	@go tool cover -html=$(COVERAGE_DIR)/all.out -o $(COVERAGE_DIR)/coverage-all.html
+	@echo "$(BLUE)📊 Cobertura completa (incluye config/errors/types):$(NC)"
+	@go tool cover -func=$(COVERAGE_DIR)/all.out | tail -1
+	@echo "$(GREEN)✓ Reporte completo generado en $(COVERAGE_DIR)/coverage-all.html$(NC)"
 
 .PHONY: test-short
 test-short: ## Ejecutar tests cortos (skip tests largos)
@@ -129,6 +143,29 @@ clean: ## Limpiar archivos generados
 	@go clean -testcache
 	@go clean -modcache
 	@echo "$(GREEN)✓ Limpieza completada$(NC)"
+
+.PHONY: coverage-info
+coverage-info: ## Mostrar información sobre configuración de cobertura
+	@echo "$(BLUE)📋 Configuración de Cobertura:$(NC)"
+	@echo ""
+	@echo "$(GREEN)✅ Paquetes CRÍTICOS (deben tener buena cobertura):$(NC)"
+	@echo "  🔐 pkg/auth/     - Autenticación JWT"
+	@echo "  🗄️  pkg/database/ - Conexiones y transacciones"  
+	@echo "  📝 pkg/logger/   - Configuración de logging"
+	@echo "  📨 pkg/messaging/- Publisher/Consumer"
+	@echo "  ✅ pkg/validator/- Validaciones de entrada"
+	@echo ""
+	@echo "$(YELLOW)⚠️  Paquetes EXCLUIDOS (no afectan cobertura crítica):$(NC)"
+	@echo "  ⚙️  pkg/config/   - Solo getters de env vars"
+	@echo "  ❌ pkg/errors/   - Solo constructores de errores"
+	@echo "  🏷️  pkg/types/enum/ - Solo constantes y métodos simples"
+	@echo ""
+	@echo "$(BLUE)📊 Comandos disponibles:$(NC)"
+	@echo "  make test-coverage-critical  - Solo paquetes críticos"
+	@echo "  make test-coverage-all      - Todos los paquetes (informativo)"
+	@echo "  make test-coverage          - Alias para critical"
+	@echo ""
+	@echo "Ver configuración completa en: .testcoverage.yml"
 
 .PHONY: docs
 docs: ## Generar documentación

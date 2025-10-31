@@ -1,139 +1,229 @@
 # EduGo Shared Library
 
-[![Go Version](https://img.shields.io/badge/go-%3E%3D1.21-blue)](https://golang.org/)
+[![Go Version](https://img.shields.io/badge/go-%3E%3D1.23-blue)](https://golang.org/)
 [![Release](https://img.shields.io/github/v/release/EduGoGroup/edugo-shared)](https://github.com/EduGoGroup/edugo-shared/releases)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-[![Test Coverage](https://img.shields.io/badge/coverage-87.2%25-brightgreen)](https://github.com/EduGoGroup/edugo-shared)
 
-Professional Go shared library with utilities and reusable components for EduGo projects.
+Professional Go shared library with modular architecture and reusable components for EduGo projects.
 
-## 🏗️ Arquitectura Modular
+## 🏗️ Arquitectura Modular (v2.0.5+)
 
-Este proyecto utiliza **sub-módulos independientes** para optimizar dependencias. Los módulos de bases de datos están separados para que puedas importar solo lo que necesitas.
+Este proyecto utiliza **módulos Go independientes** para optimizar dependencias y permitir instalación selectiva.
 
-### Estructura
+### ✨ Beneficios
 
-```
-edugo-shared/
-├── pkg/                    # Módulo principal (core)
-│   ├── logger/            # Logging interface y implementación con Zap
-│   ├── messaging/         # RabbitMQ helpers (publisher, consumer)
-│   ├── errors/            # Error handling personalizado
-│   ├── validator/         # Validaciones comunes
-│   ├── auth/              # JWT helpers y autenticación
-│   ├── config/            # Configuration loaders
-│   └── types/             # Tipos compartidos (UUID, Timestamp, Enums)
-│       └── enum/          # Enumeraciones (Role, Status, etc.)
-├── database/               # Sub-módulos de bases de datos
-│   ├── postgres/          # Módulo PostgreSQL (independiente)
-│   │   └── go.mod
-│   └── mongodb/           # Módulo MongoDB (independiente)
-│       └── go.mod
-└── go.mod                 # Módulo principal
-```
-
-### 🎯 Ventajas de la Arquitectura Modular
-
-- ✅ **Dependencias selectivas**: Solo descarga las librerías de BD que necesites
+- ✅ **Dependencias selectivas**: Solo descarga las librerías que necesitas
 - ✅ **Binarios optimizados**: Menor tamaño del ejecutable final
 - ✅ **Menor superficie de ataque**: Menos dependencias = menos vulnerabilidades
 - ✅ **Builds más rápidos**: Menos código que compilar
+- ✅ **Testing modular**: Tests aislados por módulo
 
-## 📦 Installation
+### 📦 Módulos Disponibles
 
-### Módulo Principal (Core)
-
-Incluye logger, messaging, errors, validator, auth, config y types:
-
-```bash
-go get github.com/EduGoGroup/edugo-shared@v2.0.0
+```
+edugo-shared/
+├── common/                    # Errors, Types, Validator, Config
+│   └── go.mod                # Deps: google/uuid (liviano)
+├── logger/                    # Logging con Zap
+│   └── go.mod                # Deps: go.uber.org/zap
+├── auth/                      # JWT Authentication
+│   └── go.mod                # Deps: jwt, uuid, common
+├── messaging/
+│   └── rabbit/                # RabbitMQ helpers
+│       └── go.mod            # Deps: rabbitmq/amqp091-go
+└── database/
+    ├── postgres/              # PostgreSQL utilities
+    │   └── go.mod            # Deps: lib/pq
+    └── mongodb/               # MongoDB utilities
+        └── go.mod            # Deps: mongo-driver
 ```
 
-### Módulos de Base de Datos (Opcionales)
+---
 
-Instala solo el que necesites:
+## 📦 Instalación
 
-#### PostgreSQL
-```bash
-go get github.com/EduGoGroup/edugo-shared/database/postgres@v2.0.0
-```
+### Módulo Common (Errors, Types, Validator, Config)
 
-#### MongoDB
-```bash
-go get github.com/EduGoGroup/edugo-shared/database/mongodb@v2.0.0
-```
-
-#### Ambos
-```bash
-go get github.com/EduGoGroup/edugo-shared/database/postgres@v2.0.0
-go get github.com/EduGoGroup/edugo-shared/database/mongodb@v2.0.0
-```
-
-### Listar Versiones Disponibles
+**El más liviano - Sin dependencias externas pesadas**
 
 ```bash
-# Módulo principal
-go list -m -versions github.com/EduGoGroup/edugo-shared
-
-# Módulos de base de datos
-go list -m -versions github.com/EduGoGroup/edugo-shared/database/postgres
-go list -m -versions github.com/EduGoGroup/edugo-shared/database/mongodb
+go get github.com/EduGoGroup/edugo-shared/common@v2.0.5
 ```
+
+**Incluye:**
+- 🚨 Manejo de errores estructurado (`errors`)
+- 🏷️ Types compartidos: UUID, Enums (`types`)
+- ✅ Validaciones comunes (`validator`)
+- ⚙️ Configuration loaders (`config`)
+
+**Dependencias:** Solo `google/uuid` (liviana)
+
+---
+
+### Módulo Logger
+
+```bash
+go get github.com/EduGoGroup/edugo-shared/logger@v2.0.5
+```
+
+**Incluye:**
+- 📝 Interface Logger
+- 📊 Implementación con Uber Zap
+- 🎨 Formatos: JSON, Console con colores
+
+**Dependencias:** `go.uber.org/zap`
+
+---
+
+### Módulo Auth (JWT)
+
+```bash
+go get github.com/EduGoGroup/edugo-shared/auth@v2.0.5
+```
+
+**Incluye:**
+- 🔐 Generación de tokens JWT
+- ✅ Validación de tokens
+- 🔄 Refresh tokens
+- 👥 Soporte para roles (admin, teacher, student, guardian)
+
+**Dependencias:** `golang-jwt/jwt`, `google/uuid`, `common`
+
+---
+
+### Módulo RabbitMQ
+
+```bash
+go get github.com/EduGoGroup/edugo-shared/messaging/rabbit@v2.0.5
+```
+
+**Incluye:**
+- 📨 Publisher interface
+- 📥 Consumer interface
+- 🔌 Connection management
+- ⚙️ Configuration helpers
+
+**Dependencias:** `rabbitmq/amqp091-go`
+
+---
+
+### Módulo PostgreSQL
+
+```bash
+go get github.com/EduGoGroup/edugo-shared/database/postgres@v2.0.5
+```
+
+**Incluye:**
+- 🗄️ Connection pooling
+- 🔒 Transaction support
+- 🏥 Health checks
+- ⚙️ Configuration utilities
+
+**Dependencias:** `lib/pq`
+
+---
+
+### Módulo MongoDB
+
+```bash
+go get github.com/EduGoGroup/edugo-shared/database/mongodb@v2.0.5
+```
+
+**Incluye:**
+- 🗄️ Client configuration
+- 🔄 Replica set support
+- ☁️ MongoDB Atlas support
+- ⚙️ Connection pooling
+
+**Dependencias:** `mongo-driver`
+
+---
 
 ## 🚀 Quick Start
 
-### 1. Instalar módulos
+### Ejemplo 1: Solo Errores y Validación (Ultra Liviano)
 
 ```bash
-# Core (siempre necesario)
-go get github.com/EduGoGroup/edugo-shared@v2.0.0
-
-# PostgreSQL (opcional)
-go get github.com/EduGoGroup/edugo-shared/database/postgres@v2.0.0
+go get github.com/EduGoGroup/edugo-shared/common@v2.0.5
 ```
-
-### 2. Importar en código
 
 ```go
 import (
-    // Core
-    "github.com/EduGoGroup/edugo-shared/pkg/logger"
-    "github.com/EduGoGroup/edugo-shared/pkg/auth"
+    "github.com/EduGoGroup/edugo-shared/common/errors"
+    "github.com/EduGoGroup/edugo-shared/common/validator"
+)
 
-    // Base de datos (solo si lo instalaste)
+// Manejo de errores
+err := errors.NewValidationError("email inválido")
+err.WithField("email", userEmail)
+
+// Validación
+v := validator.New()
+v.Email(email, "email")
+v.Required(name, "name")
+
+if v.HasErrors() {
+    return v.GetError()
+}
+```
+
+**Resultado:** `go.mod` con CERO dependencias externas pesadas ✅
+
+---
+
+### Ejemplo 2: Autenticación JWT
+
+```bash
+go get github.com/EduGoGroup/edugo-shared/auth@v2.0.5
+go get github.com/EduGoGroup/edugo-shared/common@v2.0.5
+```
+
+```go
+import (
+    "github.com/EduGoGroup/edugo-shared/auth"
+    "github.com/EduGoGroup/edugo-shared/common/types/enum"
+)
+
+// Crear JWT Manager
+jwtManager := auth.NewJWTManager("secret-key", "edugo-api")
+
+// Generar token
+token, err := jwtManager.GenerateToken(
+    userID,
+    email,
+    enum.SystemRoleTeacher,
+    24*time.Hour,
+)
+
+// Validar token
+claims, err := jwtManager.ValidateToken(token)
+```
+
+**Resultado:** Solo 3 dependencias (jwt, uuid, common) ✅
+
+---
+
+### Ejemplo 3: API Completa con Postgres y Logger
+
+```bash
+go get github.com/EduGoGroup/edugo-shared/common@v2.0.5
+go get github.com/EduGoGroup/edugo-shared/logger@v2.0.5
+go get github.com/EduGoGroup/edugo-shared/auth@v2.0.5
+go get github.com/EduGoGroup/edugo-shared/database/postgres@v2.0.5
+```
+
+```go
+import (
+    "github.com/EduGoGroup/edugo-shared/common/errors"
+    "github.com/EduGoGroup/edugo-shared/logger"
+    "github.com/EduGoGroup/edugo-shared/auth"
     "github.com/EduGoGroup/edugo-shared/database/postgres"
 )
-```
 
-### 3. Actualizar dependencias
+// Logger
+log := logger.NewZapLogger("info", "json")
 
-```bash
-go mod tidy
-```
-
-## Paquetes Disponibles
-
-### Logger
-
-Interface de logging con implementación Zap:
-
-```go
-logger := logger.NewZapLogger("info", "json")
-logger.Info("mensaje", "key", "value")
-logger.Error("error", "error", err)
-```
-
-### Database - PostgreSQL
-
-**Instalación:**
-```bash
-go get github.com/EduGoGroup/edugo-shared/database/postgres@v2.0.0
-```
-
-**Uso:**
-```go
-import "github.com/EduGoGroup/edugo-shared/database/postgres"
-
+// Database
 db, err := postgres.Connect(postgres.Config{
     Host:     "localhost",
     Port:     5432,
@@ -141,206 +231,176 @@ db, err := postgres.Connect(postgres.Config{
     User:     "user",
     Password: "pass",
 })
+
+// Auth
+jwtManager := auth.NewJWTManager(secretKey, "api")
 ```
 
-### Database - MongoDB
+---
 
-**Instalación:**
+## 📚 Documentación por Módulo
+
+### Common
+
+- **Errors**: Códigos de error estandarizados con HTTP status codes
+- **Types**: UUID wrapper, Enums (Role, Status, Events, Assessment)
+- **Validator**: Email, UUID, URL, nombres, rangos numéricos
+- **Config**: Helpers para leer variables de entorno
+
+### Logger
+
+- **Niveles**: Debug, Info, Warn, Error, Fatal
+- **Formatos**: JSON (producción), Console con colores (desarrollo)
+- **Features**: Structured logging, context fields, caller info
+
+### Auth
+
+- **JWT Manager**: Generación y validación de tokens
+- **Claims**: UserID, Email, Role, timestamps estándar
+- **Refresh**: Soporte para refresh tokens
+- **Roles**: Admin, Teacher, Student, Guardian
+
+### Messaging/Rabbit
+
+- **Connection**: Connection pooling y reconexión automática
+- **Publisher**: Publicar mensajes con routing keys
+- **Consumer**: Consumir mensajes con prefetch configurable
+- **Config**: Exchange y Queue declaration helpers
+
+### Database/Postgres
+
+- **Connection**: Pool con configuración avanzada
+- **Transactions**: Begin, Commit, Rollback helpers
+- **Health**: Health check endpoint support
+- **SSL**: Soporte para SSL modes (disable, require, verify-ca, verify-full)
+
+### Database/MongoDB
+
+- **Client**: Configuración de cliente MongoDB
+- **Replica Sets**: Soporte completo
+- **Atlas**: Compatible con `mongodb+srv://`
+- **Pooling**: Connection pool configurable
+
+---
+
+## 🔄 Migración desde v2.0.1
+
+Ver [UPGRADE_GUIDE.md](UPGRADE_GUIDE.md) para instrucciones detalladas.
+
+### Resumen Rápido
+
+**ANTES (v2.0.1):**
+```go
+import "github.com/EduGoGroup/edugo-shared/v2/pkg/errors"
+import "github.com/EduGoGroup/edugo-shared/v2/pkg/auth"
+```
+
 ```bash
-go get github.com/EduGoGroup/edugo-shared/database/mongodb@v2.0.0
+go get github.com/EduGoGroup/edugo-shared/v2@v2.0.1
+# Descarga: RabbitMQ, JWT, Zap, Postgres, Mongo (TODO)
 ```
 
-**Uso:**
+**DESPUÉS (v2.0.5):**
 ```go
-import "github.com/EduGoGroup/edugo-shared/database/mongodb"
-
-client, err := mongodb.Connect(mongodb.Config{
-    URI:      "mongodb://localhost:27017",
-    Database: "edugo",
-})
+import "github.com/EduGoGroup/edugo-shared/common/errors"
+import "github.com/EduGoGroup/edugo-shared/auth"
 ```
 
-### Messaging - RabbitMQ
-
-Publisher y Consumer interfaces:
-
-```go
-publisher := messaging.NewPublisher(conn)
-publisher.Publish(ctx, "exchange", "routing.key", payload)
+```bash
+go get github.com/EduGoGroup/edugo-shared/common@v2.0.5
+go get github.com/EduGoGroup/edugo-shared/auth@v2.0.5
+# Descarga: Solo JWT + UUID + common (selectivo) ✅
 ```
 
-### Errors
+---
 
-Errores personalizados con códigos:
-
-```go
-err := errors.NewNotFoundError("user not found")
-err := errors.NewValidationError("invalid email")
-err := errors.NewInternalError("database connection failed")
-```
-
-### Validator
-
-Validaciones comunes:
-
-```go
-validator.IsValidEmail("test@example.com")
-validator.IsValidUUID("123e4567-e89b-12d3-a456-426614174000")
-```
-
-### Auth - JWT
-
-Generación y validación de JWT:
-
-```go
-token, err := auth.GenerateToken(userID, role, expiresIn)
-claims, err := auth.ValidateToken(token)
-```
-
-### Types
-
-Tipos compartidos:
-
-```go
-import "github.com/edugo/shared/pkg/types/enum"
-
-role := enum.SystemRoleTeacher
-status := enum.MaterialStatusPublished
-```
-
-## Versionamiento
-
-Este paquete sigue [Semantic Versioning](https://semver.org/):
-
-- **MAJOR**: Cambios incompatibles en la API
-- **MINOR**: Nueva funcionalidad compatible con versiones anteriores
-- **PATCH**: Corrección de bugs compatibles
-
-## Desarrollo
+## 🛠️ Desarrollo
 
 ### Comandos Make Disponibles
 
-Este proyecto incluye un Makefile con comandos útiles para desarrollo:
-
 ```bash
-# Ver todos los comandos disponibles
-make help
-
-# Configurar entorno de desarrollo
-make setup
-
-# Comandos básicos
-make build          # Compilar proyecto
-make test           # Ejecutar tests
-make fmt            # Formatear código
-make lint           # Ejecutar linter
-make vet            # Análisis estático
-
-# Tests avanzados
-make test-race      # Tests con detección de race conditions
-make test-coverage  # Tests con reporte de cobertura
-make benchmark      # Ejecutar benchmarks
-
-# Verificaciones completas
-make check-all      # Todas las verificaciones
-make ci             # Pipeline CI completo
-make pre-commit     # Verificaciones rápidas antes de commit
-
-# Herramientas
-make install-tools  # Instalar herramientas de desarrollo
-make docs-serve     # Servir documentación en localhost:6060
-make security       # Análisis de seguridad
-
-# Utilidades
-make clean          # Limpiar archivos generados
-make deps           # Actualizar dependencias
-make version        # Mostrar versiones
+make help                # Ver todos los comandos
+make test-all-modules    # Tests de todos los módulos
+make build-all-modules   # Build de todos los módulos
+make lint-all-modules    # Linter en todos los módulos
+make coverage-all-modules # Coverage de todos los módulos
 ```
 
-### Agregar nueva funcionalidad
-
-1. Crear nuevo paquete en `pkg/`
-2. Implementar con interfaces cuando sea posible
-3. Agregar tests unitarios
-4. Actualizar este README
-5. Ejecutar `make pre-commit` antes del commit
-6. Hacer commit siguiendo conventional commits
-
-### Tests
+### Tests por Módulo
 
 ```bash
-# Tests básicos
-make test
-
-# Tests con cobertura
-make test-coverage
-
-# Tests completos (con race detection)
-make test-race
+cd common && go test ./...
+cd logger && go test ./...
+cd auth && go test ./...
+cd messaging/rabbit && go test ./...
+cd database/postgres && go test ./...
+cd database/mongodb && go test ./...
 ```
 
-### Formato y Lint
+---
 
-```bash
-# Formatear código
-make fmt
+## 📊 Comparación de Dependencias
 
-# Análisis estático
-make vet
+| Caso de Uso | v2.0.1 (Monolítico) | v2.0.5 (Modular) | Ahorro |
+|-------------|---------------------|------------------|--------|
+| Solo errores y types | 15+ deps | 1 dep (uuid) | ~93% |
+| Errors + Auth | 15+ deps | 3 deps | ~80% |
+| API completa (Postgres + Auth + Logger) | 15+ deps | ~8 deps | ~47% |
+| API + RabbitMQ + Mongo | 15+ deps | ~12 deps | ~20% |
 
-# Linter completo
-make lint
+---
 
-# Todo junto
-make check-all
-```
+## 📋 Versionamiento
 
-## Contribuir
+Este proyecto sigue [Semantic Versioning](https://semver.org/):
 
-Al agregar nuevo código a `shared`:
+- **MAJOR**: Cambios incompatibles en la API
+- **MINOR**: Nueva funcionalidad compatible
+- **PATCH**: Corrección de bugs
 
-1. Asegurarse que sea **realmente compartido** (usado por 2+ proyectos)
+### Historial de Versiones
+
+- **v2.0.5** (2025-10-31): Arquitectura modular completa con 6 módulos independientes
+- **v2.0.0** (2025-10-31): Separación inicial de databases en sub-módulos
+- **v1.0.0** (2025-10-31): Primera versión estable monolítica
+
+Ver [CHANGELOG.md](CHANGELOG.md) para detalles completos.
+
+---
+
+## 🤝 Contribuir
+
+1. Asegurarse que el cambio sea **realmente compartido** (usado por 2+ proyectos)
 2. Documentar públicamente con comentarios Go
 3. Agregar tests unitarios (coverage mínimo 80%)
 4. Usar interfaces para flexibilidad
-5. Evitar dependencias externas pesadas
+5. Mantener módulos independientes
 
-## 📋 Versioning
+### Agregar Nueva Funcionalidad
 
-This project follows [Semantic Versioning](https://semver.org/). 
+```bash
+# 1. Determinar módulo correcto
+# 2. Implementar con tests
+cd <module> && go test ./...
 
-### Version History
+# 3. Verificar que no rompe otros módulos
+make test-all-modules
 
-- **v2.0.0** (2025-10-31): Arquitectura modular con sub-módulos independientes para bases de datos
-- **v1.0.0** (2025-10-31): First stable release with complete feature set
-- **v0.1.0**: Initial development version
+# 4. Commit siguiendo conventional commits
+git commit -m "feat(module): descripción"
+```
 
-### Compatibility Promise
-
-Starting from v1.0.0, we guarantee:
-
-- ✅ **Backward compatibility** for all PATCH and MINOR releases
-- ✅ **API stability** - no breaking changes without major version bump
-- ✅ **Clear migration guides** for any major version changes
-
-### Upgrade Guide
-
-See [UPGRADE_GUIDE.md](UPGRADE_GUIDE.md) for detailed instructions on updating your projects.
-
-## 📚 Documentation
-
-- **[CHANGELOG.md](CHANGELOG.md)**: Detailed change history
-- **[UPGRADE_GUIDE.md](UPGRADE_GUIDE.md)**: Migration instructions
-- **API Documentation**: Available via `go doc` or [pkg.go.dev](https://pkg.go.dev/github.com/EduGoGroup/edugo-shared)
-
-## 🤝 Contributing
-
-1. Follow semantic versioning principles
-2. Update CHANGELOG.md for all changes
-3. Maintain backward compatibility
-4. Add comprehensive tests
-5. Update documentation
+---
 
 ## 📄 License
 
 MIT License - EduGo Project
+
+---
+
+## 📞 Soporte
+
+- **Issues**: [GitHub Issues](https://github.com/EduGoGroup/edugo-shared/issues)
+- **Docs**: [pkg.go.dev](https://pkg.go.dev/github.com/EduGoGroup/edugo-shared)
+- **Changelog**: [CHANGELOG.md](CHANGELOG.md)
+- **Migration Guide**: [UPGRADE_GUIDE.md](UPGRADE_GUIDE.md)

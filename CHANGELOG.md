@@ -5,6 +5,98 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.5] - 2025-10-31
+
+### 🚀 BREAKING CHANGES - Arquitectura Modular Completa
+
+#### Eliminado Módulo v2 Monolítico
+
+- ❌ **Eliminado**: `github.com/EduGoGroup/edugo-shared/v2` (módulo core monolítico)
+- ❌ **Eliminado**: Carpeta `pkg/` completa
+- ❌ **Eliminado**: `go.mod` raíz
+
+#### 6 Módulos Independientes Creados
+
+1. **`common/`** - Errors, Types, Validator, Config
+   - Dependencias: Solo `google/uuid` (liviana)
+   - Path: `github.com/EduGoGroup/edugo-shared/common`
+
+2. **`logger/`** - Logging con Uber Zap
+   - Dependencias: `go.uber.org/zap`
+   - Path: `github.com/EduGoGroup/edugo-shared/logger`
+
+3. **`auth/`** - JWT Authentication
+   - Dependencias: `golang-jwt/jwt`, `google/uuid`, `common`
+   - Path: `github.com/EduGoGroup/edugo-shared/auth`
+
+4. **`messaging/rabbit/`** - RabbitMQ helpers
+   - Dependencias: `rabbitmq/amqp091-go`
+   - Path: `github.com/EduGoGroup/edugo-shared/messaging/rabbit`
+
+5. **`database/postgres/`** - PostgreSQL utilities
+   - Dependencias: `lib/pq`
+   - Path: `github.com/EduGoGroup/edugo-shared/database/postgres`
+
+6. **`database/mongodb/`** - MongoDB utilities
+   - Dependencias: `mongo-driver`
+   - Path: `github.com/EduGoGroup/edugo-shared/database/mongodb`
+
+### 📋 Migración de Imports
+
+| Antes (v2.0.1) | Después (v2.0.5) |
+|----------------|------------------|
+| `github.com/EduGoGroup/edugo-shared/v2/pkg/errors` | `github.com/EduGoGroup/edugo-shared/common/errors` |
+| `github.com/EduGoGroup/edugo-shared/v2/pkg/types` | `github.com/EduGoGroup/edugo-shared/common/types` |
+| `github.com/EduGoGroup/edugo-shared/v2/pkg/validator` | `github.com/EduGoGroup/edugo-shared/common/validator` |
+| `github.com/EduGoGroup/edugo-shared/v2/pkg/config` | `github.com/EduGoGroup/edugo-shared/common/config` |
+| `github.com/EduGoGroup/edugo-shared/v2/pkg/auth` | `github.com/EduGoGroup/edugo-shared/auth` |
+| `github.com/EduGoGroup/edugo-shared/v2/pkg/logger` | `github.com/EduGoGroup/edugo-shared/logger` |
+| `github.com/EduGoGroup/edugo-shared/v2/pkg/messaging` | `github.com/EduGoGroup/edugo-shared/messaging/rabbit` |
+| `github.com/EduGoGroup/edugo-shared/database/postgres` | Sin cambios ✓ |
+| `github.com/EduGoGroup/edugo-shared/database/mongodb` | Sin cambios ✓ |
+
+### ✨ Beneficios
+
+- ✅ **Dependencias ultra-selectivas**: Módulo `common` con solo 1 dependencia externa
+- ✅ **Ahorro de ~93%** en dependencias si solo usas `common`
+- ✅ **Ahorro de ~80%** en dependencias si usas `common` + `auth`
+- ✅ **Binarios más pequeños**: Solo se compila lo que realmente usas
+- ✅ **Testing modular**: Cada módulo se testea independientemente
+- ✅ **CI/CD optimizado**: Workflows paralelos por módulo
+
+### 🔧 CI/CD Actualizado
+
+- **ci.yml**: Strategy matrix para 6 módulos con tests paralelos
+- **test.yml**: Coverage independiente por módulo + summary consolidado
+- **release.yml**: Validación completa de todos los módulos antes de release
+
+### 📚 Documentación Actualizada
+
+- **README.md**: Sección modular completa con ejemplos por módulo
+- **UPGRADE_GUIDE.md**: Tabla de migración detallada v2.0.1 → v2.0.5
+- **Makefile**: Comandos para testear/build todos los módulos
+
+### 🎯 Ejemplo de Ahorro
+
+**Antes (v2.0.1):**
+```bash
+go get github.com/EduGoGroup/edugo-shared/v2@v2.0.1
+# Descarga: 15+ dependencias (RabbitMQ, JWT, Zap, etc.)
+```
+
+**Después (v2.0.5):**
+```bash
+go get github.com/EduGoGroup/edugo-shared/common@v2.0.5
+# Descarga: 1 dependencia (google/uuid)
+# Ahorro: ~93% ✅
+```
+
+### 📦 Instalación Modular
+
+Ver [README.md](README.md) para instrucciones completas de cada módulo.
+
+---
+
 ## [2.0.0] - 2025-10-31
 
 ### 🚀 BREAKING CHANGES

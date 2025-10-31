@@ -1,5 +1,266 @@
 # 📦 EduGo Shared Library - Guía de Actualización
 
+## 🚀 Migrar de v2.0.1 a v2.0.5 (Arquitectura Modular Completa)
+
+### ⚠️ BREAKING CHANGES IMPORTANTES
+
+La versión **v2.0.5** elimina completamente el módulo monolítico `v2` y separa **TODO** en 6 módulos independientes. Este es un cambio **MAJOR** que requiere actualización de imports en todo tu proyecto.
+
+---
+
+### 🎯 Paso 1: Entender la Nueva Arquitectura
+
+#### **Antes (v2.0.1):**
+```bash
+# Módulo monolítico con TODO incluido
+go get github.com/EduGoGroup/edugo-shared/v2@v2.0.1
+```
+```go
+import "github.com/EduGoGroup/edugo-shared/v2/pkg/errors"
+import "github.com/EduGoGroup/edugo-shared/v2/pkg/auth"
+import "github.com/EduGoGroup/edugo-shared/v2/pkg/logger"
+import "github.com/EduGoGroup/edugo-shared/v2/pkg/messaging"
+```
+
+**Problema:** Descarga 15+ dependencias (RabbitMQ, JWT, Zap, etc.) aunque solo uses `errors`.
+
+#### **Después (v2.0.5):**
+```bash
+# Instalación selectiva por módulo
+go get github.com/EduGoGroup/edugo-shared/common@v2.0.5
+go get github.com/EduGoGroup/edugo-shared/auth@v2.0.5  # Si lo necesitas
+```
+```go
+import "github.com/EduGoGroup/edugo-shared/common/errors"
+import "github.com/EduGoGroup/edugo-shared/auth"
+```
+
+**Beneficio:** Solo 1-3 dependencias según lo que uses ✅
+
+---
+
+### 📋 Paso 2: Tabla de Migración de Imports
+
+| v2.0.1 (Viejo) | v2.0.5 (Nuevo) | Módulo |
+|----------------|----------------|--------|
+| `github.com/EduGoGroup/edugo-shared/v2/pkg/errors` | `github.com/EduGoGroup/edugo-shared/common/errors` | `common` |
+| `github.com/EduGoGroup/edugo-shared/v2/pkg/types` | `github.com/EduGoGroup/edugo-shared/common/types` | `common` |
+| `github.com/EduGoGroup/edugo-shared/v2/pkg/types/enum` | `github.com/EduGoGroup/edugo-shared/common/types/enum` | `common` |
+| `github.com/EduGoGroup/edugo-shared/v2/pkg/validator` | `github.com/EduGoGroup/edugo-shared/common/validator` | `common` |
+| `github.com/EduGoGroup/edugo-shared/v2/pkg/config` | `github.com/EduGoGroup/edugo-shared/common/config` | `common` |
+| `github.com/EduGoGroup/edugo-shared/v2/pkg/auth` | `github.com/EduGoGroup/edugo-shared/auth` | `auth` |
+| `github.com/EduGoGroup/edugo-shared/v2/pkg/logger` | `github.com/EduGoGroup/edugo-shared/logger` | `logger` |
+| `github.com/EduGoGroup/edugo-shared/v2/pkg/messaging` | `github.com/EduGoGroup/edugo-shared/messaging/rabbit` | `rabbit` |
+| `github.com/EduGoGroup/edugo-shared/database/postgres` | Sin cambios ✓ | `postgres` |
+| `github.com/EduGoGroup/edugo-shared/database/mongodb` | Sin cambios ✓ | `mongodb` |
+
+---
+
+### 🔧 Paso 3: Actualizar go.mod
+
+**1. Eliminar módulo v2 antiguo:**
+```bash
+go mod edit -droprequire github.com/EduGoGroup/edugo-shared/v2
+```
+
+**2. Agregar solo los módulos que necesites:**
+```bash
+# Common (errors, types, validator, config) - Casi siempre necesario
+go get github.com/EduGoGroup/edugo-shared/common@v2.0.5
+
+# Auth (JWT) - Si usas autenticación
+go get github.com/EduGoGroup/edugo-shared/auth@v2.0.5
+
+# Logger (Zap) - Si usas logging
+go get github.com/EduGoGroup/edugo-shared/logger@v2.0.5
+
+# RabbitMQ - Si usas messaging
+go get github.com/EduGoGroup/edugo-shared/messaging/rabbit@v2.0.5
+
+# PostgreSQL - Si usas Postgres
+go get github.com/EduGoGroup/edugo-shared/database/postgres@v2.0.5
+
+# MongoDB - Si usas Mongo
+go get github.com/EduGoGroup/edugo-shared/database/mongodb@v2.0.5
+```
+
+---
+
+### 🔄 Paso 4: Reemplazar Imports en Tu Código
+
+**Opción A: Buscar/Reemplazar Manual**
+
+En tu editor, busca y reemplaza:
+```
+v2/pkg/errors        → common/errors
+v2/pkg/types         → common/types
+v2/pkg/validator     → common/validator
+v2/pkg/config        → common/config
+v2/pkg/auth          → auth
+v2/pkg/logger        → logger
+v2/pkg/messaging     → messaging/rabbit
+```
+
+**Opción B: Script Automatizado (Bash)**
+
+```bash
+#!/bin/bash
+
+# Buscar todos los archivos .go
+find . -name "*.go" -type f -exec sed -i '' \
+  -e 's|github.com/EduGoGroup/edugo-shared/v2/pkg/errors|github.com/EduGoGroup/edugo-shared/common/errors|g' \
+  -e 's|github.com/EduGoGroup/edugo-shared/v2/pkg/types|github.com/EduGoGroup/edugo-shared/common/types|g' \
+  -e 's|github.com/EduGoGroup/edugo-shared/v2/pkg/validator|github.com/EduGoGroup/edugo-shared/common/validator|g' \
+  -e 's|github.com/EduGoGroup/edugo-shared/v2/pkg/config|github.com/EduGoGroup/edugo-shared/common/config|g' \
+  -e 's|github.com/EduGoGroup/edugo-shared/v2/pkg/auth|github.com/EduGoGroup/edugo-shared/auth|g' \
+  -e 's|github.com/EduGoGroup/edugo-shared/v2/pkg/logger|github.com/EduGoGroup/edugo-shared/logger|g' \
+  -e 's|github.com/EduGoGroup/edugo-shared/v2/pkg/messaging|github.com/EduGoGroup/edugo-shared/messaging/rabbit|g' \
+  {} \;
+
+echo "✅ Imports actualizados"
+```
+
+---
+
+### ✅ Paso 5: Limpiar y Verificar
+
+```bash
+# 1. Limpiar dependencias
+go mod tidy
+
+# 2. Verificar que compile
+go build ./...
+
+# 3. Ejecutar tests
+go test ./...
+
+# 4. Verificar que las dependencias correctas estén en go.mod
+cat go.mod | grep edugo-shared
+```
+
+**Resultado esperado en go.mod:**
+```go
+require (
+    github.com/EduGoGroup/edugo-shared/common v2.0.5
+    github.com/EduGoGroup/edugo-shared/auth v2.0.5
+    // ... solo los módulos que uses
+)
+```
+
+**NO deberías ver:**
+```go
+github.com/EduGoGroup/edugo-shared/v2 v2.0.1  // ❌ ELIMINAR ESTO
+```
+
+---
+
+### 🎯 Ejemplos de Migración
+
+#### Ejemplo 1: Proyecto que solo usa Errors
+
+**Antes:**
+```go
+// go.mod
+require github.com/EduGoGroup/edugo-shared/v2 v2.0.1
+
+// main.go
+import "github.com/EduGoGroup/edugo-shared/v2/pkg/errors"
+```
+
+**Después:**
+```go
+// go.mod
+require github.com/EduGoGroup/edugo-shared/common v2.0.5
+
+// main.go
+import "github.com/EduGoGroup/edugo-shared/common/errors"
+```
+
+**Beneficio:** De 15+ deps → 1 dep (ahorro ~93%)
+
+---
+
+#### Ejemplo 2: API con Auth + Postgres + Logger
+
+**Antes:**
+```go
+// go.mod
+require (
+    github.com/EduGoGroup/edugo-shared/v2 v2.0.1
+    github.com/EduGoGroup/edugo-shared/database/postgres v2.0.1
+)
+
+// main.go
+import (
+    "github.com/EduGoGroup/edugo-shared/v2/pkg/auth"
+    "github.com/EduGoGroup/edugo-shared/v2/pkg/logger"
+    "github.com/EduGoGroup/edugo-shared/v2/pkg/errors"
+    "github.com/EduGoGroup/edugo-shared/database/postgres"
+)
+```
+
+**Después:**
+```go
+// go.mod
+require (
+    github.com/EduGoGroup/edugo-shared/common v2.0.5
+    github.com/EduGoGroup/edugo-shared/auth v2.0.5
+    github.com/EduGoGroup/edugo-shared/logger v2.0.5
+    github.com/EduGoGroup/edugo-shared/database/postgres v2.0.5
+)
+
+// main.go
+import (
+    "github.com/EduGoGroup/edugo-shared/auth"
+    "github.com/EduGoGroup/edugo-shared/logger"
+    "github.com/EduGoGroup/edugo-shared/common/errors"
+    "github.com/EduGoGroup/edugo-shared/database/postgres"
+)
+```
+
+**Beneficio:** Solo 8 deps en vez de 15+ (ahorro ~47%)
+
+---
+
+### ❓ FAQ
+
+**Q: ¿Puedo mantener v2.0.1 mientras migro?**
+A: Sí, pero no es recomendable. v2.0.1 no recibirá actualizaciones futuras.
+
+**Q: ¿Qué pasa si solo uso `common`?**
+A: ¡Perfecto! Es el caso de uso ideal. Tendrás mínimas dependencias.
+
+**Q: ¿Los módulos database cambiaron?**
+A: No, `database/postgres` y `database/mongodb` mantienen los mismos paths.
+
+**Q: ¿Cómo sé qué módulos necesito?**
+A: Revisa tus imports actuales y consulta la tabla de migración arriba.
+
+---
+
+### 🆘 Problemas Comunes
+
+#### Error: "cannot find module"
+```bash
+# Solución: Asegúrate de instalar el módulo correcto
+go get github.com/EduGoGroup/edugo-shared/common@v2.0.5
+```
+
+#### Error: "ambiguous import"
+```bash
+# Solución: Elimina la referencia a v2 en go.mod
+go mod edit -droprequire github.com/EduGoGroup/edugo-shared/v2
+go mod tidy
+```
+
+#### Error: "package ... is not in GOROOT"
+```bash
+# Solución: Verifica que actualizaste todos los imports
+grep -r "v2/pkg/" . --include="*.go"
+```
+
+---
+
 ## 🚀 Migrar de v1.0.0 a v2.0.0 (Arquitectura Modular)
 
 ### ⚠️ BREAKING CHANGES

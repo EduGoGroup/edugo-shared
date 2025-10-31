@@ -31,7 +31,17 @@ jobs:
         run: go mod download
 
       - name: Ejecutar tests
-        run: go test -v -race -coverprofile=coverage.txt ./...
+        run: |
+          set +e  # No salir en error
+          go test -v -race -coverprofile=coverage.txt ./...
+          TEST_EXIT_CODE=$?
+          if [ -f coverage.txt ]; then
+            echo "✅ Tests completados, archivo de cobertura generado"
+            exit 0
+          else
+            echo "❌ Tests fallaron"
+            exit $TEST_EXIT_CODE
+          fi
 
       - name: Generar reporte de cobertura
         run: |

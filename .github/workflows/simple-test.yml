@@ -1,0 +1,33 @@
+name: Simple Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Simple Go Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache: true
+
+      - name: Verificar Go
+        run: |
+          go version
+          
+      - name: Descargar dependencias
+        run: go mod download
+
+      - name: Test simple
+        run: |
+          echo "🧪 Running simple test..."
+          go test -v ./pkg/auth/...

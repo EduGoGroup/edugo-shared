@@ -1,0 +1,60 @@
+name: Run Tests
+
+on:
+  # Trigger manual (on-demand)
+  workflow_dispatch:
+
+  # Trigger automático en PR
+  pull_request:
+    branches: [ main, develop ]
+
+  # Trigger automático en push a main
+  push:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Run Tests and Coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache: true
+
+      - name: Descargar dependencias
+        run: go mod download
+
+      - name: Ejecutar tests
+        run: go test -v -race -coverprofile=coverage.txt ./...
+
+      - name: Generar reporte de cobertura
+        run: |
+          go tool cover -func=coverage.txt
+          go tool cover -html=coverage.txt -o coverage.html
+
+      - name: Verificar cobertura mínima (70%)
+        run: |
+          COVERAGE=$(go tool cover -func=coverage.txt | grep total | awk '{print $3}' | sed 's/%//')
+          echo "Cobertura actual: ${COVERAGE}%"
+          if (( $(echo "$COVERAGE < 70" | bc -l) )); then
+            echo "❌ Cobertura insuficiente: ${COVERAGE}% < 70%"
+            exit 1
+          fi
+          echo "✅ Cobertura suficiente: ${COVERAGE}% >= 70%"
+
+      - name: Subir reporte de cobertura
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.html
+
+      - name: Ejecutar linter
+        run: |
+          go install honnef.co/go/tools/cmd/staticcheck@latest
+          staticcheck ./...

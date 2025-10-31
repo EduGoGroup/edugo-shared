@@ -1,4 +1,278 @@
-# 📦 EduGo Shared Library - Guía de Actualización v1.0.0
+# 📦 EduGo Shared Library - Guía de Actualización
+
+## 🚀 Migrar de v1.0.0 a v2.0.0 (Arquitectura Modular)
+
+### ⚠️ BREAKING CHANGES
+
+La versión **v2.0.0** introduce una arquitectura modular con sub-módulos independientes para las bases de datos. Esto **requiere cambios** en tu código.
+
+---
+
+### 🎯 Paso 1: Entender los Cambios
+
+#### **Antes (v1.0.0):**
+```bash
+# Un solo módulo con todas las dependencias
+go get github.com/EduGoGroup/edugo-shared@v1.0.0
+```
+
+**Resultado:** Se descargaban drivers de PostgreSQL Y MongoDB (incluso si solo usabas uno).
+
+#### **Después (v2.0.0):**
+```bash
+# Módulo core (sin bases de datos)
+go get github.com/EduGoGroup/edugo-shared@v2.0.0
+
+# Solo el módulo de BD que necesites
+go get github.com/EduGoGroup/edugo-shared/database/postgres@v2.0.0
+# O
+go get github.com/EduGoGroup/edugo-shared/database/mongodb@v2.0.0
+```
+
+**Resultado:** Solo descargas las dependencias que realmente necesitas.
+
+---
+
+### 🔄 Paso 2: Actualizar go.mod
+
+#### **Opción A: Usas PostgreSQL**
+```bash
+cd /path/to/your-project
+
+# Actualizar módulo core
+go get github.com/EduGoGroup/edugo-shared@v2.0.0
+
+# Agregar módulo de PostgreSQL
+go get github.com/EduGoGroup/edugo-shared/database/postgres@v2.0.0
+
+# Limpiar
+go mod tidy
+```
+
+#### **Opción B: Usas MongoDB**
+```bash
+cd /path/to/your-project
+
+# Actualizar módulo core
+go get github.com/EduGoGroup/edugo-shared@v2.0.0
+
+# Agregar módulo de MongoDB
+go get github.com/EduGoGroup/edugo-shared/database/mongodb@v2.0.0
+
+# Limpiar
+go mod tidy
+```
+
+#### **Opción C: Usas ambas**
+```bash
+cd /path/to/your-project
+
+# Actualizar módulo core
+go get github.com/EduGoGroup/edugo-shared@v2.0.0
+
+# Agregar ambos módulos
+go get github.com/EduGoGroup/edugo-shared/database/postgres@v2.0.0
+go get github.com/EduGoGroup/edugo-shared/database/mongodb@v2.0.0
+
+# Limpiar
+go mod tidy
+```
+
+---
+
+### 📝 Paso 3: Actualizar Imports en tu Código
+
+#### **Cambios requeridos en imports:**
+
+| Antes (v1.0.0) | Después (v2.0.0) |
+|----------------|------------------|
+| `github.com/EduGoGroup/edugo-shared/pkg/database/postgres` | `github.com/EduGoGroup/edugo-shared/database/postgres` |
+| `github.com/EduGoGroup/edugo-shared/pkg/database/mongodb` | `github.com/EduGoGroup/edugo-shared/database/mongodb` |
+
+#### **Ejemplo de migración:**
+
+**Antes (v1.0.0):**
+```go
+package main
+
+import (
+    "github.com/EduGoGroup/edugo-shared/pkg/database/postgres"
+    "github.com/EduGoGroup/edugo-shared/pkg/database/mongodb"
+    "github.com/EduGoGroup/edugo-shared/pkg/logger"
+)
+
+func main() {
+    // Usar PostgreSQL
+    db, err := postgres.Connect(&cfg)
+
+    // Usar MongoDB
+    client, err := mongodb.Connect(mongoCfg)
+}
+```
+
+**Después (v2.0.0):**
+```go
+package main
+
+import (
+    "github.com/EduGoGroup/edugo-shared/database/postgres"  // ✅ Cambio aquí
+    "github.com/EduGoGroup/edugo-shared/database/mongodb"   // ✅ Cambio aquí
+    "github.com/EduGoGroup/edugo-shared/pkg/logger"        // Sin cambios
+)
+
+func main() {
+    // Usar PostgreSQL (API sin cambios)
+    db, err := postgres.Connect(&cfg)
+
+    // Usar MongoDB (API sin cambios)
+    client, err := mongodb.Connect(mongoCfg)
+}
+```
+
+---
+
+### 🔍 Paso 4: Buscar y Reemplazar en tu Proyecto
+
+#### **Comando para encontrar todos los archivos que necesitan actualización:**
+
+```bash
+# En Linux/Mac
+grep -r "pkg/database/postgres" .
+grep -r "pkg/database/mongodb" .
+
+# En Windows (PowerShell)
+Get-ChildItem -Recurse -Include *.go | Select-String "pkg/database/postgres"
+Get-ChildItem -Recurse -Include *.go | Select-String "pkg/database/mongodb"
+```
+
+#### **Reemplazo automático (con precaución):**
+
+```bash
+# En Linux/Mac
+find . -name "*.go" -type f -exec sed -i '' 's|pkg/database/postgres|database/postgres|g' {} \;
+find . -name "*.go" -type f -exec sed -i '' 's|pkg/database/mongodb|database/mongodb|g' {} \;
+
+# En Windows (PowerShell)
+Get-ChildItem -Recurse -Filter *.go | ForEach-Object {
+    (Get-Content $_.FullName) -replace 'pkg/database/postgres', 'database/postgres' | Set-Content $_.FullName
+    (Get-Content $_.FullName) -replace 'pkg/database/mongodb', 'database/mongodb' | Set-Content $_.FullName
+}
+```
+
+---
+
+### ✅ Paso 5: Verificar que Todo Funciona
+
+#### **1. Compilar el proyecto:**
+```bash
+go build ./...
+```
+
+#### **2. Ejecutar tests:**
+```bash
+go test ./...
+```
+
+#### **3. Verificar dependencias:**
+```bash
+go mod verify
+go mod tidy
+```
+
+#### **4. Ver el go.mod final:**
+```bash
+cat go.mod
+```
+
+**Deberías ver algo como:**
+```go
+module github.com/tu-org/tu-proyecto
+
+go 1.25
+
+require (
+    github.com/EduGoGroup/edugo-shared v2.0.0
+    github.com/EduGoGroup/edugo-shared/database/postgres v2.0.0
+    // ...
+)
+```
+
+---
+
+### 🎁 Paso 6: Beneficios de la Migración
+
+| Aspecto | v1.0.0 | v2.0.0 |
+|---------|--------|--------|
+| **go.mod** | ~15 dependencias | ~5-8 dependencias |
+| **Dependencias descargadas** | Todas las BDs | Solo las que uses |
+| **Builds** | Normal | Más rápidos |
+| **Flexibilidad** | Baja | Alta |
+| **Mantenibilidad** | Monolítica | Modular |
+
+**Ejemplo real:**
+- **Proyecto solo con PostgreSQL:**
+  - Antes: Descargaba 15 paquetes (incluyendo MongoDB driver)
+  - Después: Descarga 8 paquetes (solo PostgreSQL)
+  - **Reducción: ~47%** en dependencias
+
+---
+
+### 🚨 Resolución de Problemas
+
+#### **Error: "package not found"**
+```bash
+# Asegúrate de haber instalado el módulo correcto
+go get github.com/EduGoGroup/edugo-shared/database/postgres@v2.0.0
+go mod tidy
+```
+
+#### **Error: "ambiguous import"**
+```bash
+# Verifica que no tengas imports mezclados
+grep -r "pkg/database" .  # No debería encontrar nada
+```
+
+#### **Error: "version conflict"**
+```bash
+# Forzar versión 2.0.0
+go mod edit -require=github.com/EduGoGroup/edugo-shared@v2.0.0
+go mod tidy
+```
+
+#### **Si necesitas volver a v1.0.0:**
+```bash
+go get github.com/EduGoGroup/edugo-shared@v1.0.0
+# Revertir cambios en imports
+git checkout -- .
+```
+
+---
+
+### ⏱️ Tiempo Estimado de Migración
+
+| Tamaño del Proyecto | Tiempo Estimado |
+|---------------------|-----------------|
+| Pequeño (1-5 archivos) | 5-10 minutos |
+| Mediano (5-20 archivos) | 10-20 minutos |
+| Grande (20+ archivos) | 30-60 minutos |
+
+---
+
+### 📋 Checklist de Migración
+
+- [ ] Actualizar `go.mod` con módulo core v2.0.0
+- [ ] Agregar módulo(s) de base de datos v2.0.0
+- [ ] Actualizar imports: `pkg/database/postgres` → `database/postgres`
+- [ ] Actualizar imports: `pkg/database/mongodb` → `database/mongodb`
+- [ ] Ejecutar `go mod tidy`
+- [ ] Compilar proyecto: `go build ./...`
+- [ ] Ejecutar tests: `go test ./...`
+- [ ] Verificar que `go.mod` solo tiene las dependencias necesarias
+- [ ] Commit de cambios
+
+---
+
+## 📦 Guía de Actualización v1.0.0 (Legado)
 
 ## 🎯 Para Proyectos Consumidores
 

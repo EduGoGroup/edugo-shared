@@ -5,6 +5,96 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2025-10-31
+
+### 🚀 BREAKING CHANGES
+
+#### Arquitectura Modular con Sub-módulos Independientes
+
+- **Separación de módulos de bases de datos**: PostgreSQL y MongoDB ahora son sub-módulos Go independientes
+- **Cambio en la estructura de directorios**:
+  - ❌ Antes: `pkg/database/postgres/` y `pkg/database/mongodb/`
+  - ✅ Ahora: `database/postgres/` y `database/mongodb/`
+- **Cambio en imports**:
+  - ❌ Antes: `import "github.com/EduGoGroup/edugo-shared/pkg/database/postgres"`
+  - ✅ Ahora: `import "github.com/EduGoGroup/edugo-shared/database/postgres"`
+
+### ✨ Mejoras
+
+- **Dependencias selectivas**: Los proyectos ahora pueden importar solo el módulo de base de datos que necesitan
+- **Reducción de dependencias transitivas**:
+  - Si solo usas PostgreSQL, no se descarga el driver de MongoDB (y viceversa)
+  - El módulo core ya no incluye drivers de bases de datos
+- **Binarios más ligeros**: El compilador de Go solo incluye el código que realmente se usa
+- **Mejor mantenibilidad**: Cada módulo de base de datos tiene su propio `go.mod` y versionado
+
+### 📦 Nuevos Módulos
+
+1. **github.com/EduGoGroup/edugo-shared** (core)
+   - Incluye: logger, messaging, errors, validator, auth, config, types
+   - Sin dependencias de bases de datos
+
+2. **github.com/EduGoGroup/edugo-shared/database/postgres**
+   - Módulo independiente para PostgreSQL
+   - Dependencias: `github.com/lib/pq`
+
+3. **github.com/EduGoGroup/edugo-shared/database/mongodb**
+   - Módulo independiente para MongoDB
+   - Dependencias: `go.mongodb.org/mongo-driver`
+
+### 📋 Migración
+
+Ver [UPGRADE_GUIDE.md](UPGRADE_GUIDE.md) para instrucciones detalladas de migración.
+
+**Resumen rápido:**
+
+```bash
+# 1. Actualizar go.mod
+go get github.com/EduGoGroup/edugo-shared@v2.0.0
+go get github.com/EduGoGroup/edugo-shared/database/postgres@v2.0.0  # Si usas PostgreSQL
+go get github.com/EduGoGroup/edugo-shared/database/mongodb@v2.0.0   # Si usas MongoDB
+
+# 2. Actualizar imports en tu código
+# Buscar y reemplazar:
+#   pkg/database/postgres -> database/postgres
+#   pkg/database/mongodb -> database/mongodb
+
+# 3. Actualizar dependencias
+go mod tidy
+```
+
+### 🎯 Beneficios de la Migración
+
+| Aspecto | v1.0.0 | v2.0.0 |
+|---------|--------|--------|
+| Dependencias descargadas | Todas las BDs | Solo las que uses |
+| Tamaño del go.mod | ~15 dependencias | ~5-8 dependencias |
+| Binario compilado | Optimizado | Optimizado |
+| Flexibilidad | Baja | Alta |
+
+### Dependencies
+
+**Core Module:**
+```
+github.com/golang-jwt/jwt/v5 v5.3.0
+github.com/google/uuid v1.6.0
+github.com/rabbitmq/amqp091-go v1.10.0
+go.uber.org/zap v1.27.0
+github.com/stretchr/testify v1.8.1
+```
+
+**PostgreSQL Module:**
+```
+github.com/lib/pq v1.10.9
+```
+
+**MongoDB Module:**
+```
+go.mongodb.org/mongo-driver v1.17.6
+```
+
+---
+
 ## [1.0.0] - 2025-10-31
 
 ### Added

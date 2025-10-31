@@ -7,59 +7,101 @@
 
 Professional Go shared library with utilities and reusable components for EduGo projects.
 
-## Estructura
+## 🏗️ Arquitectura Modular
+
+Este proyecto utiliza **sub-módulos independientes** para optimizar dependencias. Los módulos de bases de datos están separados para que puedas importar solo lo que necesitas.
+
+### Estructura
 
 ```
-shared/
-├── pkg/
-│   ├── logger/           # Logging interface y implementación con Zap
-│   ├── database/         # Helpers de conexión a bases de datos
-│   │   ├── postgres/     # PostgreSQL connection pool
-│   │   └── mongodb/      # MongoDB connection
-│   ├── messaging/        # RabbitMQ helpers (publisher, consumer)
-│   ├── errors/           # Error handling personalizado
-│   ├── validator/        # Validaciones comunes
-│   ├── auth/             # JWT helpers y autenticación
-│   ├── config/           # Configuration loaders
-│   └── types/            # Tipos compartidos (UUID, Timestamp, Enums)
-│       └── enum/         # Enumeraciones (Role, Status, etc.)
-└── go.mod
+edugo-shared/
+├── pkg/                    # Módulo principal (core)
+│   ├── logger/            # Logging interface y implementación con Zap
+│   ├── messaging/         # RabbitMQ helpers (publisher, consumer)
+│   ├── errors/            # Error handling personalizado
+│   ├── validator/         # Validaciones comunes
+│   ├── auth/              # JWT helpers y autenticación
+│   ├── config/            # Configuration loaders
+│   └── types/             # Tipos compartidos (UUID, Timestamp, Enums)
+│       └── enum/          # Enumeraciones (Role, Status, etc.)
+├── database/               # Sub-módulos de bases de datos
+│   ├── postgres/          # Módulo PostgreSQL (independiente)
+│   │   └── go.mod
+│   └── mongodb/           # Módulo MongoDB (independiente)
+│       └── go.mod
+└── go.mod                 # Módulo principal
 ```
+
+### 🎯 Ventajas de la Arquitectura Modular
+
+- ✅ **Dependencias selectivas**: Solo descarga las librerías de BD que necesites
+- ✅ **Binarios optimizados**: Menor tamaño del ejecutable final
+- ✅ **Menor superficie de ataque**: Menos dependencias = menos vulnerabilidades
+- ✅ **Builds más rápidos**: Menos código que compilar
 
 ## 📦 Installation
 
-### Latest Stable Version (Recommended)
+### Módulo Principal (Core)
+
+Incluye logger, messaging, errors, validator, auth, config y types:
 
 ```bash
-go get github.com/EduGoGroup/edugo-shared@v1.0.0
+go get github.com/EduGoGroup/edugo-shared@v2.0.0
 ```
 
-### Latest Version
+### Módulos de Base de Datos (Opcionales)
 
+Instala solo el que necesites:
+
+#### PostgreSQL
 ```bash
-go get github.com/EduGoGroup/edugo-shared@latest
+go get github.com/EduGoGroup/edugo-shared/database/postgres@v2.0.0
 ```
 
-### Specific Version
+#### MongoDB
+```bash
+go get github.com/EduGoGroup/edugo-shared/database/mongodb@v2.0.0
+```
+
+#### Ambos
+```bash
+go get github.com/EduGoGroup/edugo-shared/database/postgres@v2.0.0
+go get github.com/EduGoGroup/edugo-shared/database/mongodb@v2.0.0
+```
+
+### Listar Versiones Disponibles
 
 ```bash
-# List available versions
+# Módulo principal
 go list -m -versions github.com/EduGoGroup/edugo-shared
 
-# Install specific version
-go get github.com/EduGoGroup/edugo-shared@v1.0.0
+# Módulos de base de datos
+go list -m -versions github.com/EduGoGroup/edugo-shared/database/postgres
+go list -m -versions github.com/EduGoGroup/edugo-shared/database/mongodb
 ```
 
 ## 🚀 Quick Start
+
+### 1. Instalar módulos
+
+```bash
+# Core (siempre necesario)
+go get github.com/EduGoGroup/edugo-shared@v2.0.0
+
+# PostgreSQL (opcional)
+go get github.com/EduGoGroup/edugo-shared/database/postgres@v2.0.0
 ```
 
 ### 2. Importar en código
 
 ```go
 import (
-    "github.com/edugo/shared/pkg/logger"
-    "github.com/edugo/shared/pkg/database/postgres"
-    "github.com/edugo/shared/pkg/auth"
+    // Core
+    "github.com/EduGoGroup/edugo-shared/pkg/logger"
+    "github.com/EduGoGroup/edugo-shared/pkg/auth"
+
+    // Base de datos (solo si lo instalaste)
+    "github.com/EduGoGroup/edugo-shared/database/postgres"
 )
 ```
 
@@ -83,9 +125,15 @@ logger.Error("error", "error", err)
 
 ### Database - PostgreSQL
 
-Helper para conexión a PostgreSQL:
+**Instalación:**
+```bash
+go get github.com/EduGoGroup/edugo-shared/database/postgres@v2.0.0
+```
 
+**Uso:**
 ```go
+import "github.com/EduGoGroup/edugo-shared/database/postgres"
+
 db, err := postgres.Connect(postgres.Config{
     Host:     "localhost",
     Port:     5432,
@@ -97,9 +145,15 @@ db, err := postgres.Connect(postgres.Config{
 
 ### Database - MongoDB
 
-Helper para conexión a MongoDB:
+**Instalación:**
+```bash
+go get github.com/EduGoGroup/edugo-shared/database/mongodb@v2.0.0
+```
 
+**Uso:**
 ```go
+import "github.com/EduGoGroup/edugo-shared/database/mongodb"
+
 client, err := mongodb.Connect(mongodb.Config{
     URI:      "mongodb://localhost:27017",
     Database: "edugo",
@@ -257,6 +311,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ### Version History
 
+- **v2.0.0** (2025-10-31): Arquitectura modular con sub-módulos independientes para bases de datos
 - **v1.0.0** (2025-10-31): First stable release with complete feature set
 - **v0.1.0**: Initial development version
 

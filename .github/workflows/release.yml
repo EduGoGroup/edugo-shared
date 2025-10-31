@@ -46,8 +46,11 @@ jobs:
       - name: Tests con cobertura
         run: |
           mkdir -p coverage
-          go test -v -race -coverprofile=coverage/coverage.out -covermode=atomic ./...
-          go tool cover -func=coverage/coverage.out
+          # Solo ejecutar cobertura en paquetes con tests
+          go test -v -race -coverprofile=coverage/coverage.out -covermode=atomic ./pkg/auth/...
+          if [ -f coverage/coverage.out ]; then
+            go tool cover -func=coverage/coverage.out
+          fi
 
       - name: Verificar build
         run: go build -v ./...

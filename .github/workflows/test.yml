@@ -42,7 +42,9 @@ jobs:
         run: |
           COVERAGE=$(go tool cover -func=coverage.txt | grep total | awk '{print $3}' | sed 's/%//')
           echo "Cobertura actual: ${COVERAGE}%"
-          if (( $(echo "$COVERAGE < 70" | bc -l) )); then
+          # Convertir a entero para comparación (multiplicar por 100 para manejar decimales)
+          COVERAGE_INT=$(echo "${COVERAGE}" | awk '{printf "%.0f", $1 * 100}')
+          if [ "${COVERAGE_INT}" -lt 7000 ]; then
             echo "❌ Cobertura insuficiente: ${COVERAGE}% < 70%"
             exit 1
           fi

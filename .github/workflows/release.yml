@@ -68,6 +68,8 @@ jobs:
     name: Create GitHub Release
     runs-on: ubuntu-latest
     needs: [validate-release]
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout código
@@ -94,46 +96,44 @@ jobs:
             CHANGELOG="Release $TAG"
           fi
 
-          {
-            echo 'changelog<<EOF'
-            echo "$CHANGELOG"
-            echo 'EOF'
-          } >> $GITHUB_OUTPUT
+          # Guardar a archivo para evitar problemas con caracteres especiales
+          echo "$CHANGELOG" > /tmp/changelog.md
 
       - name: Crear GitHub Release
-        uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.tag.outputs.tag }}
-          release_name: Release ${{ steps.tag.outputs.tag }}
-          body: |
-            ${{ steps.changelog.outputs.changelog }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG=${{ steps.tag.outputs.tag }}
 
-            ---
+          # Crear release con gh CLI
+          gh release create "$TAG" \
+            --title "Release $TAG" \
+            --notes-file /tmp/changelog.md \
+            --notes-start-tag "---" \
+            --notes "
 
-            ## 📦 Installation
+          ---
 
-            ### Core Module
-            ```bash
-            go get github.com/EduGoGroup/edugo-shared@${{ steps.tag.outputs.tag }}
-            ```
+          ## 📦 Installation
 
-            ### Database Modules
-            ```bash
-            # PostgreSQL
-            go get github.com/EduGoGroup/edugo-shared/database/postgres@${{ steps.tag.outputs.tag }}
+          ### Core Module
+          \`\`\`bash
+          go get github.com/EduGoGroup/edugo-shared@$TAG
+          \`\`\`
 
-            # MongoDB
-            go get github.com/EduGoGroup/edugo-shared/database/mongodb@${{ steps.tag.outputs.tag }}
-            ```
+          ### Database Modules
+          \`\`\`bash
+          # PostgreSQL
+          go get github.com/EduGoGroup/edugo-shared/database/postgres@$TAG
 
-            ## 📚 Documentation
-            - [CHANGELOG.md](https://github.com/EduGoGroup/edugo-shared/blob/${{ steps.tag.outputs.tag }}/CHANGELOG.md)
-            - [UPGRADE_GUIDE.md](https://github.com/EduGoGroup/edugo-shared/blob/${{ steps.tag.outputs.tag }}/UPGRADE_GUIDE.md)
+          # MongoDB
+          go get github.com/EduGoGroup/edugo-shared/database/mongodb@$TAG
+          \`\`\`
 
-            ---
+          ## 📚 Documentation
+          - [CHANGELOG.md](https://github.com/EduGoGroup/edugo-shared/blob/$TAG/CHANGELOG.md)
+          - [UPGRADE_GUIDE.md](https://github.com/EduGoGroup/edugo-shared/blob/$TAG/UPGRADE_GUIDE.md)
 
-            🤖 Generated with [Claude Code](https://claude.com/claude-code)
-          draft: false
-          prerelease: false
+          ---
+
+          🤖 Generated with [Claude Code](https://claude.com/claude-code)"

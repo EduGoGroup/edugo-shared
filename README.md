@@ -1,6 +1,11 @@
-# EduGo Shared Package
+# EduGo Shared Library
 
-Módulo compartido con utilidades y componentes reutilizables para los proyectos de EduGo.
+[![Go Version](https://img.shields.io/badge/go-%3E%3D1.21-blue)](https://golang.org/)
+[![Release](https://img.shields.io/github/v/release/EduGoGroup/edugo-shared)](https://github.com/EduGoGroup/edugo-shared/releases)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![Test Coverage](https://img.shields.io/badge/coverage-87.2%25-brightgreen)](https://github.com/EduGoGroup/edugo-shared)
+
+Professional Go shared library with utilities and reusable components for EduGo projects.
 
 ## Estructura
 
@@ -21,18 +26,31 @@ shared/
 └── go.mod
 ```
 
-## Uso en Proyectos
+## 📦 Installation
 
-### 1. Agregar como dependencia local
+### Latest Stable Version (Recommended)
 
-En el `go.mod` de tu proyecto:
+```bash
+go get github.com/EduGoGroup/edugo-shared@v1.0.0
+```
 
-```go
-require (
-    github.com/edugo/shared v0.1.0
-)
+### Latest Version
 
-replace github.com/edugo/shared => ../../shared
+```bash
+go get github.com/EduGoGroup/edugo-shared@latest
+```
+
+### Specific Version
+
+```bash
+# List available versions
+go list -m -versions github.com/EduGoGroup/edugo-shared
+
+# Install specific version
+go get github.com/EduGoGroup/edugo-shared@v1.0.0
+```
+
+## 🚀 Quick Start
 ```
 
 ### 2. Importar en código
@@ -233,6 +251,41 @@ Al agregar nuevo código a `shared`:
 4. Usar interfaces para flexibilidad
 5. Evitar dependencias externas pesadas
 
-## Licencia
+## 📋 Versioning
 
-Propietario - EduGo Project
+This project follows [Semantic Versioning](https://semver.org/). 
+
+### Version History
+
+- **v1.0.0** (2025-10-31): First stable release with complete feature set
+- **v0.1.0**: Initial development version
+
+### Compatibility Promise
+
+Starting from v1.0.0, we guarantee:
+
+- ✅ **Backward compatibility** for all PATCH and MINOR releases
+- ✅ **API stability** - no breaking changes without major version bump
+- ✅ **Clear migration guides** for any major version changes
+
+### Upgrade Guide
+
+See [UPGRADE_GUIDE.md](UPGRADE_GUIDE.md) for detailed instructions on updating your projects.
+
+## 📚 Documentation
+
+- **[CHANGELOG.md](CHANGELOG.md)**: Detailed change history
+- **[UPGRADE_GUIDE.md](UPGRADE_GUIDE.md)**: Migration instructions
+- **API Documentation**: Available via `go doc` or [pkg.go.dev](https://pkg.go.dev/github.com/EduGoGroup/edugo-shared)
+
+## 🤝 Contributing
+
+1. Follow semantic versioning principles
+2. Update CHANGELOG.md for all changes
+3. Maintain backward compatibility
+4. Add comprehensive tests
+5. Update documentation
+
+## 📄 License
+
+MIT License - EduGo Project

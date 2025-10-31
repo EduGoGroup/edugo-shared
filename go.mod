@@ -1,4 +1,4 @@
-module github.com/EduGoGroup/edugo-shared
+module github.com/EduGoGroup/edugo-shared/v2
 
 go 1.25.3
 

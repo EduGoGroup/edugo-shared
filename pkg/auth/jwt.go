@@ -9,8 +9,8 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 
-	"github.com/EduGoGroup/edugo-shared/pkg/errors"
-	"github.com/EduGoGroup/edugo-shared/pkg/types/enum"
+	"github.com/EduGoGroup/edugo-shared/v2/pkg/errors"
+	"github.com/EduGoGroup/edugo-shared/v2/pkg/types/enum"
 )
 
 // Claims representa los claims personalizados del JWT

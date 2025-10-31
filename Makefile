@@ -229,5 +229,103 @@ version: ## Mostrar versiones de herramientas
 		echo "gosec: $(RED)no instalado$(NC)"; \
 	fi
 
+# ============================================================================
+# Multi-Module Commands (v2.0.5+)
+# ============================================================================
+
+MODULES = common logger auth messaging/rabbit database/postgres database/mongodb
+
+.PHONY: test-all-modules
+test-all-modules: ## Ejecutar tests en todos los módulos
+	@echo "$(BLUE)Ejecutando tests en todos los módulos...$(NC)"
+	@for module in $(MODULES); do \
+		echo "$(YELLOW)Testing $$module...$(NC)"; \
+		(cd $$module && go test -v ./...) || exit 1; \
+		echo "$(GREEN)✓ $$module tests passed$(NC)"; \
+		echo ""; \
+	done
+	@echo "$(GREEN)✓ Todos los módulos pasaron los tests$(NC)"
+
+.PHONY: build-all-modules
+build-all-modules: ## Compilar todos los módulos
+	@echo "$(BLUE)Compilando todos los módulos...$(NC)"
+	@for module in $(MODULES); do \
+		echo "$(YELLOW)Building $$module...$(NC)"; \
+		(cd $$module && go build -v ./...) || exit 1; \
+		echo "$(GREEN)✓ $$module compiled$(NC)"; \
+	done
+	@echo "$(GREEN)✓ Todos los módulos compilados$(NC)"
+
+.PHONY: lint-all-modules
+lint-all-modules: ## Ejecutar linter en todos los módulos
+	@echo "$(BLUE)Ejecutando linter en todos los módulos...$(NC)"
+	@for module in $(MODULES); do \
+		echo "$(YELLOW)Linting $$module...$(NC)"; \
+		(cd $$module && golangci-lint run) || exit 1; \
+		echo "$(GREEN)✓ $$module linted$(NC)"; \
+	done
+	@echo "$(GREEN)✓ Todos los módulos pasaron el linter$(NC)"
+
+.PHONY: test-race-all-modules
+test-race-all-modules: ## Ejecutar tests con race detection en todos los módulos
+	@echo "$(BLUE)Ejecutando tests con race detection en todos los módulos...$(NC)"
+	@for module in $(MODULES); do \
+		echo "$(YELLOW)Testing $$module with race detection...$(NC)"; \
+		(cd $$module && go test -v -race ./...) || exit 1; \
+		echo "$(GREEN)✓ $$module passed race tests$(NC)"; \
+	done
+	@echo "$(GREEN)✓ Todos los módulos pasaron los race tests$(NC)"
+
+.PHONY: coverage-all-modules
+coverage-all-modules: ## Ejecutar tests con cobertura en todos los módulos
+	@echo "$(BLUE)Ejecutando tests con cobertura en todos los módulos...$(NC)"
+	@mkdir -p coverage
+	@for module in $(MODULES); do \
+		echo "$(YELLOW)Coverage for $$module...$(NC)"; \
+		module_name=$$(echo $$module | tr '/' '-'); \
+		(cd $$module && mkdir -p coverage && go test -v -coverprofile=coverage/coverage.out -covermode=atomic ./... && \
+		 go tool cover -func=coverage/coverage.out | tail -1) || true; \
+		echo ""; \
+	done
+	@echo "$(GREEN)✓ Coverage completado para todos los módulos$(NC)"
+
+.PHONY: fmt-all-modules
+fmt-all-modules: ## Formatear código en todos los módulos
+	@echo "$(BLUE)Formateando código en todos los módulos...$(NC)"
+	@for module in $(MODULES); do \
+		echo "$(YELLOW)Formatting $$module...$(NC)"; \
+		(cd $$module && go fmt ./...); \
+		echo "$(GREEN)✓ $$module formatted$(NC)"; \
+	done
+	@echo "$(GREEN)✓ Todos los módulos formateados$(NC)"
+
+.PHONY: vet-all-modules
+vet-all-modules: ## Ejecutar go vet en todos los módulos
+	@echo "$(BLUE)Ejecutando go vet en todos los módulos...$(NC)"
+	@for module in $(MODULES); do \
+		echo "$(YELLOW)Vetting $$module...$(NC)"; \
+		(cd $$module && go vet ./...) || exit 1; \
+		echo "$(GREEN)✓ $$module vetted$(NC)"; \
+	done
+	@echo "$(GREEN)✓ Todos los módulos pasaron go vet$(NC)"
+
+.PHONY: tidy-all-modules
+tidy-all-modules: ## Ejecutar go mod tidy en todos los módulos
+	@echo "$(BLUE)Ejecutando go mod tidy en todos los módulos...$(NC)"
+	@for module in $(MODULES); do \
+		echo "$(YELLOW)Tidying $$module...$(NC)"; \
+		(cd $$module && go mod tidy); \
+		echo "$(GREEN)✓ $$module tidied$(NC)"; \
+	done
+	@echo "$(GREEN)✓ Todos los módulos tidied$(NC)"
+
+.PHONY: check-all-modules
+check-all-modules: fmt-all-modules vet-all-modules test-all-modules ## Verificación completa de todos los módulos
+	@echo "$(GREEN)✓ Verificación completa de todos los módulos exitosa$(NC)"
+
+.PHONY: ci-all-modules
+ci-all-modules: fmt-all-modules vet-all-modules test-race-all-modules coverage-all-modules ## Pipeline CI completo para todos los módulos
+	@echo "$(GREEN)✓ Pipeline CI de todos los módulos exitoso$(NC)"
+
 # Comando por defecto
 .DEFAULT_GOAL := help

@@ -3,12 +3,12 @@ name: CI Pipeline
 # Se ejecuta en PRs (flujo ideal) y push a main (red de seguridad)
 on:
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, dev ]
   push:
     branches: [ main ]  # Red de seguridad por si alguien hace push directo
 
 env:
-  GO_VERSION: '1.23'
+  GO_VERSION: '1.25'
 
 jobs:
   test-modules:
@@ -21,6 +21,7 @@ jobs:
           - common
           - logger
           - auth
+          - middleware/gin
           - messaging/rabbit
           - database/postgres
           - database/mongodb
@@ -73,6 +74,7 @@ jobs:
           - common
           - logger
           - auth
+          - middleware/gin
           - messaging/rabbit
           - database/postgres
           - database/mongodb
@@ -107,6 +109,7 @@ jobs:
           - common
           - auth
           - logger
+          - middleware/gin
 
     steps:
       - name: Checkout código

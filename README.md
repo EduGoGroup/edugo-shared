@@ -404,3 +404,4 @@ MIT License - EduGo Project
 - **Docs**: [pkg.go.dev](https://pkg.go.dev/github.com/EduGoGroup/edugo-shared)
 - **Changelog**: [CHANGELOG.md](CHANGELOG.md)
 - **Migration Guide**: [UPGRADE_GUIDE.md](UPGRADE_GUIDE.md)
+

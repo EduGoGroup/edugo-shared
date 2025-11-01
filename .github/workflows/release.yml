@@ -7,7 +7,7 @@ on:
       - 'v*'  # v1.0.0, v2.0.0, etc.
 
 env:
-  GO_VERSION: '1.23'
+  GO_VERSION: '1.25'
 
 jobs:
   validate-modules:
@@ -20,6 +20,7 @@ jobs:
           - common
           - logger
           - auth
+          - middleware/gin
           - messaging/rabbit
           - database/postgres
           - database/mongodb
@@ -71,7 +72,7 @@ jobs:
         run: go build -v ./...
 
       - name: Subir cobertura
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         if: success()
         with:
           file: ${{ matrix.module }}/coverage/coverage.out
@@ -143,6 +144,11 @@ jobs:
           ### Auth (JWT)
           \`\`\`bash
           go get github.com/EduGoGroup/edugo-shared/auth@$TAG
+          \`\`\`
+
+          ### Middleware para Gin
+          \`\`\`bash
+          go get github.com/EduGoGroup/edugo-shared/middleware/gin@$TAG
           \`\`\`
 
           ### RabbitMQ

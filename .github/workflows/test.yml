@@ -4,7 +4,7 @@ name: Tests with Coverage
 on:
   workflow_dispatch:  # Manual desde GitHub UI
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, dev ]
 
 jobs:
   test-coverage:
@@ -17,6 +17,7 @@ jobs:
           - common
           - logger
           - auth
+          - middleware/gin
           - messaging/rabbit
           - database/postgres
           - database/mongodb
@@ -28,7 +29,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.23'
+          go-version: '1.25'
           cache: true
 
       - name: Descargar dependencias
@@ -56,7 +57,7 @@ jobs:
           retention-days: 30
 
       - name: Subir a Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         if: success()
         with:
           file: ${{ matrix.module }}/coverage/coverage.out
@@ -76,7 +77,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.23'
+          go-version: '1.25'
 
       - name: Download all coverage artifacts
         uses: actions/download-artifact@v4

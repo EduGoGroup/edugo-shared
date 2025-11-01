@@ -5,7 +5,52 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2025-11-01
+
+### 🚨 BREAKING: Cambio de Esquema de Versionado
+
+Este proyecto **resetea el versionado a v0.x.x** para reflejar correctamente su estado de desarrollo.
+
+**Razones del cambio**:
+- ❌ El proyecto NO ha salido a producción (ni siquiera a QA)
+- ❌ Versiones v1.x.x y v2.x.x implican estabilidad de producción (falso)
+- ✅ v0.x.x es semánticamente correcto para proyectos en desarrollo
+- ✅ Compatible con Go modules (no requiere /v2 en module path)
+- ✅ Permite breaking changes sin violar semantic versioning
+
+**Migración desde v2.0.6**:
+```bash
+# Antes (incorrecto):
+go get github.com/EduGoGroup/edugo-shared/auth@v2.0.6  # ❌ Incompatible
+
+# Ahora (correcto):
+go get github.com/EduGoGroup/edugo-shared/auth@v0.3.0  # ✅ Funciona
+```
+
+**Tags deprecados**: v1.0.0, v2.0.0, v2.0.1, v2.0.5, v2.0.6 (no usar)
+
+**Próxima versión estable**: v1.0.0 (cuando salga a producción)
+
+### Added
+- GitHub Copilot custom instructions en español
+- Workflows CI/CD optimizados con matrix strategy (7 módulos)
+- Workflow de sincronización automática main → dev
+- Documentación completa de workflows
+
+### Changed
+- Módulo `middleware/gin` agregado a workflows CI/CD
+- Go version 1.23 → 1.25 en todos los workflows
+- Branch `develop` → `dev` (estandarización)
+- codecov-action v3 → v4
+- Nombres de artifacts: reemplazar `/` por `-`
+
+### Fixed
+- Compatibilidad con Go modules (v0.x.x no requiere /v0 en path)
+- Documentación de test.yml sobre errores en push
+
 ## [2.0.5] - 2025-10-31
+
+⚠️ **DEPRECADO**: Esta versión usa esquema de versionado incorrecto. Usar v0.3.0 en su lugar.
 
 ### 🚀 BREAKING CHANGES - Arquitectura Modular Completa
 

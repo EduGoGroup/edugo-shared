@@ -1,6 +1,9 @@
 name: Tests with Coverage
 
-# Manual o en PRs
+# IMPORTANTE: Este workflow NO se ejecuta en push (solo PRs y manual)
+# Los "errores" en push son esperados - GitHub intenta ejecutar el workflow
+# pero falla inmediatamente (0s) porque no tiene trigger para push.
+# Esto es comportamiento normal y no afecta el flujo de trabajo.
 on:
   workflow_dispatch:  # Manual desde GitHub UI
   pull_request:

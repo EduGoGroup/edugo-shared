@@ -25,13 +25,16 @@ jobs:
           fetch-depth: 0
           ref: main
 
-      - name: Obtener tag/versión actual
+      - name: Obtener versión actual
         id: version
         run: |
-          # Obtener el tag más reciente
-          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "unknown")
-          echo "version=$LATEST_TAG" >> $GITHUB_OUTPUT
-          echo "📌 Versión actual: $LATEST_TAG"
+          if [ -f ".github/version.txt" ]; then
+            VERSION=$(cat .github/version.txt)
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "📌 Versión actual: v$VERSION"
+          else
+            echo "version=unknown" >> $GITHUB_OUTPUT
+          fi
 
       - name: Verificar si dev existe
         id: check_dev
@@ -51,16 +54,22 @@ jobs:
           git push -u origin dev
           echo "✓ Rama dev creada"
 
-      - name: Verificar si hay diferencias
+      - name: Verificar si hay commits en main que dev no tiene
         id: check_diff
         run: |
           git fetch origin dev
-          if git diff --quiet origin/main origin/dev; then
+
+          # Contar commits en main que dev NO tiene
+          COMMITS_AHEAD=$(git rev-list --count origin/dev..origin/main)
+
+          if [ "$COMMITS_AHEAD" -eq 0 ]; then
             echo "has_diff=false" >> $GITHUB_OUTPUT
-            echo "✓ main y dev están sincronizados"
+            echo "✓ main y dev están sincronizados ($COMMITS_AHEAD commits)"
           else
             echo "has_diff=true" >> $GITHUB_OUTPUT
-            echo "⚠️  Hay diferencias entre main y dev"
+            echo "⚠️  main tiene $COMMITS_AHEAD commits que dev no tiene"
+            echo "Commits a sincronizar:"
+            git log --oneline origin/dev..origin/main
           fi
 
       - name: Merge main to dev con manejo de conflictos
@@ -79,7 +88,7 @@ jobs:
           echo "🔄 Intentando merge de main a dev..."
 
           # Intentar merge
-          if git merge origin/main --no-ff -m "chore: sync main $VERSION to dev
+          if git merge origin/main --no-ff -m "chore: sync main v$VERSION to dev
 
           Sincronización automática de main a dev después de cambios en main.
 

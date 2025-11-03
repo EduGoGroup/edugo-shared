@@ -51,11 +51,19 @@ jobs:
             go tool cover -func=coverage/coverage.out | tail -1
           fi
 
+      - name: Generar nombre de artifact sanitizado
+        id: artifact_name
+        run: |
+          MODULE="${{ matrix.module }}"
+          SANITIZED=$(echo "$MODULE" | tr '/' '-')
+          echo "name=coverage-$SANITIZED" >> $GITHUB_OUTPUT
+          echo "📦 Nombre de artifact: coverage-$SANITIZED"
+
       - name: Subir reporte de cobertura
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: coverage-${{ matrix.module }}
+          name: ${{ steps.artifact_name.outputs.name }}
           path: ${{ matrix.module }}/coverage/coverage.out
           retention-days: 30
 

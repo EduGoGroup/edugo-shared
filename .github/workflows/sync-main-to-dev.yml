@@ -1,6 +1,6 @@
 name: Sync Main to Dev
 
-# Se ejecuta después de push a main (generalmente después de release manual)
+# Se ejecuta después de push a main (generalmente después de auto-version)
 on:
   push:
     branches: [main]
@@ -63,7 +63,7 @@ jobs:
             echo "⚠️  Hay diferencias entre main y dev"
           fi
 
-      - name: Merge main to dev directamente
+      - name: Merge main to dev con manejo de conflictos
         if: steps.check_diff.outputs.has_diff == 'true'
         run: |
           VERSION="${{ steps.version.outputs.version }}"
@@ -72,20 +72,32 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Checkout dev y merge main
+          # Checkout dev y actualizar primero (minimizar conflictos)
           git checkout dev
-          git merge origin/main --no-ff -m "chore: sync main $VERSION to dev
+          git pull origin dev
+
+          echo "🔄 Intentando merge de main a dev..."
+
+          # Intentar merge
+          if git merge origin/main --no-ff -m "chore: sync main $VERSION to dev
 
           Sincronización automática de main a dev después de cambios en main.
 
           🤖 Generated with [Claude Code](https://claude.com/claude-code)
 
-          Co-Authored-By: Claude <noreply@anthropic.com>"
-
-          # Push a dev
-          git push origin dev
-
-          echo "✅ main sincronizado a dev correctamente"
+          Co-Authored-By: Claude <noreply@anthropic.com>"; then
+            # Merge exitoso
+            git push origin dev
+            echo "✅ Sincronización exitosa: main → dev"
+          else
+            # Merge falló (conflictos)
+            echo "❌ ERROR: Conflictos detectados en merge main → dev"
+            echo "::error::Conflictos requieren resolución manual"
+            echo "::error::Archivos en conflicto:"
+            git status --short
+            git merge --abort
+            exit 1
+          fi
 
       - name: Resumen
         run: |
@@ -93,7 +105,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Aspecto | Estado |" >> $GITHUB_STEP_SUMMARY
           echo "|---------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Versión | ${{ steps.version.outputs.version }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Versión | v${{ steps.version.outputs.version }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Rama dev existe | ${{ steps.check_dev.outputs.exists }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Diferencias | ${{ steps.check_diff.outputs.has_diff }} |" >> $GITHUB_STEP_SUMMARY
 

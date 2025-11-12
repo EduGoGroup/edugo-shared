@@ -1,6 +1,6 @@
 module github.com/EduGoGroup/edugo-shared/auth
 
-go 1.23
+go 1.24
 
 require (
 	github.com/EduGoGroup/edugo-shared/common v0.0.0-20251031204120-ecc6528ef4b6

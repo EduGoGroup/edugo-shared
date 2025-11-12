@@ -1,5 +1,5 @@
-github.com/EduGoGroup/edugo-shared/common v0.0.0-20251031204120-ecc6528ef4b6 h1:S5DcY2arvCQTZhEvWdWXHFXJkWMwGEs2UcMuEbTQ1Qo=
-github.com/EduGoGroup/edugo-shared/common v0.0.0-20251031204120-ecc6528ef4b6/go.mod h1:4n10W5xY48sRb0bWw58L7DEmCD7dnnak2EQ6jAyuzCo=
+github.com/EduGoGroup/edugo-shared/common v0.3.3 h1:skjdCGSamrPjsuPxBpV8fJoC8CvECKyT5X/zex8CyI8=
+github.com/EduGoGroup/edugo-shared/common v0.3.3/go.mod h1:7F98CT6w95duJoxGnpd5IMAZ0cGjebrGVn2xqmjf45U=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

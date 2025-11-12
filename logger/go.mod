@@ -1,6 +1,6 @@
 module github.com/EduGoGroup/edugo-shared/logger
 
-go 1.25.3
+go 1.23
 
 require go.uber.org/zap v1.27.0
 

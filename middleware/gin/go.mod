@@ -1,6 +1,6 @@
 module github.com/EduGoGroup/edugo-shared/middleware/gin
 
-go 1.25.3
+go 1.23
 
 require (
 	github.com/EduGoGroup/edugo-shared/auth v0.0.2 // indirect

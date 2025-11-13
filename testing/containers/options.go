@@ -40,7 +40,7 @@ type MongoConfig struct {
 // Permite especificar la imagen Docker y credenciales de acceso.
 
 type RabbitConfig struct {
-	Image    string // Imagen Docker (default: "rabbitmq:3.12-alpine")
+	Image    string // Imagen Docker (default: "rabbitmq:3.12-management-alpine")
 	Username string // Usuario (default: "edugo_user")
 	Password string // Contraseña (default: "edugo_pass")
 }
@@ -115,7 +115,7 @@ func (b *ConfigBuilder) WithRabbitMQ(cfg *RabbitConfig) *ConfigBuilder {
 	}
 	// Aplicar defaults
 	if cfg.Image == "" {
-		cfg.Image = "rabbitmq:3.12-alpine"
+		cfg.Image = "rabbitmq:3.12-management-alpine"
 	}
 	if cfg.Username == "" {
 		cfg.Username = "edugo_user"

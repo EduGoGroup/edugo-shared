@@ -1,4 +1,2 @@
-github.com/EduGoGroup/edugo-shared/v2 v2.0.1 h1:+qUkw4TD6lnyr8RiVdd+QNB6DDb/whaGSkONr+b5i20=
-github.com/EduGoGroup/edugo-shared/v2 v2.0.1/go.mod h1:/g+KDxo8ZsZOBbQKYU17DVLEYXhnYAwi4V0hlpcW0HY=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
 github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=

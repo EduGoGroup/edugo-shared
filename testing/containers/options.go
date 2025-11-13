@@ -1,6 +1,7 @@
 package containers
 
-// Config contiene la configuración para el Manager de containers
+// Config contiene la configuración para el Manager de containers.
+// Permite habilitar y configurar PostgreSQL, MongoDB y RabbitMQ de forma independiente.
 type Config struct {
 	// Flags para habilitar containers
 	UsePostgreSQL bool
@@ -24,6 +25,9 @@ type PostgresConfig struct {
 }
 
 // MongoConfig configura el container de MongoDB
+// MongoConfig configura el container de MongoDB.
+// Permite especificar la imagen Docker, nombre de base de datos y autenticación opcional.
+
 type MongoConfig struct {
 	Image    string // Imagen Docker (default: "mongo:7.0")
 	Database string // Nombre de la base de datos (default: "edugo_test")
@@ -32,6 +36,9 @@ type MongoConfig struct {
 }
 
 // RabbitConfig configura el container de RabbitMQ
+// RabbitConfig configura el container de RabbitMQ.
+// Permite especificar la imagen Docker y credenciales de acceso.
+
 type RabbitConfig struct {
 	Image    string // Imagen Docker (default: "rabbitmq:3.12-alpine")
 	Username string // Usuario (default: "edugo_user")
@@ -39,6 +46,9 @@ type RabbitConfig struct {
 }
 
 // ConfigBuilder permite construir una Config de forma fluida
+// ConfigBuilder permite construir una Config de forma fluida usando el patrón Builder.
+// Proporciona métodos encadenables para configurar cada tipo de container.
+
 type ConfigBuilder struct {
 	config *Config
 }

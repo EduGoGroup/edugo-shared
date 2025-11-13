@@ -6,13 +6,17 @@ import (
 	"fmt"
 	"time"
 
-	_ "github.com/lib/pq"
+	"github.com/lib/pq"
+	_ "github.com/lib/pq" // Driver PostgreSQL
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
 // PostgresContainer envuelve el container de PostgreSQL
+// PostgresContainer envuelve el container de PostgreSQL de testcontainers.
+// Proporciona acceso directo a la conexión de base de datos y métodos
+// de utilidad para truncar tablas y ejecutar scripts SQL.
 type PostgresContainer struct {
 	container *postgres.PostgresContainer
 	db        *sql.DB
@@ -110,7 +114,7 @@ func (pc *PostgresContainer) Truncate(ctx context.Context, tables ...string) err
 
 	// Truncar cada tabla
 	for _, table := range tables {
-		query := fmt.Sprintf("TRUNCATE TABLE %s CASCADE", table)
+		query := fmt.Sprintf("TRUNCATE TABLE %s CASCADE", pq.QuoteIdentifier(table))
 		if _, err := tx.ExecContext(ctx, query); err != nil {
 			return fmt.Errorf("error truncando tabla %s: %w", table, err)
 		}

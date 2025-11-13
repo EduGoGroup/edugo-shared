@@ -9,6 +9,14 @@ import (
 )
 
 // ExecSQLFile lee y ejecuta un archivo SQL en la base de datos PostgreSQL
+// ExecSQLFile lee y ejecuta un archivo SQL en la base de datos PostgreSQL.
+//
+// Parámetros:
+//   - ctx: Contexto para la operación
+//   - db: Conexión a la base de datos PostgreSQL
+//   - filePath: Ruta al archivo SQL a ejecutar
+//
+// Retorna un error si el archivo no puede leerse o si la ejecución del SQL falla.
 func ExecSQLFile(ctx context.Context, db *sql.DB, filePath string) error {
 	// Leer archivo
 	content, err := os.ReadFile(filePath)
@@ -27,6 +35,14 @@ func ExecSQLFile(ctx context.Context, db *sql.DB, filePath string) error {
 
 // WaitForHealthy espera a que un servicio esté saludable
 // Intenta hacer ping cada intervalo hasta alcanzar timeout
+// WaitForHealthy espera a que un servicio esté saludable.
+// Intenta ejecutar el health check cada intervalo hasta alcanzar el timeout.
+//
+// Parámetros:
+//   - ctx: Contexto que puede cancelar la operación
+//   - healthCheck: Función que retorna nil cuando el servicio está saludable
+//   - timeout: Tiempo máximo de espera
+//   - interval: Intervalo entre intentos
 func WaitForHealthy(ctx context.Context, healthCheck func() error, timeout time.Duration, interval time.Duration) error {
 	deadline := time.Now().Add(timeout)
 
@@ -47,6 +63,12 @@ func WaitForHealthy(ctx context.Context, healthCheck func() error, timeout time.
 }
 
 // RetryOperation ejecuta una operación con reintentos
+// RetryOperation ejecuta una operación con reintentos.
+//
+// Parámetros:
+//   - operation: Función a ejecutar que retorna error
+//   - maxRetries: Número máximo de intentos
+//   - delay: Tiempo de espera entre reintentos
 func RetryOperation(operation func() error, maxRetries int, delay time.Duration) error {
 	var lastErr error
 

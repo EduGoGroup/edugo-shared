@@ -130,12 +130,18 @@ func TestPostgresContainer_Integration(t *testing.T) {
 
 		// Verificar que ambas están vacías
 		var count int
-		db.QueryRowContext(ctx, `SELECT COUNT(*) FROM test_authors`).Scan(&count)
+		err = db.QueryRowContext(ctx, `SELECT COUNT(*) FROM test_authors`).Scan(&count)
+		if err != nil {
+			t.Fatalf("Error contando registros en test_authors: %v", err)
+		}
 		if count != 0 {
 			t.Errorf("test_authors debería estar vacía, tiene %d registros", count)
 		}
 
-		db.QueryRowContext(ctx, `SELECT COUNT(*) FROM test_books`).Scan(&count)
+		err = db.QueryRowContext(ctx, `SELECT COUNT(*) FROM test_books`).Scan(&count)
+		if err != nil {
+			t.Fatalf("Error contando registros en test_books: %v", err)
+		}
 		if count != 0 {
 			t.Errorf("test_books debería estar vacía, tiene %d registros", count)
 		}

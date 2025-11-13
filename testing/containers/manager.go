@@ -7,7 +7,14 @@ import (
 	"testing"
 )
 
+// Manager gestiona los containers de testing de forma centralizada.
+// Implementa el patrón Singleton para crear los containers una sola vez
+// y reutilizarlos entre múltiples tests, mejorando el rendimiento.
+
 // Manager gestiona los containers de testing de forma centralizada
+// Manager gestiona los containers de testing de forma centralizada.
+// Implementa el patrón Singleton para crear los containers una sola vez
+// y reutilizarlos entre múltiples tests, mejorando el rendimiento.
 type Manager struct {
 	postgres *PostgresContainer
 	mongodb  *MongoDBContainer
@@ -81,7 +88,13 @@ func GetManager(t *testing.T, config *Config) (*Manager, error) {
 		}
 	})
 
-	return globalManager, setupError
+	if setupError != nil {
+		return nil, setupError
+	}
+	if globalManager == nil {
+		return nil, fmt.Errorf("error: manager no fue inicializado correctamente")
+	}
+	return globalManager, nil
 }
 
 // PostgreSQL retorna el container de PostgreSQL.
@@ -143,7 +156,11 @@ func (m *Manager) cleanup(ctx context.Context, t *testing.T) error {
 	}
 
 	if len(errors) > 0 {
-		return fmt.Errorf("errores durante cleanup: %v", errors)
+		errMsg := "errores durante cleanup:"
+		for i, err := range errors {
+			errMsg += fmt.Sprintf("\n  %d. %v", i+1, err)
+		}
+		return fmt.Errorf("%s", errMsg)
 	}
 
 	if t != nil {

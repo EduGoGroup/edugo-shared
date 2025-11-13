@@ -13,6 +13,9 @@ import (
 )
 
 // MongoDBContainer envuelve el container de MongoDB
+// MongoDBContainer envuelve el container de MongoDB de testcontainers.
+// Proporciona acceso al cliente MongoDB y métodos de utilidad para
+// limpiar colecciones entre tests.
 type MongoDBContainer struct {
 	container *mongodb.MongoDBContainer
 	client    *mongo.Client

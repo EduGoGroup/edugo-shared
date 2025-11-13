@@ -12,6 +12,9 @@ import (
 )
 
 // RabbitMQContainer envuelve el container de RabbitMQ
+// RabbitMQContainer envuelve el container de RabbitMQ de testcontainers.
+// Proporciona acceso a la conexión AMQP y métodos para crear canales
+// y limpiar colas entre tests.
 type RabbitMQContainer struct {
 	container  *rabbitmq.RabbitMQContainer
 	connection *amqp.Connection

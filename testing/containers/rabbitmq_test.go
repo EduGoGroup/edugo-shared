@@ -113,16 +113,25 @@ func TestRabbitMQContainer_Integration(t *testing.T) {
 
 		// Declarar cola y publicar mensajes
 		queueName := "test_purge_queue"
-		queue, _ := ch.QueueDeclare(queueName, false, false, false, false, nil)
+		queue, err := ch.QueueDeclare(queueName, false, false, false, false, nil)
+		if err != nil {
+			t.Fatalf("Error declarando cola: %v", err)
+		}
 
 		for i := 0; i < 5; i++ {
-			ch.Publish("", queue.Name, false, false, amqp.Publishing{
+			err := ch.Publish("", queue.Name, false, false, amqp.Publishing{
 				Body: []byte("message"),
 			})
+			if err != nil {
+				t.Fatalf("Error publicando mensaje %d: %v", i, err)
+			}
 		}
 
 		// Verificar que hay mensajes
-		queue, _ = ch.QueueInspect(queueName)
+		queue, err = ch.QueueInspect(queueName)
+		if err != nil {
+			t.Fatalf("Error inspeccionando cola antes de purge: %v", err)
+		}
 		if queue.Messages != 5 {
 			t.Errorf("Esperado 5 mensajes antes de purge, obtenido %d", queue.Messages)
 		}
@@ -134,7 +143,10 @@ func TestRabbitMQContainer_Integration(t *testing.T) {
 		}
 
 		// Verificar que la cola está vacía
-		queue, _ = ch.QueueInspect(queueName)
+		queue, err = ch.QueueInspect(queueName)
+		if err != nil {
+			t.Fatalf("Error inspeccionando cola después de purge: %v", err)
+		}
 		if queue.Messages != 0 {
 			t.Errorf("Esperado 0 mensajes después de purge, obtenido %d", queue.Messages)
 		}
@@ -149,7 +161,10 @@ func TestRabbitMQContainer_Integration(t *testing.T) {
 
 		// Declarar cola
 		queueName := "test_delete_queue"
-		ch.QueueDeclare(queueName, false, false, false, false, nil)
+		_, err = ch.QueueDeclare(queueName, false, false, false, false, nil)
+		if err != nil {
+			t.Fatalf("Error declarando cola: %v", err)
+		}
 
 		// Eliminar cola usando el método del container
 		err = container.DeleteQueue(queueName)

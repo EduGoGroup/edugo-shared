@@ -33,7 +33,7 @@ func createRabbitMQ(ctx context.Context, cfg *RabbitConfig) (*RabbitMQContainer,
 		rabbitmq.WithAdminUsername(cfg.Username),
 		rabbitmq.WithAdminPassword(cfg.Password),
 		testcontainers.WithWaitStrategy(
-			wait.ForLog("Server startup complete").
+			wait.ForListeningPort("5672/tcp").
 				WithStartupTimeout(60*time.Second),
 		),
 	)

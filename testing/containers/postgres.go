@@ -90,9 +90,7 @@ func (pc *PostgresContainer) DB() *sql.DB {
 
 // ExecScript ejecuta un archivo SQL en la base de datos
 func (pc *PostgresContainer) ExecScript(ctx context.Context, scriptPath string) error {
-	// TODO: Implementar lectura y ejecución de archivo SQL
-	// Por ahora retorna nil
-	return nil
+	return ExecSQLFile(ctx, pc.db, scriptPath)
 }
 
 // Truncate trunca las tablas especificadas

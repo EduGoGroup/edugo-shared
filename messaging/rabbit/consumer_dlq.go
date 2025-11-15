@@ -107,12 +107,12 @@ func (c *RabbitMQConsumer) setupDLQ(ch *amqp.Channel) error {
 	// Declarar DLX (exchange para mensajes fallidos)
 	if err := ch.ExchangeDeclare(
 		c.config.DLQ.DLXExchange, // name
-		"direct",                  // type
-		true,                      // durable
-		false,                     // auto-deleted
-		false,                     // internal
-		false,                     // no-wait
-		nil,                       // arguments
+		"direct",                 // type
+		true,                     // durable
+		false,                    // auto-deleted
+		false,                    // internal
+		false,                    // no-wait
+		nil,                      // arguments
 	); err != nil {
 		return fmt.Errorf("failed to declare DLX: %w", err)
 	}
@@ -120,11 +120,11 @@ func (c *RabbitMQConsumer) setupDLQ(ch *amqp.Channel) error {
 	// Declarar DLQ (queue para mensajes fallidos)
 	_, err := ch.QueueDeclare(
 		c.config.DLQ.DLXRoutingKey, // name (usa routing key como nombre)
-		true,                        // durable
-		false,                       // delete when unused
-		false,                       // exclusive
-		false,                       // no-wait
-		nil,                         // arguments
+		true,                       // durable
+		false,                      // delete when unused
+		false,                      // exclusive
+		false,                      // no-wait
+		nil,                        // arguments
 	)
 	if err != nil {
 		return fmt.Errorf("failed to declare DLQ: %w", err)

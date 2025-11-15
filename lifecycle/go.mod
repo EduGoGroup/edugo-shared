@@ -1,6 +1,6 @@
 module github.com/EduGoGroup/edugo-shared/lifecycle
 
-go 1.24
+go 1.24.10
 
 require (
 	github.com/EduGoGroup/edugo-shared/logger v0.3.3

@@ -5,6 +5,53 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2025-11-15 - 🔒 FROZEN RELEASE
+
+### 🎉 Version Congelada
+
+Esta versión es la **BASE CONGELADA** para el ecosistema EduGo MVP.
+
+**NO se agregarán features nuevas hasta post-MVP.**
+
+Solo se permitirán:
+- 🐛 Bug fixes críticos (v0.7.1, v0.7.2, etc.)
+- 🔒 Security patches
+- 📝 Documentación
+
+### Added
+
+#### New Modules
+- **evaluation/** `v0.7.0` - Módulo completo de evaluaciones
+  - `Assessment`: Modelo de evaluaciones/quizzes
+  - `Question`: Preguntas con múltiples tipos (multiple_choice, true_false, short_answer)
+  - `QuestionOption`: Opciones para preguntas
+  - `Attempt`: Intentos de estudiantes
+  - `Answer`: Respuestas con scoring automático
+  - 100% test coverage
+
+#### New Features
+- **messaging/rabbit** `v0.7.0` - Dead Letter Queue (DLQ) support
+  - `DLQConfig`: Configuración con exponential backoff
+  - `ConsumeWithDLQ`: Consumer con reintentos automáticos
+  - `CalculateBackoff`: Exponential/linear retry delays
+
+### Changed
+
+- **ALL MODULES** bumped to `v0.7.0` (coordinated release)
+- **Go version**: Standardized to `go 1.24.10` across all modules
+- **database/postgres**: Coverage increased from 2% to >80%
+- **logger**: Coverage increased from 0% to 95.8%
+- **common/***: Coverage increased from 0% to >95%
+- **config**: Coverage increased from 32.9% to >80%
+- **bootstrap**: Coverage increased from 29.9% to >80%
+
+### Fixed
+
+- **auth, middleware/gin**: Fixed dependencies with `go mod tidy`
+- **All modules**: Go version compatibility (1.24.10)
+
+---
+
 ## [0.3.0] - 2025-11-01
 
 ### 🚨 BREAKING: Cambio de Esquema de Versionado

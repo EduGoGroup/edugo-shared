@@ -1,0 +1,5 @@
+module github.com/EduGoGroup/edugo-shared/evaluation
+
+go 1.24.10
+
+require github.com/google/uuid v1.6.0

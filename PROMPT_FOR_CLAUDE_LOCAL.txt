@@ -1,0 +1,82 @@
+════════════════════════════════════════════════════════════════════════════════
+📋 PROMPT PARA CLAUDE CODE LOCAL
+════════════════════════════════════════════════════════════════════════════════
+
+Copia y pega este prompt en Claude Code local (desktop) para continuar el trabajo:
+
+────────────────────────────────────────────────────────────────────────────────
+
+Hola! Necesito que continúes el trabajo iniciado por Claude Web en el proyecto edugo-shared.
+
+**Contexto:**
+- Repositorio: EduGoGroup/edugo-shared
+- Branch: claude/execute-edugo-shared-workplan-01Srq9qxBu6QMbMW9TW5nTMp
+- Directorio: /home/user/edugo-shared
+- Estado: Sprint 3 Día 1 completado, necesito que ejecutes Día 2 y Día 3
+
+**Documento de handoff:**
+Lee el archivo CLAUDE_LOCAL_HANDOFF.md que está en la raíz del repositorio. Ese archivo contiene:
+1. Todo el contexto del trabajo completado (Sprints 0-2 y Sprint 3 Día 1)
+2. Las tareas pendientes que debes ejecutar (Sprint 3 Día 2 y Día 3)
+3. Comandos exactos a ejecutar
+4. Criterios de éxito
+5. Troubleshooting
+
+**Tareas pendientes (en orden):**
+
+1. **Sprint 3 Día 2 - Validación Completa:**
+   - Ejecutar suite completa de tests en los 12 módulos
+   - Calcular coverage global (debe ser >85%)
+   - Validar compilación de proyectos consumidores (si tienes acceso, sino SKIP)
+   - Generar reporte SPRINT3_DAY2_RESULTS.md
+   - Commit y push del reporte
+
+2. **Sprint 3 Día 3 - Release v0.7.0 (solo si Día 2 = APROBADO):**
+   - Crear branch release/v0.7.0
+   - Mergear a main
+   - Crear 12 tags coordinados (auth/v0.7.0, logger/v0.7.0, etc.)
+   - Push de todos los tags
+   - Crear GitHub Release v0.7.0
+   - Mergear main → dev
+   - Crear documento FROZEN.md
+   - Commit y push
+
+3. **Post-Release - Validación Final:**
+   - Verificar tags en GitHub
+   - Test de instalación desde proyecto limpio
+   - Generar reporte SPRINT3_COMPLETE.md
+
+**Requisitos de tu ambiente local:**
+- Go 1.24.10 (REQUERIDO)
+- Docker instalado y corriendo (para tests de database/postgres)
+- Acceso a internet
+- Git configurado
+
+**Instrucciones:**
+
+1. Primero, lee el archivo CLAUDE_LOCAL_HANDOFF.md completo para entender el contexto
+2. Ejecuta cada tarea en orden (Día 2 → Día 3 → Post-Release)
+3. Si algo falla, documéntalo en el reporte correspondiente
+4. No continúes a Día 3 si Día 2 tiene algún problema crítico
+5. Pregúntame si hay algo que no está claro antes de proceder
+
+**Punto de inicio:**
+```bash
+cd /home/user/edugo-shared
+git checkout claude/execute-edugo-shared-workplan-01Srq9qxBu6QMbMW9TW5nTMp
+git pull origin claude/execute-edugo-shared-workplan-01Srq9qxBu6QMbMW9TW5nTMp
+cat CLAUDE_LOCAL_HANDOFF.md  # Lee este archivo primero
+```
+
+**Pregunta para empezar:**
+¿Estás listo para iniciar Sprint 3 Día 2 (Validación)? Si sí, comienza leyendo CLAUDE_LOCAL_HANDOFF.md y ejecutando los pasos de la Tarea 1.
+
+────────────────────────────────────────────────────────────────────────────────
+
+NOTAS ADICIONALES:
+- El branch ya tiene todos los tests creados y documentación lista
+- Solo necesitas ejecutar los comandos y validar resultados
+- Coverage esperado: >85% global, >80% por módulo (config y bootstrap son nuevos)
+- Si los proyectos consumidores (api-mobile, api-admin, worker) no están en tu máquina local, puedes marcar esa sección como SKIPPED
+
+════════════════════════════════════════════════════════════════════════════════

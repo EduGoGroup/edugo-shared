@@ -228,7 +228,7 @@ func TestLoader_Load_FileNotFoundContinuesWithEnv(t *testing.T) {
 	// Reset viper for this test
 	viper.Reset()
 
-	// Set environment variables
+	// Set environment variables - Viper usa mayúsculas para todo el key
 	os.Setenv("APP_ENVIRONMENT", "qa")
 	os.Setenv("APP_SERVICE_NAME", "env-service")
 	defer func() {
@@ -248,6 +248,10 @@ func TestLoader_Load_FileNotFoundContinuesWithEnv(t *testing.T) {
 		Environment string `mapstructure:"environment"`
 		ServiceName string `mapstructure:"service_name"`
 	}
+
+	// Bind env vars before loading (needed for viper to recognize them)
+	viper.BindEnv("environment", "APP_ENVIRONMENT")
+	viper.BindEnv("service_name", "APP_SERVICE_NAME")
 
 	err := loader.Load(&cfg)
 

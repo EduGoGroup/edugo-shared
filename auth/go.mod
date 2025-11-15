@@ -2,7 +2,7 @@ module github.com/EduGoGroup/edugo-shared/auth
 
 go 1.24.10
 
-toolchain go1.24.10
+toolchain go1.24.7
 
 require (
 	github.com/EduGoGroup/edugo-shared/common v0.3.3

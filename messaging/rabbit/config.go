@@ -45,10 +45,12 @@ type QueueConfig struct {
 
 // ConsumerConfig configuración del consumidor
 type ConsumerConfig struct {
-	Name      string // Nombre del consumidor
-	AutoAck   bool   // Auto-acknowledge
-	Exclusive bool   // Exclusivo
-	NoLocal   bool   // No recibir mensajes publicados en la misma conexión
+	Name          string    // Nombre del consumidor
+	AutoAck       bool      // Auto-acknowledge
+	Exclusive     bool      // Exclusivo
+	NoLocal       bool      // No recibir mensajes publicados en la misma conexión
+	PrefetchCount int       // Número de mensajes a prefetch
+	DLQ           DLQConfig // Dead Letter Queue configuration
 }
 
 // DefaultConfig retorna una configuración con valores por defecto

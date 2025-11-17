@@ -8,6 +8,8 @@ import (
 )
 
 func TestAssessment_Validate(t *testing.T) {
+	materialID := uuid.New()
+	
 	tests := []struct {
 		name       string
 		assessment evaluation.Assessment
@@ -17,6 +19,7 @@ func TestAssessment_Validate(t *testing.T) {
 			name: "valid assessment",
 			assessment: evaluation.Assessment{
 				ID:           uuid.New(),
+				MaterialID:   materialID,
 				Title:        "Test Quiz",
 				PassingScore: 70,
 			},
@@ -26,6 +29,7 @@ func TestAssessment_Validate(t *testing.T) {
 			name: "missing title",
 			assessment: evaluation.Assessment{
 				ID:           uuid.New(),
+				MaterialID:   materialID,
 				PassingScore: 70,
 			},
 			wantErr: true,
@@ -34,6 +38,7 @@ func TestAssessment_Validate(t *testing.T) {
 			name: "invalid passing score - too high",
 			assessment: evaluation.Assessment{
 				ID:           uuid.New(),
+				MaterialID:   materialID,
 				Title:        "Test Quiz",
 				PassingScore: 150, // > 100
 			},
@@ -43,6 +48,7 @@ func TestAssessment_Validate(t *testing.T) {
 			name: "invalid passing score - negative",
 			assessment: evaluation.Assessment{
 				ID:           uuid.New(),
+				MaterialID:   materialID,
 				Title:        "Test Quiz",
 				PassingScore: -10,
 			},
@@ -52,6 +58,7 @@ func TestAssessment_Validate(t *testing.T) {
 			name: "valid assessment with 0 passing score",
 			assessment: evaluation.Assessment{
 				ID:           uuid.New(),
+				MaterialID:   materialID,
 				Title:        "Test Quiz",
 				PassingScore: 0,
 			},
@@ -61,8 +68,31 @@ func TestAssessment_Validate(t *testing.T) {
 			name: "valid assessment with 100 passing score",
 			assessment: evaluation.Assessment{
 				ID:           uuid.New(),
+				MaterialID:   materialID,
 				Title:        "Test Quiz",
 				PassingScore: 100,
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid assessment with max attempts",
+			assessment: evaluation.Assessment{
+				ID:           uuid.New(),
+				MaterialID:   materialID,
+				Title:        "Test Quiz",
+				PassingScore: 70,
+				MaxAttempts:  intPtr(3),
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid assessment with time limit",
+			assessment: evaluation.Assessment{
+				ID:               uuid.New(),
+				MaterialID:       materialID,
+				Title:            "Test Quiz",
+				PassingScore:     70,
+				TimeLimitMinutes: intPtr(30),
 			},
 			wantErr: false,
 		},
@@ -95,6 +125,84 @@ func TestAssessment_IsPublished(t *testing.T) {
 			assessment := evaluation.Assessment{Status: tt.status}
 			if got := assessment.IsPublished(); got != tt.wantResult {
 				t.Errorf("IsPublished() = %v, want %v", got, tt.wantResult)
+			}
+		})
+	}
+}
+
+// Helper function for nullable int pointers
+func intPtr(i int) *int {
+	return &i
+}
+
+func TestAssessment_Validate_InvalidNullableFields(t *testing.T) {
+	materialID := uuid.New()
+	
+	tests := []struct {
+		name       string
+		assessment evaluation.Assessment
+		wantErr    bool
+		errMsg     string
+	}{
+		{
+			name: "invalid max attempts - zero",
+			assessment: evaluation.Assessment{
+				ID:           uuid.New(),
+				MaterialID:   materialID,
+				Title:        "Test Quiz",
+				PassingScore: 70,
+				MaxAttempts:  intPtr(0),
+			},
+			wantErr: true,
+			errMsg:  "max attempts must be greater than 0",
+		},
+		{
+			name: "invalid max attempts - negative",
+			assessment: evaluation.Assessment{
+				ID:           uuid.New(),
+				MaterialID:   materialID,
+				Title:        "Test Quiz",
+				PassingScore: 70,
+				MaxAttempts:  intPtr(-1),
+			},
+			wantErr: true,
+			errMsg:  "max attempts must be greater than 0",
+		},
+		{
+			name: "invalid time limit - zero",
+			assessment: evaluation.Assessment{
+				ID:               uuid.New(),
+				MaterialID:       materialID,
+				Title:            "Test Quiz",
+				PassingScore:     70,
+				TimeLimitMinutes: intPtr(0),
+			},
+			wantErr: true,
+			errMsg:  "time limit minutes must be greater than 0",
+		},
+		{
+			name: "invalid time limit - negative",
+			assessment: evaluation.Assessment{
+				ID:               uuid.New(),
+				MaterialID:       materialID,
+				Title:            "Test Quiz",
+				PassingScore:     70,
+				TimeLimitMinutes: intPtr(-5),
+			},
+			wantErr: true,
+			errMsg:  "time limit minutes must be greater than 0",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.assessment.Validate()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Validate() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if err != nil && err.Error() != tt.errMsg {
+				t.Errorf("Validate() error message = %v, want %v", err.Error(), tt.errMsg)
 			}
 		})
 	}

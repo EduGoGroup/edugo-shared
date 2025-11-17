@@ -134,3 +134,76 @@ func TestAssessment_IsPublished(t *testing.T) {
 func intPtr(i int) *int {
 	return &i
 }
+
+func TestAssessment_Validate_InvalidNullableFields(t *testing.T) {
+	materialID := uuid.New()
+	
+	tests := []struct {
+		name       string
+		assessment evaluation.Assessment
+		wantErr    bool
+		errMsg     string
+	}{
+		{
+			name: "invalid max attempts - zero",
+			assessment: evaluation.Assessment{
+				ID:           uuid.New(),
+				MaterialID:   materialID,
+				Title:        "Test Quiz",
+				PassingScore: 70,
+				MaxAttempts:  intPtr(0),
+			},
+			wantErr: true,
+			errMsg:  "max attempts must be greater than 0",
+		},
+		{
+			name: "invalid max attempts - negative",
+			assessment: evaluation.Assessment{
+				ID:           uuid.New(),
+				MaterialID:   materialID,
+				Title:        "Test Quiz",
+				PassingScore: 70,
+				MaxAttempts:  intPtr(-1),
+			},
+			wantErr: true,
+			errMsg:  "max attempts must be greater than 0",
+		},
+		{
+			name: "invalid time limit - zero",
+			assessment: evaluation.Assessment{
+				ID:               uuid.New(),
+				MaterialID:       materialID,
+				Title:            "Test Quiz",
+				PassingScore:     70,
+				TimeLimitMinutes: intPtr(0),
+			},
+			wantErr: true,
+			errMsg:  "time limit minutes must be greater than 0",
+		},
+		{
+			name: "invalid time limit - negative",
+			assessment: evaluation.Assessment{
+				ID:               uuid.New(),
+				MaterialID:       materialID,
+				Title:            "Test Quiz",
+				PassingScore:     70,
+				TimeLimitMinutes: intPtr(-5),
+			},
+			wantErr: true,
+			errMsg:  "time limit minutes must be greater than 0",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.assessment.Validate()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Validate() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if err != nil && err.Error() != tt.errMsg {
+				t.Errorf("Validate() error message = %v, want %v", err.Error(), tt.errMsg)
+			}
+		})
+	}
+}

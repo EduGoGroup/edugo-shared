@@ -34,6 +34,12 @@ func (a *Assessment) Validate() error {
 	if a.PassingScore < 0 || a.PassingScore > 100 {
 		return errors.New("passing score must be between 0 and 100")
 	}
+	if a.MaxAttempts != nil && *a.MaxAttempts <= 0 {
+		return errors.New("max attempts must be greater than 0")
+	}
+	if a.TimeLimitMinutes != nil && *a.TimeLimitMinutes <= 0 {
+		return errors.New("time limit minutes must be greater than 0")
+	}
 	return nil
 }
 

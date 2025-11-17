@@ -10,17 +10,19 @@ import (
 func TestAttempt_CalculatePercentage(t *testing.T) {
 	tests := []struct {
 		name           string
-		totalScore     int
+		totalScore     float64
 		maxScore       int
 		wantPercentage float64
 	}{
-		{"75 out of 100", 75, 100, 75.0},
-		{"50 out of 100", 50, 100, 50.0},
-		{"100 out of 100", 100, 100, 100.0},
-		{"0 out of 100", 0, 100, 0.0},
-		{"zero max score", 75, 0, 0.0},
-		{"50 out of 50", 50, 50, 100.0},
-		{"25 out of 50", 25, 50, 50.0},
+		{"75 out of 100", 75.0, 100, 75.0},
+		{"50 out of 100", 50.0, 100, 50.0},
+		{"100 out of 100", 100.0, 100, 100.0},
+		{"0 out of 100", 0.0, 100, 0.0},
+		{"zero max score", 75.0, 0, 0.0},
+		{"50 out of 50", 50.0, 50, 100.0},
+		{"25 out of 50", 25.0, 50, 50.0},
+		{"decimal score 85.5 out of 100", 85.5, 100, 85.5},
+		{"decimal score 92.75 out of 100", 92.75, 100, 92.75},
 	}
 
 	for _, tt := range tests {
@@ -97,7 +99,7 @@ func TestAttempt_IsSubmitted(t *testing.T) {
 func TestAttempt_CalculateAndCheckPassed(t *testing.T) {
 	// Integration test: calculate percentage and check if passed
 	attempt := evaluation.Attempt{
-		TotalScore: 85,
+		TotalScore: 85.0,
 		MaxScore:   100,
 	}
 

@@ -3,6 +3,7 @@ package bootstrap
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -431,28 +432,120 @@ func extractEnvAndVersion(config interface{}) (string, string) {
 	return "local", "0.0.0"
 }
 
-// extractPostgreSQLConfig extrae configuración de PostgreSQL
+// extractPostgreSQLConfig extrae configuración de PostgreSQL usando reflection
 func extractPostgreSQLConfig(config interface{}) (PostgreSQLConfig, error) {
-	// TODO: Implementar extracción real cuando BaseConfig esté integrado
-	return PostgreSQLConfig{}, fmt.Errorf("not implemented")
+	// Intentar type assertion directo primero
+	if pgConfig, ok := config.(PostgreSQLConfig); ok {
+		return pgConfig, nil
+	}
+
+	// Usar reflection para extraer campo PostgreSQL
+	v := reflect.ValueOf(config)
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
+
+	if v.Kind() != reflect.Struct {
+		return PostgreSQLConfig{}, fmt.Errorf("config must be a struct, got %T", config)
+	}
+
+	pgField := v.FieldByName("PostgreSQL")
+	if !pgField.IsValid() {
+		return PostgreSQLConfig{}, fmt.Errorf("PostgreSQL field not found in config")
+	}
+
+	if pgConfig, ok := pgField.Interface().(PostgreSQLConfig); ok {
+		return pgConfig, nil
+	}
+
+	return PostgreSQLConfig{}, fmt.Errorf("PostgreSQL field is not of type PostgreSQLConfig")
 }
 
-// extractMongoDBConfig extrae configuración de MongoDB
+// extractMongoDBConfig extrae configuración de MongoDB usando reflection
 func extractMongoDBConfig(config interface{}) (MongoDBConfig, error) {
-	// TODO: Implementar extracción real cuando BaseConfig esté integrado
-	return MongoDBConfig{}, fmt.Errorf("not implemented")
+	// Intentar type assertion directo
+	if mongoConfig, ok := config.(MongoDBConfig); ok {
+		return mongoConfig, nil
+	}
+
+	// Usar reflection
+	v := reflect.ValueOf(config)
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
+
+	if v.Kind() != reflect.Struct {
+		return MongoDBConfig{}, fmt.Errorf("config must be a struct, got %T", config)
+	}
+
+	mongoField := v.FieldByName("MongoDB")
+	if !mongoField.IsValid() {
+		return MongoDBConfig{}, fmt.Errorf("MongoDB field not found in config")
+	}
+
+	if mongoConfig, ok := mongoField.Interface().(MongoDBConfig); ok {
+		return mongoConfig, nil
+	}
+
+	return MongoDBConfig{}, fmt.Errorf("MongoDB field is not of type MongoDBConfig")
 }
 
-// extractRabbitMQConfig extrae configuración de RabbitMQ
+// extractRabbitMQConfig extrae configuración de RabbitMQ usando reflection
 func extractRabbitMQConfig(config interface{}) (RabbitMQConfig, error) {
-	// TODO: Implementar extracción real cuando BaseConfig esté integrado
-	return RabbitMQConfig{}, fmt.Errorf("not implemented")
+	// Intentar type assertion directo
+	if rabbitConfig, ok := config.(RabbitMQConfig); ok {
+		return rabbitConfig, nil
+	}
+
+	// Usar reflection
+	v := reflect.ValueOf(config)
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
+
+	if v.Kind() != reflect.Struct {
+		return RabbitMQConfig{}, fmt.Errorf("config must be a struct, got %T", config)
+	}
+
+	rabbitField := v.FieldByName("RabbitMQ")
+	if !rabbitField.IsValid() {
+		return RabbitMQConfig{}, fmt.Errorf("RabbitMQ field not found in config")
+	}
+
+	if rabbitConfig, ok := rabbitField.Interface().(RabbitMQConfig); ok {
+		return rabbitConfig, nil
+	}
+
+	return RabbitMQConfig{}, fmt.Errorf("RabbitMQ field is not of type RabbitMQConfig")
 }
 
-// extractS3Config extrae configuración de S3
+// extractS3Config extrae configuración de S3 usando reflection
 func extractS3Config(config interface{}) (S3Config, error) {
-	// TODO: Implementar extracción real cuando BaseConfig esté integrado
-	return S3Config{}, fmt.Errorf("not implemented")
+	// Intentar type assertion directo
+	if s3Config, ok := config.(S3Config); ok {
+		return s3Config, nil
+	}
+
+	// Usar reflection
+	v := reflect.ValueOf(config)
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
+
+	if v.Kind() != reflect.Struct {
+		return S3Config{}, fmt.Errorf("config must be a struct, got %T", config)
+	}
+
+	s3Field := v.FieldByName("S3")
+	if !s3Field.IsValid() {
+		return S3Config{}, fmt.Errorf("S3 field not found in config")
+	}
+
+	if s3Config, ok := s3Field.Interface().(S3Config); ok {
+		return s3Config, nil
+	}
+
+	return S3Config{}, fmt.Errorf("S3 field is not of type S3Config")
 }
 
 // Funciones de registro de cleanup (stubs por ahora)

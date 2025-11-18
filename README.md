@@ -6,9 +6,9 @@
 
 Professional Go shared library with modular architecture and reusable components for EduGo projects.
 
-## 🏗️ Arquitectura Modular (v2.0.5+)
+## 🏗️ Arquitectura Modular
 
-Este proyecto utiliza **módulos Go independientes** para optimizar dependencias y permitir instalación selectiva.
+Este proyecto utiliza **módulos Go independientes** para optimizar dependencias y permitir instalación selectiva. Cada módulo tiene su propio versionamiento y ciclo de releases.
 
 ### ✨ Beneficios
 
@@ -42,12 +42,16 @@ edugo-shared/
 
 ## 📦 Instalación
 
+> **Nota:** Cada módulo se versiona independientemente. Usa `@latest` o consulta la tabla de versiones más abajo.
+
 ### Módulo Common (Errors, Types, Validator, Config)
 
 **El más liviano - Sin dependencias externas pesadas**
 
 ```bash
-go get github.com/EduGoGroup/edugo-shared/common@v2.0.5
+go get github.com/EduGoGroup/edugo-shared/common@latest
+# O versión específica:
+# go get github.com/EduGoGroup/edugo-shared/common@v0.7.0
 ```
 
 **Incluye:**
@@ -63,7 +67,7 @@ go get github.com/EduGoGroup/edugo-shared/common@v2.0.5
 ### Módulo Logger
 
 ```bash
-go get github.com/EduGoGroup/edugo-shared/logger@v2.0.5
+go get github.com/EduGoGroup/edugo-shared/logger@latest
 ```
 
 **Incluye:**
@@ -78,7 +82,7 @@ go get github.com/EduGoGroup/edugo-shared/logger@v2.0.5
 ### Módulo Auth (JWT)
 
 ```bash
-go get github.com/EduGoGroup/edugo-shared/auth@v2.0.5
+go get github.com/EduGoGroup/edugo-shared/auth@latest
 ```
 
 **Incluye:**
@@ -94,7 +98,7 @@ go get github.com/EduGoGroup/edugo-shared/auth@v2.0.5
 ### Módulo RabbitMQ
 
 ```bash
-go get github.com/EduGoGroup/edugo-shared/messaging/rabbit@v2.0.5
+go get github.com/EduGoGroup/edugo-shared/messaging/rabbit@latest
 ```
 
 **Incluye:**
@@ -110,7 +114,7 @@ go get github.com/EduGoGroup/edugo-shared/messaging/rabbit@v2.0.5
 ### Módulo PostgreSQL
 
 ```bash
-go get github.com/EduGoGroup/edugo-shared/database/postgres@v2.0.5
+go get github.com/EduGoGroup/edugo-shared/database/postgres@latest
 ```
 
 **Incluye:**
@@ -126,7 +130,7 @@ go get github.com/EduGoGroup/edugo-shared/database/postgres@v2.0.5
 ### Módulo MongoDB
 
 ```bash
-go get github.com/EduGoGroup/edugo-shared/database/mongodb@v2.0.5
+go get github.com/EduGoGroup/edugo-shared/database/mongodb@latest
 ```
 
 **Incluye:**
@@ -144,7 +148,7 @@ go get github.com/EduGoGroup/edugo-shared/database/mongodb@v2.0.5
 ### Ejemplo 1: Solo Errores y Validación (Ultra Liviano)
 
 ```bash
-go get github.com/EduGoGroup/edugo-shared/common@v2.0.5
+go get github.com/EduGoGroup/edugo-shared/common@latest
 ```
 
 ```go
@@ -174,8 +178,8 @@ if v.HasErrors() {
 ### Ejemplo 2: Autenticación JWT
 
 ```bash
-go get github.com/EduGoGroup/edugo-shared/auth@v2.0.5
-go get github.com/EduGoGroup/edugo-shared/common@v2.0.5
+go get github.com/EduGoGroup/edugo-shared/auth@latest
+go get github.com/EduGoGroup/edugo-shared/common@latest
 ```
 
 ```go
@@ -206,10 +210,10 @@ claims, err := jwtManager.ValidateToken(token)
 ### Ejemplo 3: API Completa con Postgres y Logger
 
 ```bash
-go get github.com/EduGoGroup/edugo-shared/common@v2.0.5
-go get github.com/EduGoGroup/edugo-shared/logger@v2.0.5
-go get github.com/EduGoGroup/edugo-shared/auth@v2.0.5
-go get github.com/EduGoGroup/edugo-shared/database/postgres@v2.0.5
+go get github.com/EduGoGroup/edugo-shared/common@latest
+go get github.com/EduGoGroup/edugo-shared/logger@latest
+go get github.com/EduGoGroup/edugo-shared/auth@latest
+go get github.com/EduGoGroup/edugo-shared/database/postgres@latest
 ```
 
 ```go
@@ -283,13 +287,13 @@ jwtManager := auth.NewJWTManager(secretKey, "api")
 
 ---
 
-## 🔄 Migración desde v2.0.1
+## 🔄 Migración a Arquitectura Modular
 
 Ver [UPGRADE_GUIDE.md](UPGRADE_GUIDE.md) para instrucciones detalladas.
 
 ### Resumen Rápido
 
-**ANTES (v2.0.1):**
+**ANTES (Versión monolítica):**
 ```go
 import "github.com/EduGoGroup/edugo-shared/v2/pkg/errors"
 import "github.com/EduGoGroup/edugo-shared/v2/pkg/auth"
@@ -300,15 +304,15 @@ go get github.com/EduGoGroup/edugo-shared/v2@v2.0.1
 # Descarga: RabbitMQ, JWT, Zap, Postgres, Mongo (TODO)
 ```
 
-**DESPUÉS (v2.0.5):**
+**AHORA (Arquitectura modular):**
 ```go
 import "github.com/EduGoGroup/edugo-shared/common/errors"
 import "github.com/EduGoGroup/edugo-shared/auth"
 ```
 
 ```bash
-go get github.com/EduGoGroup/edugo-shared/common@v2.0.5
-go get github.com/EduGoGroup/edugo-shared/auth@v2.0.5
+go get github.com/EduGoGroup/edugo-shared/common@latest
+go get github.com/EduGoGroup/edugo-shared/auth@latest
 # Descarga: Solo JWT + UUID + common (selectivo) ✅
 ```
 
@@ -341,7 +345,7 @@ cd database/mongodb && go test ./...
 
 ## 📊 Comparación de Dependencias
 
-| Caso de Uso | v2.0.1 (Monolítico) | v2.0.5 (Modular) | Ahorro |
+| Caso de Uso | Antes (Monolítico) | Ahora (Modular) | Ahorro |
 |-------------|---------------------|------------------|--------|
 | Solo errores y types | 15+ deps | 1 dep (uuid) | ~93% |
 | Errors + Auth | 15+ deps | 3 deps | ~80% |
@@ -352,19 +356,48 @@ cd database/mongodb && go test ./...
 
 ## 📋 Versionamiento
 
-Este proyecto sigue [Semantic Versioning](https://semver.org/):
+Este repositorio es un **monorepo multi-módulo** donde cada módulo tiene su propio versionamiento independiente siguiendo [Semantic Versioning](https://semver.org/):
 
 - **MAJOR**: Cambios incompatibles en la API
 - **MINOR**: Nueva funcionalidad compatible
 - **PATCH**: Corrección de bugs
 
-### Historial de Versiones
+### 🏷️ Estrategia de Tags
 
-- **v2.0.5** (2025-10-31): Arquitectura modular completa con 6 módulos independientes
-- **v2.0.0** (2025-10-31): Separación inicial de databases en sub-módulos
-- **v1.0.0** (2025-10-31): Primera versión estable monolítica
+Cada módulo se versiona independientemente:
 
-Ver [CHANGELOG.md](CHANGELOG.md) para detalles completos.
+```bash
+# Cada módulo tiene su propia secuencia de versiones
+auth/v0.7.0
+bootstrap/v0.9.0
+common/v0.7.0
+evaluation/v0.8.0
+logger/v0.7.0
+# ... etc
+```
+
+**Importante:** Este proyecto **NO utiliza tags globales** (como `v0.X.Y`). Cada módulo evoluciona a su propio ritmo.
+
+Ver [VERSIONING.md](VERSIONING.md) para la estrategia completa de versionamiento modular.
+
+### Versiones Actuales de Módulos
+
+| Módulo | Versión Actual | Última Actualización |
+|--------|----------------|---------------------|
+| auth | `auth/v0.7.0` | 2025-01 |
+| bootstrap | `bootstrap/v0.9.0` | 2025-01 |
+| common | `common/v0.7.0` | 2025-01 |
+| config | `config/v0.7.0` | 2025-01 |
+| database/mongodb | `database/mongodb/v0.7.0` | 2025-01 |
+| database/postgres | `database/postgres/v0.7.0` | 2025-01 |
+| evaluation | `evaluation/v0.8.0` | 2025-01 |
+| lifecycle | `lifecycle/v0.7.0` | 2025-01 |
+| logger | `logger/v0.7.0` | 2025-01 |
+| messaging/rabbit | `messaging/rabbit/v0.7.0` | 2025-01 |
+| middleware/gin | `middleware/gin/v0.7.0` | 2025-01 |
+| testing | `testing/v0.7.0` | 2025-01 |
+
+Ver [CHANGELOG.md](CHANGELOG.md) para detalles completos de cambios por módulo.
 
 ---
 

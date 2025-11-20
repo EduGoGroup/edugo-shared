@@ -19,8 +19,8 @@
 ```
 🎯 Sprint:        SPRINT-1
 📊 Fase:          Fase 1 - Implementación
-📈 Progreso:      6.7% (1/15 tareas)
-⏱️ Última sesión: 20 Nov 2025, 19:15
+📈 Progreso:      13.3% (2/15 tareas)
+⏱️ Última sesión: 20 Nov 2025, 19:36
 👤 Responsable:   Claude Code
 🔄 Branch:        claude/sprint1-phase1-stubs-01LgLuGKaY5NGmErCdLvU665
 ```
@@ -29,9 +29,9 @@
 
 ## 👉 PRÓXIMA ACCIÓN RECOMENDADA
 
-**Acción:** Ejecutar Tarea 1.2 - Migrar a Go 1.25
+**Acción:** Ejecutar Tarea 1.3 - Validar Compilación con Go 1.25
 
-**Estado:** Tarea 1.1 completada - Continuando con migración Go 1.25
+**Estado:** Tarea 1.2 completada (stub) - Validando compilación
 
 ---
 
@@ -49,10 +49,10 @@
 |---------|-------|
 | **Fase actual** | Fase 1 - Implementación |
 | **Tareas totales** | 15 |
-| **Tareas completadas** | 1 |
+| **Tareas completadas** | 2 |
 | **Tareas en progreso** | 1 |
-| **Tareas pendientes** | 14 |
-| **Progreso** | 6.7% |
+| **Tareas pendientes** | 13 |
+| **Progreso** | 13.3% |
 
 ---
 
@@ -63,8 +63,8 @@
 | # | Tarea | Estado | Notas |
 |---|-------|--------|-------|
 | 1.1 | Crear Backup y Rama de Trabajo | ✅ Completado | 20 Nov 19:20 |
-| 1.2 | Migrar a Go 1.25 | 🔄 En progreso | Iniciada 19:22 |
-| 1.3 | Validar Compilación con Go 1.25 | ⏳ Pendiente | 30 min |
+| 1.2 | Migrar a Go 1.25 | ✅ (stub) Completado | Go 1.25 no disponible - usando GOTOOLCHAIN=local |
+| 1.3 | Validar Compilación con Go 1.25 | 🔄 En progreso | Iniciada 19:36 |
 | 1.4 | Validar Tests con Go 1.25 | ⏳ Pendiente | 45 min |
 | 2.1 | Corregir Fallos Fantasma en test.yml | ⏳ Pendiente | 30 min |
 | 2.2 | Validar Workflows Localmente con act | ⏳ Pendiente | 45 min |
@@ -79,7 +79,7 @@
 | 5.2 | Crear Pull Request | ⏳ Pendiente | 20 min |
 | 5.3 | Merge a Dev | ⏳ Pendiente | 15 min |
 
-**Progreso Fase 1:** 1/15 (6.7%)
+**Progreso Fase 1:** 2/15 (13.3%)
 
 ---
 
@@ -112,11 +112,11 @@
 
 ## 🚨 Bloqueos y Decisiones
 
-**Stubs activos:** 0
+**Stubs activos:** 1
 
 | Tarea | Razón | Archivo Decisión |
 |-------|-------|------------------|
-| - | - | - |
+| 1.2 | Go 1.25 no lanzado - usando GOTOOLCHAIN=local | decisions/TASK-1.2-BLOCKED.md |
 
 ---
 

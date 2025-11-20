@@ -327,5 +327,17 @@ check-all-modules: fmt-all-modules vet-all-modules test-all-modules ## Verificac
 ci-all-modules: fmt-all-modules vet-all-modules test-race-all-modules coverage-all-modules ## Pipeline CI completo para todos los módulos
 	@echo "$(GREEN)✓ Pipeline CI de todos los módulos exitoso$(NC)"
 
+# ============================================================================
+# Pre-commit Hooks
+# ============================================================================
+
+.PHONY: setup-hooks
+setup-hooks:  ## Configurar pre-commit hooks
+	@./scripts/setup-hooks.sh
+
+.PHONY: test-hooks
+test-hooks:  ## Probar pre-commit hooks manualmente
+	@.githooks/pre-commit
+
 # Comando por defecto
 .DEFAULT_GOAL := help

@@ -427,6 +427,40 @@ git commit -m "feat(module): descripción"
 
 ---
 
+## 🛠️ Setup para Desarrolladores
+
+### Configurar Pre-commit Hooks
+
+```bash
+# Ejecutar una sola vez después de clonar el repo
+./scripts/setup-hooks.sh
+
+# O usando make
+make setup-hooks
+```
+
+Esto configurará hooks que validan:
+- ✅ Formato con gofmt
+- ✅ Análisis estático con go vet
+- ✅ Linter con golangci-lint
+- ✅ Tests rápidos en módulos modificados
+- ✅ No commit de sensitive data
+
+### Saltear Hooks (uso excepcional)
+
+```bash
+# Solo si es absolutamente necesario
+git commit --no-verify -m "mensaje"
+```
+
+### Probar Hooks Manualmente
+
+```bash
+make test-hooks
+```
+
+---
+
 ## 📄 License
 
 MIT License - EduGo Project

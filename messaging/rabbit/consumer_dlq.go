@@ -64,10 +64,9 @@ func (c *RabbitMQConsumer) ConsumeWithDLQ(ctx context.Context, queueName string,
 
 				// Manejar acknowledgment si no es auto-ack
 				if !c.config.AutoAck {
+					nextRetry := retries + 1
 					if err != nil {
-						// Verificar si excedió reintentos
-						if c.config.DLQ.Enabled && retries >= c.config.DLQ.MaxRetries {
-							// Enviar a DLQ
+						if c.config.DLQ.Enabled && nextRetry > c.config.DLQ.MaxRetries {
 							if err := c.sendToDLQ(ch, msg); err != nil {
 								// Si falla envío a DLQ, reencolar como fallback
 								_ = msg.Nack(false, true)
@@ -75,21 +74,40 @@ func (c *RabbitMQConsumer) ConsumeWithDLQ(ctx context.Context, queueName string,
 								// Acknowledge porque ya está en DLQ
 								_ = msg.Ack(false)
 							}
-						} else {
-							// Reencolar con delay (si DLQ está habilitado)
-							if c.config.DLQ.Enabled {
-								backoff := c.config.DLQ.CalculateBackoff(retries)
-								time.Sleep(backoff)
-							}
-
-							// Incrementar contador de reintentos en headers
-							if msg.Headers == nil {
-								msg.Headers = amqp.Table{}
-							}
-
-							// Nack con requeue
-							_ = msg.Nack(false, true)
+							continue
 						}
+
+						// Reintentar con backoff y re-publicación
+						if c.config.DLQ.Enabled {
+							backoff := c.config.DLQ.CalculateBackoff(retries)
+							time.Sleep(backoff)
+						}
+
+						retryHeaders := cloneHeaders(msg.Headers)
+						retryHeaders["x-retry-count"] = nextRetry
+
+						publishErr := ch.PublishWithContext(
+							ctx,
+							"",
+							queueName,
+							false,
+							false,
+							amqp.Publishing{
+								ContentType:  msg.ContentType,
+								Body:         msg.Body,
+								Headers:      retryHeaders,
+								DeliveryMode: amqp.Persistent,
+								Priority:     msg.Priority,
+							},
+						)
+						if publishErr != nil {
+							// Si falla la re-publicación, reencolar el mensaje original
+							_ = msg.Nack(false, true)
+							continue
+						}
+
+						// Ack del mensaje original después de re-publicarlo
+						_ = msg.Ack(false)
 					} else {
 						// Procesado exitosamente
 						_ = msg.Ack(false)
@@ -182,5 +200,21 @@ func getRetryCount(headers amqp.Table) int {
 	if count, ok := headers["x-retry-count"].(int32); ok {
 		return int(count)
 	}
+	// Intentar con int64 (algunos clientes usan este tipo)
+	if count, ok := headers["x-retry-count"].(int64); ok {
+		return int(count)
+	}
 	return 0
+}
+
+// cloneHeaders crea una copia superficial de los headers para evitar mutar el original
+func cloneHeaders(headers amqp.Table) amqp.Table {
+	if headers == nil {
+		return amqp.Table{}
+	}
+	copyHeaders := make(amqp.Table, len(headers))
+	for k, v := range headers {
+		copyHeaders[k] = v
+	}
+	return copyHeaders
 }

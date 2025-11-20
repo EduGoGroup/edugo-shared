@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/EduGoGroup/edugo-shared/logger"
-	"go.uber.org/zap"
 )
 
 // Resource representa un recurso con startup y cleanup
@@ -48,8 +47,8 @@ func (m *Manager) Register(name string, startup func(ctx context.Context) error,
 	})
 
 	m.logger.Debug("resource registered for lifecycle management",
-		zap.String("resource", name),
-		zap.Int("total_resources", len(m.resources)))
+		"resource", name,
+		"total_resources", len(m.resources))
 }
 
 // RegisterSimple registra un recurso solo con cleanup (sin startup)
@@ -64,37 +63,37 @@ func (m *Manager) Startup(ctx context.Context) error {
 	defer m.mu.Unlock()
 
 	m.logger.Info("starting lifecycle startup phase",
-		zap.Int("total_resources", len(m.resources)))
+		"total_resources", len(m.resources))
 
 	for i, resource := range m.resources {
 		if resource.Startup == nil {
 			m.logger.Debug("resource has no startup function, skipping",
-				zap.String("resource", resource.Name))
+				"resource", resource.Name)
 			continue
 		}
 
 		m.logger.Debug("starting up resource",
-			zap.String("resource", resource.Name),
-			zap.Int("index", i+1),
-			zap.Int("total", len(m.resources)))
+			"resource", resource.Name,
+			"index", i+1,
+			"total", len(m.resources))
 
 		startTime := time.Now()
 
 		if err := resource.Startup(ctx); err != nil {
 			m.logger.Error("resource startup failed",
-				zap.String("resource", resource.Name),
-				zap.Error(err),
-				zap.Duration("duration", time.Since(startTime)))
+				"resource", resource.Name,
+				"error", err,
+				"duration", time.Since(startTime))
 			return fmt.Errorf("failed to startup resource %s: %w", resource.Name, err)
 		}
 
 		m.logger.Debug("resource started successfully",
-			zap.String("resource", resource.Name),
-			zap.Duration("duration", time.Since(startTime)))
+			"resource", resource.Name,
+			"duration", time.Since(startTime))
 	}
 
 	m.logger.Info("lifecycle startup phase completed",
-		zap.Duration("total_duration", time.Since(m.startTime)))
+		"total_duration", time.Since(m.startTime))
 
 	return nil
 }
@@ -106,7 +105,7 @@ func (m *Manager) Cleanup() error {
 	defer m.mu.Unlock()
 
 	m.logger.Info("starting lifecycle cleanup phase",
-		zap.Int("total_resources", len(m.resources)))
+		"total_resources", len(m.resources))
 
 	var errors []error
 	cleanupStartTime := time.Now()
@@ -117,39 +116,39 @@ func (m *Manager) Cleanup() error {
 
 		if resource.Cleanup == nil {
 			m.logger.Debug("resource has no cleanup function, skipping",
-				zap.String("resource", resource.Name))
+				"resource", resource.Name)
 			continue
 		}
 
 		m.logger.Debug("cleaning up resource",
-			zap.String("resource", resource.Name),
-			zap.Int("index", i+1),
-			zap.Int("total", len(m.resources)))
+			"resource", resource.Name,
+			"index", i+1,
+			"total", len(m.resources))
 
 		startTime := time.Now()
 
 		if err := resource.Cleanup(); err != nil {
 			m.logger.Error("resource cleanup failed",
-				zap.String("resource", resource.Name),
-				zap.Error(err),
-				zap.Duration("duration", time.Since(startTime)))
+				"resource", resource.Name,
+				"error", err,
+				"duration", time.Since(startTime))
 			errors = append(errors, fmt.Errorf("%s: %w", resource.Name, err))
 		} else {
 			m.logger.Debug("resource cleaned up successfully",
-				zap.String("resource", resource.Name),
-				zap.Duration("duration", time.Since(startTime)))
+				"resource", resource.Name,
+				"duration", time.Since(startTime))
 		}
 	}
 
 	if len(errors) > 0 {
 		m.logger.Error("lifecycle cleanup completed with errors",
-			zap.Int("error_count", len(errors)),
-			zap.Duration("total_duration", time.Since(cleanupStartTime)))
+			"error_count", len(errors),
+			"total_duration", time.Since(cleanupStartTime))
 		return fmt.Errorf("cleanup failed for %d resource(s): %v", len(errors), errors)
 	}
 
 	m.logger.Info("lifecycle cleanup phase completed successfully",
-		zap.Duration("total_duration", time.Since(cleanupStartTime)))
+		"total_duration", time.Since(cleanupStartTime))
 
 	return nil
 }

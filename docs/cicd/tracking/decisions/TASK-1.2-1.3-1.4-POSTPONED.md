@@ -48,6 +48,12 @@ Cuando Go 1.25 esté disponible:
 
 ## Migaja
 
-- **Tareas 1.2, 1.3, 1.4:** ⏸️ Pospuestas a Fase 2
-- **Razón:** Dependencia externa no disponible (Go 1.25)
-- **Próxima acción:** Continuar con Tarea 2.1
+- **Tareas 1.2, 1.3, 1.4:** ✅ RESUELTAS en Fase 2 (20 Nov 21:55)
+- **Razón original:** Dependencia externa no disponible (Go 1.25)
+- **Resolución:** Go 1.25.4 disponible desde 31 Oct 2025
+- **Resultado:** 
+  - ✅ Go 1.25.4 instalado
+  - ✅ 12/12 módulos migrados
+  - ✅ 12/12 módulos compilan
+  - ✅ 12/12 módulos pasan tests
+- **Commit:** f175084

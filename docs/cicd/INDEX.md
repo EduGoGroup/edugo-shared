@@ -2,18 +2,30 @@
 
 **🎯 Punto de Entrada Principal**
 
+⚠️ **UBICACIÓN DE ESTE ARCHIVO:**
+```
+📍 Ruta: docs/cicd/INDEX.md (dentro del repo edugo-shared)
+📍 Todas las rutas son relativas a: docs/cicd/
+⚠️ NO uses archivos fuera de docs/cicd/ (pueden ser viejos)
+```
+
 ---
 
 ## 🗺️ Navegación Rápida
 
-### Para Empezar
-1. **[QUICK-START.md](./QUICK-START.md)** ⭐ - Lee esto primero (5-10 min)
-2. **[README.md](./README.md)** - Contexto completo del proyecto (15-20 min)
-3. **[RESUMEN.md](./RESUMEN.md)** - Estadísticas y overview (10-15 min)
+### ⭐ Para Ejecutar Sprints (RECOMENDADO)
+1. **[PROMPTS.md](./PROMPTS.md)** ⭐⭐⭐ - Prompts estándar para Fase 1, 2, 3 (NUEVO)
+2. **[tracking/SPRINT-STATUS.md](./tracking/SPRINT-STATUS.md)** - Estado actual del sprint
+3. **[START-HERE.md](./START-HERE.md)** - Punto de entrada rápido
 
-### Para Implementar
-4. **[SPRINT-1-TASKS.md](./SPRINT-1-TASKS.md)** ⭐⭐⭐ - Plan detallado Sprint 1 (3,084 líneas)
-5. **[SPRINT-4-TASKS.md](./SPRINT-4-TASKS.md)** - Plan detallado Sprint 4 (870 líneas)
+### Para Entender el Contexto
+4. **[QUICK-START.md](./docs/QUICK-START.md)** - Guía rápida (5-10 min)
+5. **[README.md](./README.md)** - Contexto completo del proyecto (15-20 min)
+6. **[RESUMEN.md](./docs/RESUMEN.md)** - Estadísticas y overview (10-15 min)
+
+### Planes de Sprint Disponibles
+7. **[SPRINT-1-TASKS.md](./sprints/SPRINT-1-TASKS.md)** - Fundamentos (3,084 líneas)
+8. **[SPRINT-4-TASKS.md](./sprints/SPRINT-4-TASKS.md)** - Workflows Reusables (870 líneas)
 
 ---
 
@@ -44,18 +56,22 @@ Total Estimado: 38-47 horas de implementación
 
 ## 🚀 Quick Actions
 
-### Acción 1: Comenzar Sprint 1 AHORA
+### ⭐ Acción 1: Ejecutar Sprint (USA PROMPTS.MD)
 ```bash
-open SPRINT-1-TASKS.md
-# Ir a línea ~50: Tarea 1.1
-# Seguir instrucciones paso a paso
+# 1. Ver qué sprint está activo
+cat tracking/SPRINT-STATUS.md | head -20
+
+# 2. Abrir PROMPTS.md
+open PROMPTS.md
+
+# 3. Copiar el prompt de Fase 1/2/3 según corresponda
+# 4. Reemplazar X con el número de sprint
+# 5. Pegar en Claude
 ```
 
-### Acción 2: Ver Solo los Scripts
+### Acción 2: Ver Estado Actual
 ```bash
-# Buscar "```bash" en SPRINT-1-TASKS.md
-# Copiar y ejecutar scripts
-# ~40 scripts listos para usar
+cat tracking/SPRINT-STATUS.md
 ```
 
 ### Acción 3: Modo Lectura (Entender sin Ejecutar)
@@ -73,11 +89,29 @@ open README.md
 ```
 01-shared/
 ├── INDEX.md                    ← Estás aquí
-├── QUICK-START.md             ← Guía de inicio (433 líneas)
-├── README.md                  ← Contexto del proyecto (347 líneas)
-├── RESUMEN.md        ← Estadísticas (resumen)
-├── SPRINT-1-TASKS.md          ← ⭐ Sprint 1 completo (3,084 líneas)
-└── SPRINT-4-TASKS.md          ← Sprint 4 parcial (870 líneas)
+├── README.md                   ← Contexto del proyecto (347 líneas)
+│
+├── 📖 docs/                    ← Documentación y análisis
+│   ├── QUICK-START.md         ← Guía de inicio (433 líneas)
+│   ├── RESUMEN.md             ← Estadísticas (resumen)
+│   └── ENTREGA-FINAL.md       ← Documentación de cierre
+│
+├── 🎯 sprints/                 ← Planes de sprint
+│   ├── SPRINT-1-TASKS.md      ← ⭐ Sprint 1 completo (3,084 líneas)
+│   └── SPRINT-4-TASKS.md      ← Sprint 4 parcial (870 líneas)
+│
+├── 📊 tracking/                ← Seguimiento de ejecución
+│   ├── SPRINT-TRACKING.md     ← Guía de seguimiento
+│   ├── SPRINT-STATUS.md       ← Estado actual
+│   ├── REGLAS.md              ← Reglas de ejecución
+│   ├── logs/                  ← Logs de sesiones
+│   ├── errors/                ← Registro de errores
+│   ├── decisions/             ← Decisiones tomadas
+│   └── reviews/               ← Reviews de PRs
+│
+└── 🔧 assets/                  ← Recursos auxiliares
+    ├── workflows/             ← Templates de workflows
+    └── scripts/               ← Scripts de automatización
 
 Total: 4,734 líneas de documentación
 ```
@@ -87,22 +121,22 @@ Total: 4,734 líneas de documentación
 ## 🎯 Por Rol
 
 ### Soy el Implementador
-→ Lee: **QUICK-START.md** → **SPRINT-1-TASKS.md**  
+→ Lee: **docs/QUICK-START.md** → **sprints/SPRINT-1-TASKS.md**  
 → Ejecuta: Tareas una por una  
 → Tiempo: 18-22 horas Sprint 1
 
 ### Soy el Planificador
-→ Lee: **README.md** → **RESUMEN.md**  
+→ Lee: **README.md** → **docs/RESUMEN.md**  
 → Revisa: Estructura de sprints  
 → Tiempo: 1-2 horas de lectura
 
 ### Soy el Reviewer
-→ Lee: **RESUMEN.md**  
+→ Lee: **docs/RESUMEN.md**  
 → Valida: Estimaciones y enfoque  
 → Tiempo: 30-60 minutos
 
 ### Quiero Adaptarlo a Otro Proyecto
-→ Lee: **README.md** + **SPRINT-1-TASKS.md** (estructura)  
+→ Lee: **README.md** + **sprints/SPRINT-1-TASKS.md** (estructura)  
 → Adapta: Scripts y tareas  
 → Tiempo: 3-4 horas
 
@@ -112,18 +146,18 @@ Total: 4,734 líneas de documentación
 
 ### Nivel 1: Overview (30 min)
 1. INDEX.md (este archivo) - 5 min
-2. RESUMEN.md - 15 min
-3. QUICK-START.md - 10 min
+2. docs/RESUMEN.md - 15 min
+3. docs/QUICK-START.md - 10 min
 
 ### Nivel 2: Contexto (1 hora)
 1. README.md completo - 30 min
-2. SPRINT-1-TASKS.md (solo estructura) - 20 min
-3. SPRINT-4-TASKS.md (solo estructura) - 10 min
+2. sprints/SPRINT-1-TASKS.md (solo estructura) - 20 min
+3. sprints/SPRINT-4-TASKS.md (solo estructura) - 10 min
 
 ### Nivel 3: Detalle Completo (3-4 horas)
 1. README.md - 30 min
-2. SPRINT-1-TASKS.md completo - 2-3 horas
-3. SPRINT-4-TASKS.md completo - 30-45 min
+2. sprints/SPRINT-1-TASKS.md completo - 2-3 horas
+3. sprints/SPRINT-4-TASKS.md completo - 30-45 min
 
 ---
 
@@ -132,23 +166,23 @@ Total: 4,734 líneas de documentación
 Si solo tienes tiempo limitado, ejecuta estas:
 
 1. **Tarea 1.2: Migrar a Go 1.25** (45 min)
-   - Archivo: SPRINT-1-TASKS.md, línea ~150
+   - Archivo: sprints/SPRINT-1-TASKS.md, línea ~150
    - Script incluido, copy-paste ready
 
 2. **Tarea 2.1: Corregir fallos fantasma** (30 min)
-   - Archivo: SPRINT-1-TASKS.md, línea ~800
+   - Archivo: sprints/SPRINT-1-TASKS.md, línea ~800
    - Fix de 1 línea en test.yml
 
 3. **Tarea 3.1: Pre-commit hooks** (60-90 min)
-   - Archivo: SPRINT-1-TASKS.md, línea ~1200
+   - Archivo: sprints/SPRINT-1-TASKS.md, línea ~1200
    - 7 validaciones automáticas
 
 4. **Tarea 3.2: Umbrales de cobertura** (45 min)
-   - Archivo: SPRINT-1-TASKS.md, línea ~1600
+   - Archivo: sprints/SPRINT-1-TASKS.md, línea ~1600
    - Define estándares de calidad
 
 5. **Tarea 5.2: Crear PR** (30 min)
-   - Archivo: SPRINT-1-TASKS.md, línea ~2800
+   - Archivo: sprints/SPRINT-1-TASKS.md, línea ~2800
    - Template incluido
 
 **Total:** ~4-5 horas (en lugar de 18-22h)
@@ -176,7 +210,7 @@ cp -r 01-shared 01-shared-backup-$(date +%Y%m%d)
 ## 🆘 Ayuda Rápida
 
 ### Pregunta: ¿Por dónde empiezo?
-**Respuesta:** QUICK-START.md → SPRINT-1-TASKS.md línea 50
+**Respuesta:** docs/QUICK-START.md → sprints/SPRINT-1-TASKS.md línea 50
 
 ### Pregunta: ¿Cuánto tiempo necesito?
 **Respuesta:** Sprint 1 completo = 18-22h en 5 días. Modo rápido = 10-12h.
@@ -224,16 +258,16 @@ Antes de comenzar a leer:
 
 ```bash
 # Opción A: Comenzar a implementar
-open QUICK-START.md
+open docs/QUICK-START.md
 
 # Opción B: Solo entender el contexto
 open README.md
 
 # Opción C: Ver estadísticas
-open RESUMEN.md
+open docs/RESUMEN.md
 
 # Opción D: Ir directo a las tareas
-open SPRINT-1-TASKS.md
+open sprints/SPRINT-1-TASKS.md
 ```
 
 ---
@@ -259,12 +293,12 @@ Has llegado al final del índice. Ahora tienes una visión completa de lo que ha
 
 **Siguiente paso recomendado:**
 ```bash
-open QUICK-START.md
+open docs/QUICK-START.md
 ```
 
 O si ya estás listo:
 ```bash
-open SPRINT-1-TASKS.md
+open sprints/SPRINT-1-TASKS.md
 # Ir a línea 50 y comenzar con Tarea 1.1
 ```
 
@@ -281,9 +315,9 @@ open SPRINT-1-TASKS.md
 **Nuevo:** Sistema completo de tracking y control de ejecución de sprints.
 
 ### Documentación:
-- **[SPRINT-TRACKING.md](SPRINT-TRACKING.md)** - Punto de entrada, guía de uso
-- **[.sprint-tracking/REGLAS.md](.sprint-tracking/REGLAS.md)** - Reglas completas de ejecución
-- **[.sprint-tracking/SPRINT-STATUS.md](.sprint-tracking/SPRINT-STATUS.md)** - Estado en tiempo real
+- **[SPRINT-TRACKING.md](tracking/SPRINT-TRACKING.md)** - Punto de entrada, guía de uso
+- **[REGLAS.md](tracking/REGLAS.md)** - Reglas completas de ejecución
+- **[SPRINT-STATUS.md](tracking/SPRINT-STATUS.md)** - Estado en tiempo real
 
 ### Características:
 - 🎯 **3 Fases:** Implementación → Resolución Stubs → Validación/CI/CD
@@ -292,5 +326,5 @@ open SPRINT-1-TASKS.md
 - ⏱️ **Control CI/CD:** Timeout de 5 minutos con polling
 - 🤖 **Clasificación Copilot:** Manejo inteligente de comentarios
 
-**Ver:** [SPRINT-TRACKING.md](SPRINT-TRACKING.md) para comenzar.
+**Ver:** [SPRINT-TRACKING.md](tracking/SPRINT-TRACKING.md) para comenzar.
 

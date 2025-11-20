@@ -2,7 +2,7 @@
 
 **Proyecto:** edugo-shared  
 **Sistema:** 3 Fases con tracking automático  
-**Ubicación:** `.sprint-tracking/`
+**Ubicación:** `tracking/`
 
 ---
 
@@ -12,26 +12,26 @@
 
 ```bash
 # Ver estado actual del sprint
-cat .sprint-tracking/SPRINT-STATUS.md | head -30
+cat tracking/SPRINT-STATUS.md | head -30
 
 # Ver siguiente tarea
-grep "🔄\|⏳" .sprint-tracking/SPRINT-STATUS.md | head -1
+grep "🔄\|⏳" tracking/SPRINT-STATUS.md | head -1
 ```
 
 ### Pregunta: "¿Qué sprint sigue?"
 
 ```bash
 # Ver sprints disponibles
-ls docs/cicd/SPRINT-*-TASKS.md
+ls sprints/SPRINT-*-TASKS.md
 ```
 
 ### Pregunta: "Continúa con la siguiente tarea"
 
 ```markdown
 Claude, por favor:
-1. Lee .sprint-tracking/SPRINT-STATUS.md
+1. Lee tracking/SPRINT-STATUS.md
 2. Identifica la siguiente tarea pendiente
-3. Continúa con esa tarea siguiendo .sprint-tracking/REGLAS.md
+3. Continúa con esa tarea siguiendo tracking/REGLAS.md
 ```
 
 ---
@@ -42,14 +42,14 @@ Claude, por favor:
 
 | Documento | Propósito | Cuándo leer |
 |-----------|-----------|-------------|
-| **[REGLAS.md](.sprint-tracking/REGLAS.md)** | Reglas completas de ejecución | Antes de iniciar cualquier sprint |
-| **[SPRINT-STATUS.md](.sprint-tracking/SPRINT-STATUS.md)** | Estado actual de tareas | Cada vez que necesites saber dónde estás |
-| **Sprints en docs/cicd/** | Tareas detalladas por sprint | Al iniciar un sprint específico |
+| **[REGLAS.md](REGLAS.md)** | Reglas completas de ejecución | Antes de iniciar cualquier sprint |
+| **[SPRINT-STATUS.md](SPRINT-STATUS.md)** | Estado actual de tareas | Cada vez que necesites saber dónde estás |
+| **Sprints en ../sprints/** | Tareas detalladas por sprint | Al iniciar un sprint específico |
 
 ### Carpetas de Seguimiento
 
 ```
-.sprint-tracking/
+tracking/
 ├── REGLAS.md                    ← 📖 LEE PRIMERO
 ├── SPRINT-STATUS.md             ← 📊 ESTADO ACTUAL
 │
@@ -165,7 +165,7 @@ Claude debe **DETENER** e informarte si:
 ### Iniciar un Sprint
 ```
 Claude, vamos a iniciar el Sprint 1:
-1. Lee docs/cicd/SPRINT-1-TASKS.md
+1. Lee ../sprints/SPRINT-1-TASKS.md
 2. Prepara la rama desde dev
 3. Inicializa SPRINT-STATUS.md
 4. Comienza con la primera tarea siguiendo REGLAS.md
@@ -331,10 +331,10 @@ Usuario: "Intentemos con enfoque X"
 
 ## 🔗 Links Útiles
 
-- **Reglas completas:** [.sprint-tracking/REGLAS.md](.sprint-tracking/REGLAS.md)
-- **Estado actual:** [.sprint-tracking/SPRINT-STATUS.md](.sprint-tracking/SPRINT-STATUS.md)
-- **Sprints disponibles:** [docs/cicd/](docs/cicd/)
-- **Documentación CI/CD:** [docs/cicd/INDEX.md](docs/cicd/INDEX.md)
+- **Reglas completas:** [REGLAS.md](REGLAS.md)
+- **Estado actual:** [SPRINT-STATUS.md](SPRINT-STATUS.md)
+- **Sprints disponibles:** [../sprints/](../sprints/)
+- **Documentación general:** [../INDEX.md](../INDEX.md)
 
 ---
 

@@ -1,9 +1,43 @@
 # Estado del Sprint Actual
 
+⚠️ **UBICACIÓN:**
+```
+📍 Archivo: docs/cicd/tracking/SPRINT-STATUS.md
+📍 Este archivo se actualiza EN TIEMPO REAL
+📍 Lee ../PROMPTS.md para saber qué prompt usar
+```
+
 **Proyecto:** edugo-shared  
-**Sprint:** Pendiente  
+**Sprint:** Pendiente de iniciar  
 **Fase Actual:** Ninguna  
-**Última Actualización:** Pendiente
+**Última Actualización:** 20 Nov 2025, 18:45 hrs
+
+---
+
+## 🚦 INDICADORES RÁPIDOS
+
+```
+🎯 Sprint:        Sin sprint activo
+📊 Fase:          N/A
+📈 Progreso:      0% (0/0 tareas)
+⏱️ Última sesión: 20 Nov 2025, 18:45
+👤 Responsable:   Pendiente
+🔄 Branch:        N/A
+```
+
+---
+
+## 👉 PRÓXIMA ACCIÓN RECOMENDADA
+
+**Acción:** Iniciar un sprint nuevo
+
+**Prompts disponibles:**
+- Para SPRINT-1: Ver [../PROMPTS.md](../PROMPTS.md) → Fase 1
+- Para SPRINT-4: Ver [../PROMPTS.md](../PROMPTS.md) → Fase 1
+
+**Sprints disponibles:**
+- [SPRINT-1-TASKS.md](../sprints/SPRINT-1-TASKS.md) - Fundamentos
+- [SPRINT-4-TASKS.md](../sprints/SPRINT-4-TASKS.md) - Workflows Reusables
 
 ---
 

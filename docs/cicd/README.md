@@ -3,8 +3,17 @@
 **Proyecto:** edugo-shared  
 **Tipo:** Librería Go Modular (Tipo B)  
 **Fecha:** 19 de Noviembre, 2025  
-**Versión:** 1.0  
+**Versión:** 2.0  
 **Estado:** Listo para Ejecución
+
+⚠️ **UBICACIÓN DE ESTE DOCUMENTO:**
+```
+📍 Ruta: docs/cicd/README.md (dentro del repo edugo-shared)
+📍 Carpeta base: docs/cicd/
+📍 Todas las rutas son relativas a: docs/cicd/
+⚠️ NO confundir con: /edugo-shared/README.md (README principal del proyecto)
+⚠️ NO uses archivos fuera de docs/cicd/ (pueden ser versiones viejas)
+```
 
 ---
 
@@ -61,7 +70,7 @@ Este plan se divide en **4 Sprints** de 1 semana cada uno:
 ### Sprint 1: Fundamentos y Estandarización (Semana 1)
 **Objetivo:** Resolver problemas básicos y establecer fundamentos sólidos  
 **Duración:** 5 días  
-**Archivo:** [SPRINT-1-TASKS.md](./SPRINT-1-TASKS.md)
+**Archivo:** [SPRINT-1-TASKS.md](./sprints/SPRINT-1-TASKS.md)
 
 **Tareas principales:**
 - Migración a Go 1.25 completa y validada
@@ -97,7 +106,7 @@ Este plan se divide en **4 Sprints** de 1 semana cada uno:
 ### Sprint 4: Workflows Reusables (Semana 4)
 **Objetivo:** Crear workflows reusables para todo el ecosistema  
 **Duración:** 5 días  
-**Archivo:** [SPRINT-4-TASKS.md](./SPRINT-4-TASKS.md)
+**Archivo:** [SPRINT-4-TASKS.md](./sprints/SPRINT-4-TASKS.md)
 
 **Tareas principales:**
 - Extraer lógica común a workflows reusables
@@ -216,17 +225,31 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 implementation-plans/01-shared/
 ├── README.md                    # Este archivo - Overview general
-├── SPRINT-1-TASKS.md           # Tareas detalladas Sprint 1
-├── SPRINT-2-TASKS.md           # Tareas detalladas Sprint 2 (pendiente)
-├── SPRINT-3-TASKS.md           # Tareas detalladas Sprint 3 (pendiente)
-├── SPRINT-4-TASKS.md           # Tareas detalladas Sprint 4
-├── scripts/                     # Scripts auxiliares
-│   ├── validate-coverage.sh    # Validar cobertura por módulo
-│   ├── setup-hooks.sh          # Configurar pre-commit hooks
-│   └── test-all-modules.sh     # Probar todos los módulos
-└── logs/                        # Logs de ejecución
-    ├── sprint-1-log.md         # Log detallado Sprint 1
-    └── decisions.md            # Decisiones tomadas
+├── INDEX.md                     # Índice de navegación rápida
+│
+├── 📖 docs/                     # Documentación y análisis
+│   ├── RESUMEN.md              # Estadísticas y overview
+│   ├── QUICK-START.md          # Guía rápida de inicio
+│   └── ENTREGA-FINAL.md        # Documentación de cierre
+│
+├── 🎯 sprints/                  # Planes de sprint
+│   ├── SPRINT-1-TASKS.md       # Tareas detalladas Sprint 1
+│   ├── SPRINT-2-TASKS.md       # Tareas Sprint 2 (pendiente)
+│   ├── SPRINT-3-TASKS.md       # Tareas Sprint 3 (pendiente)
+│   └── SPRINT-4-TASKS.md       # Tareas detalladas Sprint 4
+│
+├── 📊 tracking/                 # Seguimiento de ejecución
+│   ├── SPRINT-TRACKING.md      # Guía de seguimiento
+│   ├── SPRINT-STATUS.md        # Estado actual
+│   ├── REGLAS.md               # Reglas de ejecución
+│   ├── logs/                   # Logs de sesiones
+│   ├── errors/                 # Registro de errores
+│   ├── decisions/              # Decisiones tomadas
+│   └── reviews/                # Reviews de PRs
+│
+└── 🔧 assets/                   # Recursos auxiliares
+    ├── workflows/              # Templates de workflows
+    └── scripts/                # Scripts de automatización
 ```
 
 ---
@@ -321,7 +344,7 @@ git checkout dev
 git checkout -b feature/cicd-sprint-1-fundamentos
 
 # 4. Abrir archivo de tareas
-open /Users/jhoanmedina/source/EduGo/Analisys/00-Projects-Isolated/cicd-analysis/implementation-plans/01-shared/SPRINT-1-TASKS.md
+open /Users/jhoanmedina/source/EduGo/Analisys/00-Projects-Isolated/cicd-analysis/implementation-plans/01-shared/sprints/SPRINT-1-TASKS.md
 
 # 5. Comenzar con primera tarea
 ```
@@ -338,7 +361,7 @@ open /Users/jhoanmedina/source/EduGo/Analisys/00-Projects-Isolated/cicd-analysis
 
 ---
 
-**¿Listo para comenzar?** → [Ir a Sprint 1](./SPRINT-1-TASKS.md)
+**¿Listo para comenzar?** → [Ir a Sprint 1](./sprints/SPRINT-1-TASKS.md)
 
 ---
 

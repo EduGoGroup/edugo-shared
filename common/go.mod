@@ -1,6 +1,6 @@
 module github.com/EduGoGroup/edugo-shared/common
 
-go 1.24
+go 1.25
 
 // Módulo common: dependencias mínimas
 // Solo google/uuid (librería estándar ligera)

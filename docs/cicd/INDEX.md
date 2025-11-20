@@ -9,7 +9,7 @@
 ### Para Empezar
 1. **[QUICK-START.md](./QUICK-START.md)** ⭐ - Lee esto primero (5-10 min)
 2. **[README.md](./README.md)** - Contexto completo del proyecto (15-20 min)
-3. **[RESUMEN-GENERADO.md](./RESUMEN-GENERADO.md)** - Estadísticas y overview (10-15 min)
+3. **[RESUMEN.md](./RESUMEN.md)** - Estadísticas y overview (10-15 min)
 
 ### Para Implementar
 4. **[SPRINT-1-TASKS.md](./SPRINT-1-TASKS.md)** ⭐⭐⭐ - Plan detallado Sprint 1 (3,084 líneas)
@@ -75,7 +75,7 @@ open README.md
 ├── INDEX.md                    ← Estás aquí
 ├── QUICK-START.md             ← Guía de inicio (433 líneas)
 ├── README.md                  ← Contexto del proyecto (347 líneas)
-├── RESUMEN-GENERADO.md        ← Estadísticas (resumen)
+├── RESUMEN.md        ← Estadísticas (resumen)
 ├── SPRINT-1-TASKS.md          ← ⭐ Sprint 1 completo (3,084 líneas)
 └── SPRINT-4-TASKS.md          ← Sprint 4 parcial (870 líneas)
 
@@ -92,12 +92,12 @@ Total: 4,734 líneas de documentación
 → Tiempo: 18-22 horas Sprint 1
 
 ### Soy el Planificador
-→ Lee: **README.md** → **RESUMEN-GENERADO.md**  
+→ Lee: **README.md** → **RESUMEN.md**  
 → Revisa: Estructura de sprints  
 → Tiempo: 1-2 horas de lectura
 
 ### Soy el Reviewer
-→ Lee: **RESUMEN-GENERADO.md**  
+→ Lee: **RESUMEN.md**  
 → Valida: Estimaciones y enfoque  
 → Tiempo: 30-60 minutos
 
@@ -112,7 +112,7 @@ Total: 4,734 líneas de documentación
 
 ### Nivel 1: Overview (30 min)
 1. INDEX.md (este archivo) - 5 min
-2. RESUMEN-GENERADO.md - 15 min
+2. RESUMEN.md - 15 min
 3. QUICK-START.md - 10 min
 
 ### Nivel 2: Contexto (1 hora)
@@ -230,7 +230,7 @@ open QUICK-START.md
 open README.md
 
 # Opción C: Ver estadísticas
-open RESUMEN-GENERADO.md
+open RESUMEN.md
 
 # Opción D: Ir directo a las tareas
 open SPRINT-1-TASKS.md
@@ -273,3 +273,24 @@ open SPRINT-1-TASKS.md
 **Generado por:** Claude Code  
 **Fecha:** 19 de Noviembre, 2025  
 **Versión:** 1.0
+
+---
+
+## 🎯 Sistema de Seguimiento de Sprints
+
+**Nuevo:** Sistema completo de tracking y control de ejecución de sprints.
+
+### Documentación:
+- **[SPRINT-TRACKING.md](SPRINT-TRACKING.md)** - Punto de entrada, guía de uso
+- **[.sprint-tracking/REGLAS.md](.sprint-tracking/REGLAS.md)** - Reglas completas de ejecución
+- **[.sprint-tracking/SPRINT-STATUS.md](.sprint-tracking/SPRINT-STATUS.md)** - Estado en tiempo real
+
+### Características:
+- 🎯 **3 Fases:** Implementación → Resolución Stubs → Validación/CI/CD
+- 📊 **Tracking tiempo real:** Siempre sabes dónde estás
+- 📝 **Documentación automática:** Errores y decisiones registradas
+- ⏱️ **Control CI/CD:** Timeout de 5 minutos con polling
+- 🤖 **Clasificación Copilot:** Manejo inteligente de comentarios
+
+**Ver:** [SPRINT-TRACKING.md](SPRINT-TRACKING.md) para comenzar.
+

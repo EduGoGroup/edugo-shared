@@ -1,6 +1,6 @@
 module github.com/EduGoGroup/edugo-shared/messaging/rabbit
 
-go 1.24.10
+go 1.25
 
 require (
 	github.com/EduGoGroup/edugo-shared/testing v0.6.2

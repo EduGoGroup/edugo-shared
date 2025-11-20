@@ -1,6 +1,6 @@
 module github.com/EduGoGroup/edugo-shared/testing
 
-go 1.25
+go 1.24.10
 
 require (
 	github.com/lib/pq v1.10.9

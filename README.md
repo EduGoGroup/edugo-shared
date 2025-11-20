@@ -3,6 +3,8 @@
 [![Go Version](https://img.shields.io/badge/go-%3E%3D1.23-blue)](https://golang.org/)
 [![Release](https://img.shields.io/github/v/release/EduGoGroup/edugo-shared)](https://github.com/EduGoGroup/edugo-shared/releases)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![CI Pipeline](https://github.com/EduGoGroup/edugo-shared/actions/workflows/ci.yml/badge.svg)](https://github.com/EduGoGroup/edugo-shared/actions/workflows/ci.yml)
+[![Tests Coverage](https://github.com/EduGoGroup/edugo-shared/actions/workflows/test.yml/badge.svg)](https://github.com/EduGoGroup/edugo-shared/actions/workflows/test.yml)
 
 Professional Go shared library with modular architecture and reusable components for EduGo projects.
 

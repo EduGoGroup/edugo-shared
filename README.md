@@ -3,6 +3,8 @@
 [![Go Version](https://img.shields.io/badge/go-%3E%3D1.23-blue)](https://golang.org/)
 [![Release](https://img.shields.io/github/v/release/EduGoGroup/edugo-shared)](https://github.com/EduGoGroup/edugo-shared/releases)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![CI Pipeline](https://github.com/EduGoGroup/edugo-shared/actions/workflows/ci.yml/badge.svg)](https://github.com/EduGoGroup/edugo-shared/actions/workflows/ci.yml)
+[![Tests Coverage](https://github.com/EduGoGroup/edugo-shared/actions/workflows/test.yml/badge.svg)](https://github.com/EduGoGroup/edugo-shared/actions/workflows/test.yml)
 
 Professional Go shared library with modular architecture and reusable components for EduGo projects.
 
@@ -421,6 +423,40 @@ make test-all-modules
 
 # 4. Commit siguiendo conventional commits
 git commit -m "feat(module): descripción"
+```
+
+---
+
+## 🛠️ Setup para Desarrolladores
+
+### Configurar Pre-commit Hooks
+
+```bash
+# Ejecutar una sola vez después de clonar el repo
+./scripts/setup-hooks.sh
+
+# O usando make
+make setup-hooks
+```
+
+Esto configurará hooks que validan:
+- ✅ Formato con gofmt
+- ✅ Análisis estático con go vet
+- ✅ Linter con golangci-lint
+- ✅ Tests rápidos en módulos modificados
+- ✅ No commit de sensitive data
+
+### Saltear Hooks (uso excepcional)
+
+```bash
+# Solo si es absolutamente necesario
+git commit --no-verify -m "mensaje"
+```
+
+### Probar Hooks Manualmente
+
+```bash
+make test-hooks
 ```
 
 ---

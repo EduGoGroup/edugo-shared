@@ -13,6 +13,8 @@ jobs:
   test-coverage:
     name: Coverage ${{ matrix.module }}
     runs-on: ubuntu-latest
+    # Evitar ejecución en eventos push (solo workflow_dispatch y pull_request)
+    if: github.event_name != 'push'
     strategy:
       fail-fast: false
       matrix:

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/EduGoGroup/edugo-shared/testing/containers"
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -12,28 +11,32 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// setupRabbitContainer crea un container de RabbitMQ para tests
+// setupRabbitContainer obtiene el container de RabbitMQ desde el Manager
 func setupRabbitContainer(t *testing.T) (*containers.RabbitMQContainer, string) {
 	t.Helper()
 
 	ctx := context.Background()
-	rabbitContainer, err := containers.NewRabbitMQ(ctx, nil)
-	require.NoError(t, err, "Error creando container de RabbitMQ")
+
+	// Configurar manager con RabbitMQ habilitado
+	config := containers.NewConfig().
+		WithRabbitMQ(nil).
+		Build()
+
+	manager, err := containers.GetManager(t, config)
+	require.NoError(t, err, "Error creando manager de containers")
+
+	rabbitContainer := manager.RabbitMQ()
+	require.NotNil(t, rabbitContainer, "RabbitMQ container no disponible")
 
 	connectionString, err := rabbitContainer.ConnectionString(ctx)
 	require.NoError(t, err, "Error obteniendo connection string")
-
-	t.Cleanup(func() {
-		if err := rabbitContainer.Terminate(ctx); err != nil {
-			t.Logf("Error terminando container: %v", err)
-		}
-	})
 
 	return rabbitContainer, connectionString
 }
 
 func TestConnect_Success(t *testing.T) {
 	_, connectionString := setupRabbitContainer(t)
+	
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
@@ -54,6 +57,7 @@ func TestConnect_InvalidURL(t *testing.T) {
 
 func TestConnection_GetChannel(t *testing.T) {
 	_, connectionString := setupRabbitContainer(t)
+	
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
@@ -66,6 +70,7 @@ func TestConnection_GetChannel(t *testing.T) {
 
 func TestConnection_GetConnection(t *testing.T) {
 	_, connectionString := setupRabbitContainer(t)
+	
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
@@ -79,6 +84,7 @@ func TestConnection_GetConnection(t *testing.T) {
 
 func TestConnection_Close(t *testing.T) {
 	_, connectionString := setupRabbitContainer(t)
+	
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
@@ -91,6 +97,7 @@ func TestConnection_Close(t *testing.T) {
 
 func TestConnection_IsClosed(t *testing.T) {
 	_, connectionString := setupRabbitContainer(t)
+	
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
@@ -107,6 +114,7 @@ func TestConnection_IsClosed(t *testing.T) {
 
 func TestConnection_DeclareExchange(t *testing.T) {
 	_, connectionString := setupRabbitContainer(t)
+	
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
@@ -155,6 +163,7 @@ func TestConnection_DeclareExchange(t *testing.T) {
 
 func TestConnection_DeclareQueue(t *testing.T) {
 	_, connectionString := setupRabbitContainer(t)
+	
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
@@ -209,6 +218,7 @@ func TestConnection_DeclareQueue(t *testing.T) {
 
 func TestConnection_BindQueue(t *testing.T) {
 	_, connectionString := setupRabbitContainer(t)
+	
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
@@ -242,6 +252,7 @@ func TestConnection_BindQueue(t *testing.T) {
 
 func TestConnection_SetPrefetchCount(t *testing.T) {
 	_, connectionString := setupRabbitContainer(t)
+	
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
@@ -267,6 +278,7 @@ func TestConnection_SetPrefetchCount(t *testing.T) {
 
 func TestConnection_HealthCheck_Success(t *testing.T) {
 	_, connectionString := setupRabbitContainer(t)
+	
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
@@ -278,6 +290,7 @@ func TestConnection_HealthCheck_Success(t *testing.T) {
 
 func TestConnection_HealthCheck_ClosedConnection(t *testing.T) {
 	_, connectionString := setupRabbitContainer(t)
+	
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
@@ -294,6 +307,7 @@ func TestConnection_HealthCheck_ClosedConnection(t *testing.T) {
 
 func TestConnection_MultipleChannels(t *testing.T) {
 	_, connectionString := setupRabbitContainer(t)
+	
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
@@ -310,6 +324,7 @@ func TestConnection_MultipleChannels(t *testing.T) {
 
 func TestConnection_DeclareQueue_WithDLX(t *testing.T) {
 	_, connectionString := setupRabbitContainer(t)
+	
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
@@ -343,6 +358,7 @@ func TestConnection_DeclareQueue_WithDLX(t *testing.T) {
 
 func TestConnection_CloseWithNilChannel(t *testing.T) {
 	_, connectionString := setupRabbitContainer(t)
+	
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
@@ -369,6 +385,7 @@ func TestConnection_CloseWithNilConnection(t *testing.T) {
 
 func TestConnection_ConcurrentHealthChecks(t *testing.T) {
 	_, connectionString := setupRabbitContainer(t)
+	
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
@@ -393,6 +410,7 @@ func TestConnection_ConcurrentHealthChecks(t *testing.T) {
 
 func TestConnection_ReconnectAfterClose(t *testing.T) {
 	_, connectionString := setupRabbitContainer(t)
+	
 
 	// Primera conexión
 	conn1, err := Connect(connectionString)
@@ -413,6 +431,7 @@ func TestConnection_ReconnectAfterClose(t *testing.T) {
 
 func TestConnection_HealthCheck_CreatesTemporaryExchange(t *testing.T) {
 	_, connectionString := setupRabbitContainer(t)
+	
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
@@ -430,6 +449,7 @@ func TestConnection_HealthCheck_CreatesTemporaryExchange(t *testing.T) {
 
 func TestConnection_BindQueue_WithMultipleRoutingKeys(t *testing.T) {
 	_, connectionString := setupRabbitContainer(t)
+	
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
@@ -466,6 +486,7 @@ func TestConnection_BindQueue_WithMultipleRoutingKeys(t *testing.T) {
 
 func TestConnection_SetPrefetchCount_Zero(t *testing.T) {
 	_, connectionString := setupRabbitContainer(t)
+	
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
@@ -478,6 +499,7 @@ func TestConnection_SetPrefetchCount_Zero(t *testing.T) {
 
 func TestConnection_DeclareExchange_DuplicateName(t *testing.T) {
 	_, connectionString := setupRabbitContainer(t)
+	
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
@@ -501,6 +523,7 @@ func TestConnection_DeclareExchange_DuplicateName(t *testing.T) {
 
 func TestConnection_Lifecycle(t *testing.T) {
 	_, connectionString := setupRabbitContainer(t)
+	
 
 	// Test del ciclo completo de vida de una conexión
 	conn, err := Connect(connectionString)

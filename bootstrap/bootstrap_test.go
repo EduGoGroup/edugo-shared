@@ -412,3 +412,34 @@ func TestResources_HasMethods(t *testing.T) {
 		t.Error("Expected HasLogger to return true after initialization")
 	}
 }
+
+// =============================================================================
+// TESTS FOR performHealthChecks
+// =============================================================================
+
+func TestPerformHealthChecks_AllPass(t *testing.T) {
+	logger := logrus.New()
+	
+	resources := &Resources{
+		Logger: logger,
+	}
+	
+	opts := DefaultBootstrapOptions()
+	ctx := context.Background()
+	
+	err := performHealthChecks(ctx, resources, opts)
+	if err != nil {
+		t.Errorf("Expected no error, got: %v", err)
+	}
+}
+
+func TestPerformHealthChecks_WithoutLogger(t *testing.T) {
+	resources := &Resources{}
+	opts := DefaultBootstrapOptions()
+	ctx := context.Background()
+	
+	err := performHealthChecks(ctx, resources, opts)
+	if err != nil {
+		t.Errorf("Expected no error without logger, got: %v", err)
+	}
+}

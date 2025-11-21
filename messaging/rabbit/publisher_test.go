@@ -75,14 +75,7 @@ func TestPublisher_Publish_BasicMessage(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Verify message was published
-	time.Sleep(500 * time.Millisecond)
-	channel, err := rabbitContainer.Channel()
-	require.NoError(t, err)
-	defer channel.Close()
-
-	queueInfo, err := channel.QueueInspect(queue.Name)
-	require.NoError(t, err)
-	assert.Equal(t, 1, queueInfo.Messages, "Debe haber 1 mensaje en la cola")
+	waitForQueueMessages(t, rabbitContainer, queue.Name, 1, 5*time.Second)
 }
 
 func TestPublisher_Publish_ToDefaultExchange(t *testing.T) {
@@ -119,14 +112,7 @@ func TestPublisher_Publish_ToDefaultExchange(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Verify message
-	time.Sleep(500 * time.Millisecond)
-	channel, err := rabbitContainer.Channel()
-	require.NoError(t, err)
-	defer channel.Close()
-
-	queueInfo, err := channel.QueueInspect(queueName)
-	require.NoError(t, err)
-	assert.Equal(t, 1, queueInfo.Messages)
+	waitForQueueMessages(t, rabbitContainer, queueName, 1, 5*time.Second)
 }
 
 func TestPublisher_PublishWithPriority(t *testing.T) {
@@ -169,14 +155,7 @@ func TestPublisher_PublishWithPriority(t *testing.T) {
 	}
 
 	// Verify messages
-	time.Sleep(500 * time.Millisecond)
-	channel, err := rabbitContainer.Channel()
-	require.NoError(t, err)
-	defer channel.Close()
-
-	queueInfo, err := channel.QueueInspect(queueName)
-	require.NoError(t, err)
-	assert.Equal(t, len(priorities), queueInfo.Messages)
+	waitForQueueMessages(t, rabbitContainer, queueName, len(priorities), 5*time.Second)
 }
 
 func TestPublisher_Publish_InvalidJSON(t *testing.T) {
@@ -273,14 +252,7 @@ func TestPublisher_Publish_MultipleMessages(t *testing.T) {
 	}
 
 	// Verify all messages were published
-	time.Sleep(500 * time.Millisecond)
-	channel, err := rabbitContainer.Channel()
-	require.NoError(t, err)
-	defer channel.Close()
-
-	queueInfo, err := channel.QueueInspect(queueName)
-	require.NoError(t, err)
-	assert.Equal(t, messageCount, queueInfo.Messages)
+	waitForQueueMessages(t, rabbitContainer, queueName, messageCount, 5*time.Second)
 }
 
 func TestPublisher_Publish_ConcurrentPublishing(t *testing.T) {
@@ -342,15 +314,8 @@ func TestPublisher_Publish_ConcurrentPublishing(t *testing.T) {
 	assert.Equal(t, 0, errorCount, "No debe haber errores en publicación concurrente")
 
 	// Verify message count
-	time.Sleep(1 * time.Second)
-	channel, err := rabbitContainer.Channel()
-	require.NoError(t, err)
-	defer channel.Close()
-
-	queueInfo, err := channel.QueueInspect(queueName)
-	require.NoError(t, err)
 	expectedMessages := concurrency * messagesPerGoroutine
-	assert.Equal(t, expectedMessages, queueInfo.Messages)
+	waitForQueueMessages(t, rabbitContainer, queueName, expectedMessages, 5*time.Second)
 }
 
 func TestPublisher_Publish_WithContextTimeout(t *testing.T) {
@@ -472,7 +437,7 @@ func TestPublisher_Publish_ComplexMessage(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Verify message
-	time.Sleep(500 * time.Millisecond)
+	waitForQueueMessages(t, rabbitContainer, queueName, 1, 5*time.Second)
 	channel, err := rabbitContainer.Channel()
 	require.NoError(t, err)
 	defer channel.Close()
@@ -535,14 +500,7 @@ func TestPublisher_PublishWithPriority_ZeroPriority(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Verify message
-	time.Sleep(500 * time.Millisecond)
-	channel, err := rabbitContainer.Channel()
-	require.NoError(t, err)
-	defer channel.Close()
-
-	queueInfo, err := channel.QueueInspect(queueName)
-	require.NoError(t, err)
-	assert.Equal(t, 1, queueInfo.Messages)
+	waitForQueueMessages(t, rabbitContainer, queueName, 1, 5*time.Second)
 }
 
 func TestPublisher_PublishWithPriority_MaxPriority(t *testing.T) {
@@ -579,14 +537,7 @@ func TestPublisher_PublishWithPriority_MaxPriority(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Verify message
-	time.Sleep(500 * time.Millisecond)
-	channel, err := rabbitContainer.Channel()
-	require.NoError(t, err)
-	defer channel.Close()
-
-	queueInfo, err := channel.QueueInspect(queueName)
-	require.NoError(t, err)
-	assert.Equal(t, 1, queueInfo.Messages)
+	waitForQueueMessages(t, rabbitContainer, queueName, 1, 5*time.Second)
 }
 
 func TestPublisher_Publish_EmptyMessage(t *testing.T) {
@@ -620,14 +571,7 @@ func TestPublisher_Publish_EmptyMessage(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Verify message
-	time.Sleep(500 * time.Millisecond)
-	channel, err := rabbitContainer.Channel()
-	require.NoError(t, err)
-	defer channel.Close()
-
-	queueInfo, err := channel.QueueInspect(queueName)
-	require.NoError(t, err)
-	assert.Equal(t, 1, queueInfo.Messages)
+	waitForQueueMessages(t, rabbitContainer, queueName, 1, 5*time.Second)
 }
 
 func TestPublisher_Publish_StringMessage(t *testing.T) {
@@ -661,14 +605,7 @@ func TestPublisher_Publish_StringMessage(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Verify message
-	time.Sleep(500 * time.Millisecond)
-	channel, err := rabbitContainer.Channel()
-	require.NoError(t, err)
-	defer channel.Close()
-
-	queueInfo, err := channel.QueueInspect(queueName)
-	require.NoError(t, err)
-	assert.Equal(t, 1, queueInfo.Messages)
+	waitForQueueMessages(t, rabbitContainer, queueName, 1, 5*time.Second)
 }
 
 func TestPublisher_Lifecycle(t *testing.T) {
@@ -702,14 +639,7 @@ func TestPublisher_Lifecycle(t *testing.T) {
 	}
 
 	// Verify messages
-	time.Sleep(500 * time.Millisecond)
-	channel, err := rabbitContainer.Channel()
-	require.NoError(t, err)
-	defer channel.Close()
-
-	queueInfo, err := channel.QueueInspect(queueName)
-	require.NoError(t, err)
-	assert.Equal(t, 5, queueInfo.Messages)
+	waitForQueueMessages(t, rabbitContainer, queueName, 5, 5*time.Second)
 
 	// Close publisher
 	err = publisher.Close()

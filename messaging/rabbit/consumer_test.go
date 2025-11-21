@@ -143,7 +143,7 @@ func TestConsumer_Consume_BasicMessage(t *testing.T) {
 	require.NoError(t, err)
 
 	// Wait for consumer to start
-	time.Sleep(500 * time.Millisecond)
+	waitForQueueConsumers(t, rabbitContainer, queueName, 1, 5*time.Second)
 
 	// Publish a message directly using the container
 	testMessage := []byte("test message")
@@ -217,7 +217,7 @@ func TestConsumer_Consume_WithManualAck(t *testing.T) {
 	require.NoError(t, err)
 
 	// Wait for consumer to start
-	time.Sleep(500 * time.Millisecond)
+	waitForQueueConsumers(t, rabbitContainer, queueName, 1, 5*time.Second)
 
 	// Publish a message
 	testMessage := []byte("test message with ack")
@@ -247,10 +247,7 @@ func TestConsumer_Consume_WithManualAck(t *testing.T) {
 	}
 
 	// Verify queue is empty (message was acked)
-	time.Sleep(500 * time.Millisecond)
-	queueInfo, err := channel.QueueInspect(queueName)
-	require.NoError(t, err)
-	assert.Equal(t, 0, queueInfo.Messages, "La cola debe estar vacía después del Ack")
+	waitForQueueMessages(t, rabbitContainer, queueName, 0, 5*time.Second)
 }
 
 func TestConsumer_Consume_ErrorHandling(t *testing.T) {
@@ -300,7 +297,7 @@ func TestConsumer_Consume_ErrorHandling(t *testing.T) {
 	require.NoError(t, err)
 
 	// Wait for consumer to start
-	time.Sleep(500 * time.Millisecond)
+	waitForQueueConsumers(t, rabbitContainer, queueName, 1, 5*time.Second)
 
 	// Publish a message
 	testMessage := []byte("test error message")
@@ -322,11 +319,15 @@ func TestConsumer_Consume_ErrorHandling(t *testing.T) {
 	require.NoError(t, err)
 
 	// Wait for message processing (allow multiple requeue attempts)
-	time.Sleep(1 * time.Second)
+	require.Eventually(t, func() bool {
+		mu.Lock()
+		count := receivedCount
+		mu.Unlock()
+		return count >= 1
+	}, 5*time.Second, 100*time.Millisecond)
 
 	// Cancel consumer to stop processing
 	cancel()
-	time.Sleep(200 * time.Millisecond) // Wait for consumer to stop
 
 	mu.Lock()
 	count := receivedCount
@@ -388,7 +389,7 @@ func TestConsumer_Consume_ContextCancellation(t *testing.T) {
 	require.NoError(t, err)
 
 	// Wait for context to expire
-	time.Sleep(2 * time.Second)
+	<-consumeCtx.Done()
 
 	// Consumer should have stopped gracefully
 	mu.Lock()
@@ -471,7 +472,7 @@ func TestConsumer_Consume_MultipleMessages(t *testing.T) {
 	require.NoError(t, err)
 
 	// Wait for consumer to start
-	time.Sleep(500 * time.Millisecond)
+	waitForQueueConsumers(t, rabbitContainer, queueName, 1, 5*time.Second)
 
 	// Publish multiple messages
 	channel, err := rabbitContainer.Channel()
@@ -495,13 +496,12 @@ func TestConsumer_Consume_MultipleMessages(t *testing.T) {
 	}
 
 	// Wait for messages to be processed
-	time.Sleep(2 * time.Second)
-
-	mu.Lock()
-	count := len(receivedMessages)
-	mu.Unlock()
-
-	assert.Equal(t, messageCount, count, "Todos los mensajes deben ser recibidos")
+	require.Eventually(t, func() bool {
+		mu.Lock()
+		count := len(receivedMessages)
+		mu.Unlock()
+		return count == messageCount
+	}, 5*time.Second, 100*time.Millisecond)
 }
 
 func TestUnmarshalMessage_Success(t *testing.T) {
@@ -602,7 +602,7 @@ func TestHandleWithUnmarshal_HandlerError(t *testing.T) {
 }
 
 func TestConsumer_Consume_ExclusiveConsumer(t *testing.T) {
-	_, connectionString := setupRabbitContainer(t)
+	rabbitContainer, connectionString := setupRabbitContainer(t)
 	ctx := context.Background()
 
 	conn, err := Connect(connectionString)
@@ -642,7 +642,7 @@ func TestConsumer_Consume_ExclusiveConsumer(t *testing.T) {
 	require.NoError(t, err)
 
 	// Wait for exclusive consumer to start
-	time.Sleep(500 * time.Millisecond)
+	waitForQueueConsumers(t, rabbitContainer, queueName, 1, 5*time.Second)
 
 	// Try to create a second exclusive consumer - should fail
 	consumer2 := NewConsumer(conn, consumerConfig)
@@ -654,7 +654,7 @@ func TestConsumer_Consume_ExclusiveConsumer(t *testing.T) {
 }
 
 func TestConsumer_Consume_WithPrefetch(t *testing.T) {
-	_, connectionString := setupRabbitContainer(t)
+	rabbitContainer, connectionString := setupRabbitContainer(t)
 	ctx := context.Background()
 
 	conn, err := Connect(connectionString)
@@ -705,5 +705,6 @@ func TestConsumer_Consume_WithPrefetch(t *testing.T) {
 
 	// Test verifies that consumer can be created with prefetch config
 	// Actual prefetch behavior is tested at the connection level
-	time.Sleep(1 * time.Second)
+	waitForQueueConsumers(t, rabbitContainer, queueName, 1, 5*time.Second)
+	cancel()
 }

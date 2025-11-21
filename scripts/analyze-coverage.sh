@@ -11,11 +11,12 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 
 OUTPUT_FILE="$PROJECT_ROOT/docs/cicd/coverage-analysis/coverage-report-$(date +%Y%m%d).md"
+CURRENT_DATE=$(date '+%Y-%m-%d %H:%M')
 
-cat > "$OUTPUT_FILE" << 'HEADER'
+cat > "$OUTPUT_FILE" << HEADER
 # Reporte de Cobertura - edugo-shared
 
-**Fecha:** $(date '+%Y-%m-%d %H:%M')  
+**Fecha:** $CURRENT_DATE  
 **Generado por:** analyze-coverage.sh
 
 ---

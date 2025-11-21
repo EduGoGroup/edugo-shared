@@ -4,20 +4,20 @@ on:
   push:
     branches: [dev, main]
     paths:
-      - '**/*.go'
-      - 'go.mod'
-      - 'go.sum'
-      - '.coverage-thresholds.yml'
-      - 'scripts/validate-coverage.sh'
+      - "**/*.go"
+      - "go.mod"
+      - "go.sum"
+      - ".coverage-thresholds.yml"
+      - "scripts/validate-coverage.sh"
 
   pull_request:
     branches: [dev, main]
     paths:
-      - '**/*.go'
-      - 'go.mod'
-      - 'go.sum'
-      - '.coverage-thresholds.yml'
-      - 'scripts/validate-coverage.sh'
+      - "**/*.go"
+      - "go.mod"
+      - "go.sum"
+      - ".coverage-thresholds.yml"
+      - "scripts/validate-coverage.sh"
 
   workflow_dispatch:
 
@@ -33,7 +33,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.25'
+          go-version: "1.25"
           cache: true
 
       - name: Configurar acceso a repos privados
@@ -69,7 +69,7 @@ jobs:
           script: |
             const fs = require('fs');
 
-            // Leer último reporte
+            // Leer ultimo reporte
             const files = fs.readdirSync('docs/cicd/coverage-analysis/');
             const latestReport = files
               .filter(f => f.startsWith('coverage-report-'))
@@ -83,19 +83,10 @@ jobs:
             const summaryMatch = report.match(/##[^#]+Resumen Ejecutivo[\s\S]*?\n\n([\s\S]*?)\n\n/);
             const summary = summaryMatch ? summaryMatch[1] : 'No disponible';
 
-            const comment = `## 📊 Validación de Coverage
+            const failedStatus = process.env.VALIDATION_FAILED === 'true';
+            const action = failedStatus ? 'Algunos modulos no cumplen con los umbrales' : 'Todos los modulos cumplen';
 
-${summary}
-
-<details>
-<summary>Ver configuración de umbrales</summary>
-
-Umbrales definidos en \`.coverage-thresholds.yml\`
-
-</details>
-
-**Acción requerida:** ${process.env.VALIDATION_FAILED === 'true' ? '❌ Algunos módulos no cumplen con los umbrales' : '✅ Todos los módulos cumplen'}
-            `;
+            const comment = `## Validacion de Coverage\n\n${summary}\n\n<details>\n<summary>Ver configuracion de umbrales</summary>\n\nUmbrales definidos en .coverage-thresholds.yml\n\n</details>\n\n**Accion requerida:** ${action}`;
 
             github.rest.issues.createComment({
               issue_number: context.issue.number,

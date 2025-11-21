@@ -443,3 +443,20 @@ func TestPerformHealthChecks_WithoutLogger(t *testing.T) {
 		t.Errorf("Expected no error without logger, got: %v", err)
 	}
 }
+
+func TestPerformHealthChecks_ContextTimeout(t *testing.T) {
+	logger := logrus.New()
+	resources := &Resources{Logger: logger}
+	opts := DefaultBootstrapOptions()
+	
+	// Crear un contexto ya cancelado
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	
+	// El health check debería manejar el contexto cancelado correctamente
+	err := performHealthChecks(ctx, resources, opts)
+	// No debería fallar porque no hay recursos que validar
+	if err != nil {
+		t.Errorf("Expected no error with cancelled context and no resources, got: %v", err)
+	}
+}

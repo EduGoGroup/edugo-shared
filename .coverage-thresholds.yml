@@ -65,17 +65,17 @@ lifecycle:
     - "Agregar tests de edge cases en Startup y Cleanup"
 
 bootstrap:
-  threshold: 29
-  current: 29.5
+  threshold: 35
+  current: 35.7
   target: 60
-  status: "✅ Cumple (por mejorar en Sprint 3)"
+  status: "✅ Mejorado en Sprint 3"
   priority: "Media"
-  notes: "29.5% actual, muchas factories sin tests (0%). Diferido a Sprint 3"
+  notes: "Mejorado de 29.5% a 35.7% (+6.2 puntos). Cleanup lifecycle al 100%"
   actions:
-    - "Sprint 3: Tests de factories (CreateConnection, etc)"
-    - "Sprint 3: Tests de cleanup lifecycle (0%)"
-    - "Sprint 3: Tests de health checks (0%)"
-    - "Objetivo: 29% → 40% → 60%"
+    - "✅ Sprint 3: Tests de cleanup lifecycle completados"
+    - "✅ Sprint 3: Tests de extract config completados"
+    - "Futuro: Tests de factories con containers (CreateConnection, etc)"
+    - "Objetivo: 35% → 40% → 60%"
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # MÓDULOS DE NEGOCIO (Media-Alta Prioridad)
@@ -109,16 +109,16 @@ database/postgres:
     - "Fácil llegar a 60%"
 
 database/mongodb:
-  threshold: 54
-  current: 54.5
-  target: 65
-  status: "✅ Cumple (por mejorar en Sprint 3)"
-  priority: "Baja"
-  notes: "54.5% actual, muy cerca del objetivo 55%. Diferido a Sprint 3"
+  threshold: 80
+  current: 81.8
+  target: 85
+  status: "✅ Excelente - Mejorado en Sprint 3"
+  priority: "Mantener"
+  notes: "Mejorado de 54.5% a 81.8% (+27.3 puntos, +50%). Ahora en categoría Excelente"
   actions:
-    - "Sprint 3: Agregar tests de operaciones CRUD para llegar a 55%"
-    - "Tests de manejo de conexiones"
-    - "Fácil llegar a 55%"
+    - "✅ Sprint 3: Tests de GetDatabase y Close completados"
+    - "Mantener cobertura >80%"
+    - "Objetivo: 80% → 85%"
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # MÓDULOS DE INTEGRACIÓN (Variada Prioridad)

@@ -1,6 +1,15 @@
 name: Coverage Validation
 
 on:
+  push:
+    branches: [dev, main]
+    paths:
+      - '**/*.go'
+      - 'go.mod'
+      - 'go.sum'
+      - '.coverage-thresholds.yml'
+      - 'scripts/validate-coverage.sh'
+
   pull_request:
     branches: [dev, main]
     paths:
@@ -9,73 +18,73 @@ on:
       - 'go.sum'
       - '.coverage-thresholds.yml'
       - 'scripts/validate-coverage.sh'
-  
+
   workflow_dispatch:
 
 jobs:
   validate-coverage:
     name: Validar Umbrales de Coverage
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout código
         uses: actions/checkout@v4
-      
+
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.25'
           cache: true
-      
+
       - name: Configurar acceso a repos privados
         run: |
           git config --global url."https://${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
         env:
           GOPRIVATE: github.com/EduGoGroup/*
-      
+
       - name: Instalar bc (para comparaciones)
         run: sudo apt-get update && sudo apt-get install -y bc
-      
+
       - name: Ejecutar validación de umbrales
         id: validate
         run: |
           chmod +x scripts/validate-coverage.sh
           ./scripts/validate-coverage.sh
         continue-on-error: true
-      
+
       - name: Generar reporte detallado
         if: always()
         run: |
           echo "## 📊 Reporte de Coverage" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           ./scripts/analyze-coverage.sh
-          
+
           # Extraer resumen del reporte
           cat docs/cicd/coverage-analysis/coverage-report-*.md | head -20 >> $GITHUB_STEP_SUMMARY
-      
+
       - name: Comentar en PR
         if: github.event_name == 'pull_request' && always()
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
-            
+
             // Leer último reporte
             const files = fs.readdirSync('docs/cicd/coverage-analysis/');
             const latestReport = files
               .filter(f => f.startsWith('coverage-report-'))
               .sort()
               .reverse()[0];
-            
+
             const reportPath = `docs/cicd/coverage-analysis/${latestReport}`;
             const report = fs.readFileSync(reportPath, 'utf8');
-            
+
             // Extraer tabla de resumen
             const summaryMatch = report.match(/##[^#]+Resumen Ejecutivo[\s\S]*?\n\n([\s\S]*?)\n\n/);
             const summary = summaryMatch ? summaryMatch[1] : 'No disponible';
-            
+
             const comment = `## 📊 Validación de Coverage
-            
+
 ${summary}
 
 <details>
@@ -87,7 +96,7 @@ Umbrales definidos en \`.coverage-thresholds.yml\`
 
 **Acción requerida:** ${process.env.VALIDATION_FAILED === 'true' ? '❌ Algunos módulos no cumplen con los umbrales' : '✅ Todos los módulos cumplen'}
             `;
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
@@ -96,7 +105,7 @@ Umbrales definidos en \`.coverage-thresholds.yml\`
             });
         env:
           VALIDATION_FAILED: ${{ steps.validate.outcome == 'failure' }}
-      
+
       - name: Verificar resultado
         if: steps.validate.outcome == 'failure'
         run: |

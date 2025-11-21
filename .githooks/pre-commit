@@ -63,6 +63,9 @@ done
 success "go vet pasó"
 echo ""
 
+# Ruta del repo (para reusar configuraciones)
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+
 # 4. Check: golangci-lint (si está disponible)
 if command -v golangci-lint &> /dev/null; then
   echo "🔎 Ejecutando golangci-lint..."
@@ -70,7 +73,7 @@ if command -v golangci-lint &> /dev/null; then
   for dir in $MODULES; do
     if [ -f "$dir/go.mod" ]; then
       echo "  Linting $dir..."
-      (cd "$dir" && golangci-lint run --timeout=2m --config=../.golangci.yml 2>&1) || \
+      (cd "$dir" && golangci-lint run --timeout=2m --config="$REPO_ROOT/.golangci.yml" 2>&1) || \
         warn "Lint issues en $dir (no bloqueante)"
     fi
   done

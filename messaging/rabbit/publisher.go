@@ -35,6 +35,14 @@ func (p *RabbitMQPublisher) Publish(ctx context.Context, exchange, routingKey st
 
 // PublishWithPriority publica un mensaje con prioridad específica
 func (p *RabbitMQPublisher) PublishWithPriority(ctx context.Context, exchange, routingKey string, body interface{}, priority uint8) error {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	if err := ctx.Err(); err != nil {
+		return fmt.Errorf("failed to publish message: %w", err)
+	}
+
 	// Serializar el body a JSON
 	bodyBytes, err := json.Marshal(body)
 	if err != nil {

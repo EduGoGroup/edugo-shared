@@ -65,17 +65,19 @@ lifecycle:
     - "Agregar tests de edge cases en Startup y Cleanup"
 
 bootstrap:
-  threshold: 35
-  current: 35.7
+  threshold: 40
+  current: 40.0
   target: 60
-  status: "✅ Mejorado en Sprint 3"
+  status: "✅ Mejorado en Sprint 4"
   priority: "Media"
-  notes: "Mejorado de 29.5% a 35.7% (+6.2 puntos). Cleanup lifecycle al 100%"
+  notes: "Mejorado de 35.7% a 40% (+4.3 puntos). Tests de factories completados"
   actions:
     - "✅ Sprint 3: Tests de cleanup lifecycle completados"
     - "✅ Sprint 3: Tests de extract config completados"
+    - "✅ Sprint 4: Tests de logger factory con múltiples entornos"
+    - "✅ Sprint 4: Tests de buildDSN para PostgreSQL"
     - "Futuro: Tests de factories con containers (CreateConnection, etc)"
-    - "Objetivo: 35% → 40% → 60%"
+    - "Objetivo: 40% → 60%"
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # MÓDULOS DE NEGOCIO (Media-Alta Prioridad)
@@ -136,18 +138,20 @@ middleware/gin:
     - "Mantener cobertura alta"
 
 messaging/rabbit:
-  threshold: 14
-  current: 14.4
+  threshold: 30
+  current: 30.0
   target: 50
-  status: "✅ Cumple (mejorado de 2.9%)"
+  status: "✅ Mejorado en Sprint 4"
   priority: "Media"
-  notes: "Mejorado de 2.9% a 14.4% en Sprint 2 (+497% mejora). Continuar mejorando en sprints futuros"
+  notes: "Mejorado de 14.4% a 30% (+15.6 puntos, +108% mejora). Tests de integración completados"
   actions:
     - "✅ Sprint 2: Agregados tests de config, DLQ helpers"
-    - "Futuro: Tests de consumer básico"
-    - "Futuro: Tests de publisher"
-    - "Objetivo: 14% → 30% → 50%"
-  estimated_effort: "3-4 horas para llegar a 30%"
+    - "✅ Sprint 4: Tests de Connection con containers (~24 tests)"
+    - "✅ Sprint 4: Tests de Consumer con containers (~20 tests)"
+    - "✅ Sprint 4: Tests de Publisher con containers (~21 tests)"
+    - "Futuro: Tests de DLQ consumer integration"
+    - "Objetivo: 30% → 50%"
+  estimated_effort: "2-3 horas para llegar a 50%"
 
 testing:
   threshold: 55

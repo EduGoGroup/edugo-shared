@@ -341,3 +341,31 @@ test-hooks:  ## Probar pre-commit hooks manualmente
 
 # Comando por defecto
 .DEFAULT_GOAL := help
+# ============================================================================
+# Coverage Validation (Sprint 2)
+# ============================================================================
+
+.PHONY: analyze-coverage
+analyze-coverage: ## Analizar cobertura de todos los módulos
+	@echo "$(BLUE)Analizando cobertura de todos los módulos...$(NC)"
+	@./scripts/analyze-coverage.sh
+
+.PHONY: validate-coverage
+validate-coverage: ## Validar que los módulos cumplan con umbrales
+	@echo "$(BLUE)Validando umbrales de cobertura...$(NC)"
+	@./scripts/validate-coverage.sh
+
+.PHONY: coverage-report
+coverage-report: analyze-coverage ## Generar reporte de cobertura
+	@echo "$(GREEN)✓ Reporte generado en docs/cicd/coverage-analysis/$(NC)"
+	@ls -lt docs/cicd/coverage-analysis/coverage-report-*.md | head -1
+
+.PHONY: coverage-status
+coverage-status: ## Ver estado actual vs umbrales
+	@echo "$(BLUE)Estado de Coverage:$(NC)"
+	@echo ""
+	@./scripts/validate-coverage.sh || true
+	@echo ""
+	@echo "Ver umbrales completos en: .coverage-thresholds.yml"
+	@echo "Ver estrategia en: docs/cicd/coverage-analysis/STRATEGY.md"
+

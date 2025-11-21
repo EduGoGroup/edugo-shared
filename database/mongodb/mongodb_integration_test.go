@@ -149,3 +149,116 @@ func TestBasicOperations_Integration(t *testing.T) {
 		t.Errorf("Error eliminando colección: %v", err)
 	}
 }
+
+func TestGetDatabase_Integration(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping integration test en modo short")
+	}
+
+	config := containers.NewConfig().
+		WithMongoDB(nil).
+		Build()
+
+	manager, err := containers.GetManager(t, config)
+	if err != nil {
+		t.Fatalf("Error creando manager: %v", err)
+	}
+
+	mongoContainer := manager.MongoDB()
+	if mongoContainer == nil {
+		t.Fatal("MongoDB container no disponible")
+	}
+
+	ctx := context.Background()
+	connStr, err := mongoContainer.ConnectionString(ctx)
+	if err != nil {
+		t.Fatalf("Error obteniendo connection string: %v", err)
+	}
+
+	cfg := mongodb.Config{
+		URI:      connStr,
+		Database: "test_db",
+		Timeout:  10 * time.Second,
+	}
+
+	client, err := mongodb.Connect(cfg)
+	if err != nil {
+		t.Fatalf("Error conectando: %v", err)
+	}
+	defer client.Disconnect(ctx)
+
+	t.Run("get database", func(t *testing.T) {
+		db := mongodb.GetDatabase(client, "test_db")
+		
+		if db == nil {
+			t.Error("Expected non-nil database")
+		}
+		
+		if db.Name() != "test_db" {
+			t.Errorf("Expected database name 'test_db', got '%s'", db.Name())
+		}
+	})
+
+	t.Run("get different databases from same client", func(t *testing.T) {
+		db1 := mongodb.GetDatabase(client, "db1")
+		db2 := mongodb.GetDatabase(client, "db2")
+		
+		if db1 == nil || db2 == nil {
+			t.Error("Expected non-nil databases")
+		}
+		
+		if db1.Name() == db2.Name() {
+			t.Error("Expected different database names")
+		}
+	})
+}
+
+func TestClose_Integration(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping integration test en modo short")
+	}
+
+	config := containers.NewConfig().
+		WithMongoDB(nil).
+		Build()
+
+	manager, err := containers.GetManager(t, config)
+	if err != nil {
+		t.Fatalf("Error creando manager: %v", err)
+	}
+
+	mongoContainer := manager.MongoDB()
+	if mongoContainer == nil {
+		t.Fatal("MongoDB container no disponible")
+	}
+
+	ctx := context.Background()
+	connStr, err := mongoContainer.ConnectionString(ctx)
+	if err != nil {
+		t.Fatalf("Error obteniendo connection string: %v", err)
+	}
+
+	cfg := mongodb.Config{
+		URI:      connStr,
+		Database: "test_db",
+		Timeout:  10 * time.Second,
+	}
+
+	client, err := mongodb.Connect(cfg)
+	if err != nil {
+		t.Fatalf("Error conectando: %v", err)
+	}
+
+	t.Run("close successfully", func(t *testing.T) {
+		err := mongodb.Close(client)
+		if err != nil {
+			t.Errorf("Close failed: %v", err)
+		}
+	})
+
+	t.Run("close nil client", func(t *testing.T) {
+		err := mongodb.Close(nil)
+		// Should handle nil gracefully or return error
+		_ = err
+	})
+}

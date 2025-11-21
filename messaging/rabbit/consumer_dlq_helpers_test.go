@@ -49,8 +49,8 @@ func TestGetRetryCount(t *testing.T) {
 			expected: 4,
 		},
 		{
-			name: "nil headers",
-			headers: nil,
+			name:     "nil headers",
+			headers:  nil,
 			expected: 0,
 		},
 	}
@@ -119,11 +119,11 @@ func TestCloneHeaders(t *testing.T) {
 				// Modificar el clon
 				cloned["new-key"] = "new-value"
 				cloned["original-key"] = "modified-value"
-				
+
 				// Original no debe cambiar
 				assert.NotContains(t, original, "new-key")
 				assert.Equal(t, "original-value", original["original-key"])
-				
+
 				// Clon debe tener los cambios
 				assert.Equal(t, "modified-value", cloned["original-key"])
 				assert.Equal(t, "new-value", cloned["new-key"])

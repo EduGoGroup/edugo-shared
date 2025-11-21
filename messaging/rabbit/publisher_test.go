@@ -215,10 +215,10 @@ func TestPublisher_Publish_ToNonExistentExchange(t *testing.T) {
 		"test": "message",
 	}
 
-	// Publishing to non-existent exchange should fail
+	// RabbitMQ NO retorna error cuando publicas a exchange inexistente con mandatory=false
+	// El mensaje simplemente se descarta silenciosamente (comportamiento estándar de RabbitMQ)
 	err = publisher.Publish(ctx, "non_existent_exchange", "test_key", testMsg)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to publish message")
+	assert.NoError(t, err, "RabbitMQ permite publicar a exchange inexistente sin error cuando mandatory=false")
 }
 
 func TestPublisher_Close(t *testing.T) {

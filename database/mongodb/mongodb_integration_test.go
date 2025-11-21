@@ -189,11 +189,11 @@ func TestGetDatabase_Integration(t *testing.T) {
 
 	t.Run("get database", func(t *testing.T) {
 		db := mongodb.GetDatabase(client, "test_db")
-		
+
 		if db == nil {
 			t.Error("Expected non-nil database")
 		}
-		
+
 		if db.Name() != "test_db" {
 			t.Errorf("Expected database name 'test_db', got '%s'", db.Name())
 		}
@@ -202,11 +202,11 @@ func TestGetDatabase_Integration(t *testing.T) {
 	t.Run("get different databases from same client", func(t *testing.T) {
 		db1 := mongodb.GetDatabase(client, "db1")
 		db2 := mongodb.GetDatabase(client, "db2")
-		
+
 		if db1 == nil || db2 == nil {
 			t.Error("Expected non-nil databases")
 		}
-		
+
 		if db1.Name() == db2.Name() {
 			t.Error("Expected different database names")
 		}

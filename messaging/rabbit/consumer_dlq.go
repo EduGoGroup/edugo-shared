@@ -45,6 +45,12 @@ func (c *RabbitMQConsumer) ConsumeWithDLQ(ctx context.Context, queueName string,
 		return fmt.Errorf("failed to start consuming: %w", err)
 	}
 
+	workerLimit := prefetchCount
+	if workerLimit <= 0 {
+		workerLimit = DefaultPrefetchCount
+	}
+	semaphore := make(chan struct{}, workerLimit)
+
 	// Procesar mensajes en un loop
 	go func() {
 		for {
@@ -56,45 +62,11 @@ func (c *RabbitMQConsumer) ConsumeWithDLQ(ctx context.Context, queueName string,
 					return
 				}
 
-				// Obtener número de reintentos del header
-				retries := getRetryCount(msg.Headers)
-
-				// Procesar mensaje
-				err := handler(ctx, msg.Body)
-
-				// Manejar acknowledgment si no es auto-ack
-				if !c.config.AutoAck {
-					if err != nil {
-						// Verificar si excedió reintentos
-						if c.config.DLQ.Enabled && retries >= c.config.DLQ.MaxRetries {
-							// Enviar a DLQ
-							if err := c.sendToDLQ(ch, msg); err != nil {
-								// Si falla envío a DLQ, reencolar como fallback
-								_ = msg.Nack(false, true)
-							} else {
-								// Acknowledge porque ya está en DLQ
-								_ = msg.Ack(false)
-							}
-						} else {
-							// Reencolar con delay (si DLQ está habilitado)
-							if c.config.DLQ.Enabled {
-								backoff := c.config.DLQ.CalculateBackoff(retries)
-								time.Sleep(backoff)
-							}
-
-							// Incrementar contador de reintentos en headers
-							if msg.Headers == nil {
-								msg.Headers = amqp.Table{}
-							}
-
-							// Nack con requeue
-							_ = msg.Nack(false, true)
-						}
-					} else {
-						// Procesado exitosamente
-						_ = msg.Ack(false)
-					}
-				}
+				semaphore <- struct{}{}
+				go func(delivery amqp.Delivery) {
+					defer func() { <-semaphore }()
+					c.processMessage(ctx, ch, queueName, handler, delivery)
+				}(msg)
 			}
 		}
 	}()
@@ -170,6 +142,87 @@ func (c *RabbitMQConsumer) sendToDLQ(ch *amqp.Channel, msg amqp.Delivery) error 
 	)
 }
 
+func (c *RabbitMQConsumer) processMessage(
+	ctx context.Context,
+	ch *amqp.Channel,
+	queueName string,
+	handler MessageHandler,
+	msg amqp.Delivery,
+) {
+	retries := getRetryCount(msg.Headers)
+	err := handler(ctx, msg.Body)
+
+	if c.config.AutoAck {
+		return
+	}
+
+	if err != nil {
+		c.handleProcessingError(ctx, ch, queueName, msg, retries)
+		return
+	}
+
+	_ = msg.Ack(false)
+}
+
+func (c *RabbitMQConsumer) handleProcessingError(
+	ctx context.Context,
+	ch *amqp.Channel,
+	queueName string,
+	msg amqp.Delivery,
+	retries int,
+) {
+	nextRetry := retries + 1
+
+	if c.config.DLQ.Enabled {
+		if nextRetry > c.config.DLQ.MaxRetries {
+			if err := c.sendToDLQ(ch, msg); err != nil {
+				_ = msg.Nack(false, true)
+			} else {
+				_ = msg.Ack(false)
+			}
+			return
+		}
+
+		backoff := c.config.DLQ.CalculateBackoff(retries)
+		timer := time.NewTimer(backoff)
+		defer timer.Stop()
+
+		select {
+		case <-ctx.Done():
+			_ = msg.Nack(false, true)
+			return
+		case <-timer.C:
+		}
+
+		retryHeaders := cloneHeaders(msg.Headers)
+		retryHeaders["x-retry-count"] = nextRetry
+
+		publishErr := ch.PublishWithContext(
+			ctx,
+			"",
+			queueName,
+			false,
+			false,
+			amqp.Publishing{
+				ContentType:  msg.ContentType,
+				Body:         msg.Body,
+				Headers:      retryHeaders,
+				DeliveryMode: amqp.Persistent,
+				Priority:     msg.Priority,
+			},
+		)
+		if publishErr != nil {
+			_ = msg.Nack(false, true)
+			return
+		}
+
+		_ = msg.Ack(false)
+		return
+	}
+
+	_ = msg.Nack(false, true)
+}
+
 // getRetryCount extrae el número de reintentos del header
 func getRetryCount(headers amqp.Table) int {
 	if headers == nil {
@@ -182,5 +235,21 @@ func getRetryCount(headers amqp.Table) int {
 	if count, ok := headers["x-retry-count"].(int32); ok {
 		return int(count)
 	}
+	// Intentar con int64 (algunos clientes usan este tipo)
+	if count, ok := headers["x-retry-count"].(int64); ok {
+		return int(count)
+	}
 	return 0
+}
+
+// cloneHeaders crea una copia superficial de los headers para evitar mutar el original
+func cloneHeaders(headers amqp.Table) amqp.Table {
+	if headers == nil {
+		return amqp.Table{}
+	}
+	copyHeaders := make(amqp.Table, len(headers))
+	for k, v := range headers {
+		copyHeaders[k] = v
+	}
+	return copyHeaders
 }

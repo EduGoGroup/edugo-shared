@@ -6,7 +6,10 @@ import (
 	"reflect"
 	"time"
 
+	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/sirupsen/logrus"
+	"go.mongodb.org/mongo-driver/mongo"
+	"gorm.io/gorm"
 )
 
 // =============================================================================
@@ -325,9 +328,9 @@ func initS3(
 
 	// Crear StorageClient (implementación simple por ahora)
 	resources.StorageClient = &defaultStorageClient{
-		client:       client,
+		client:        client,
 		presignClient: factories.S3.CreatePresignClient(client),
-		bucket:       s3Config.Bucket,
+		bucket:        s3Config.Bucket,
 	}
 
 	// Log éxito
@@ -550,13 +553,70 @@ func extractS3Config(config interface{}) (S3Config, error) {
 
 // Funciones de registro de cleanup (stubs por ahora)
 func registerPostgreSQLCleanup(lifecycleManager interface{}, factory PostgreSQLFactory, db interface{}, logger *logrus.Logger) {
-	// TODO: Implementar cuando lifecycle esté integrado
+	registrar, ok := lifecycleManager.(interface {
+		RegisterSimple(name string, cleanup func() error)
+	})
+	if !ok || factory == nil || db == nil {
+		return
+	}
+
+	gormDB, ok := db.(*gorm.DB)
+	if !ok {
+		return
+	}
+
+	registrar.RegisterSimple("postgresql", func() error {
+		if logger != nil {
+			logger.Info("Closing PostgreSQL connection via lifecycle manager")
+		}
+		return factory.Close(gormDB)
+	})
 }
 
 func registerMongoDBCleanup(lifecycleManager interface{}, factory MongoDBFactory, client interface{}, logger *logrus.Logger) {
-	// TODO: Implementar cuando lifecycle esté integrado
+	registrar, ok := lifecycleManager.(interface {
+		RegisterSimple(name string, cleanup func() error)
+	})
+	if !ok || factory == nil || client == nil {
+		return
+	}
+
+	mongoClient, ok := client.(*mongo.Client)
+	if !ok {
+		return
+	}
+
+	registrar.RegisterSimple("mongodb", func() error {
+		if logger != nil {
+			logger.Info("Closing MongoDB client via lifecycle manager")
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		return factory.Close(ctx, mongoClient)
+	})
 }
 
 func registerRabbitMQCleanup(lifecycleManager interface{}, factory RabbitMQFactory, channel interface{}, conn interface{}, logger *logrus.Logger) {
-	// TODO: Implementar cuando lifecycle esté integrado
+	registrar, ok := lifecycleManager.(interface {
+		RegisterSimple(name string, cleanup func() error)
+	})
+	if !ok || factory == nil || channel == nil || conn == nil {
+		return
+	}
+
+	amqpChannel, ok := channel.(*amqp.Channel)
+	if !ok {
+		return
+	}
+	amqpConn, ok := conn.(*amqp.Connection)
+	if !ok {
+		return
+	}
+
+	registrar.RegisterSimple("rabbitmq", func() error {
+		if logger != nil {
+			logger.Info("Closing RabbitMQ channel and connection via lifecycle manager")
+		}
+		return factory.Close(amqpChannel, amqpConn)
+	})
 }

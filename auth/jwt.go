@@ -3,6 +3,7 @@
 package auth
 
 import (
+	stdErrors "errors"
 	"fmt"
 	"time"
 
@@ -66,8 +67,12 @@ func (m *JWTManager) GenerateToken(userID, email string, role enum.SystemRole, e
 
 // ValidateToken valida un JWT token y retorna los claims
 func (m *JWTManager) ValidateToken(tokenString string) (*Claims, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		// Verificar método de firma
+	parser := jwt.NewParser(
+		jwt.WithIssuer(m.issuer),
+		jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}),
+	)
+
+	token, err := parser.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
@@ -75,7 +80,7 @@ func (m *JWTManager) ValidateToken(tokenString string) (*Claims, error) {
 	})
 
 	if err != nil {
-		if err == jwt.ErrTokenExpired {
+		if stdErrors.Is(err, jwt.ErrTokenExpired) {
 			return nil, errors.NewUnauthorizedError("token expired")
 		}
 		return nil, errors.NewUnauthorizedError("invalid token")
@@ -84,6 +89,14 @@ func (m *JWTManager) ValidateToken(tokenString string) (*Claims, error) {
 	claims, ok := token.Claims.(*Claims)
 	if !ok || !token.Valid {
 		return nil, errors.NewUnauthorizedError("invalid token claims")
+	}
+
+	if claims.Issuer != m.issuer {
+		return nil, errors.NewUnauthorizedError("invalid token issuer")
+	}
+
+	if !claims.Role.IsValid() {
+		return nil, errors.NewUnauthorizedError("invalid role in token")
 	}
 
 	return claims, nil

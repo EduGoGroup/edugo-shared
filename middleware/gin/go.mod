@@ -1,8 +1,6 @@
 module github.com/EduGoGroup/edugo-shared/middleware/gin
 
-go 1.24.10
-
-toolchain go1.24.7
+go 1.25
 
 require (
 	github.com/EduGoGroup/edugo-shared/auth v0.3.3

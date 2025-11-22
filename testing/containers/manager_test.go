@@ -72,7 +72,7 @@ func TestConfigBuilderMultipleContainers(t *testing.T) {
 // Skip si Docker no está disponible
 func TestManagerIntegration(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	config := NewConfig().
@@ -124,7 +124,7 @@ func TestManagerIntegration(t *testing.T) {
 // TestManager_AccessorMethods_NilSafety verifica que accessors retornan nil correctamente
 func TestManager_AccessorMethods_NilSafety(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	// Manager solo con PostgreSQL
@@ -155,7 +155,7 @@ func TestManager_AccessorMethods_NilSafety(t *testing.T) {
 // TestManager_CleanMethods_NotEnabled verifica errores cuando servicios no están habilitados
 func TestManager_CleanMethods_NotEnabled(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -199,7 +199,7 @@ func TestManager_CleanMethods_NotEnabled(t *testing.T) {
 // TestManager_CleanPostgreSQL_TruncateTables verifica truncamiento de tablas
 func TestManager_CleanPostgreSQL_TruncateTables(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -263,7 +263,7 @@ func TestManager_CleanPostgreSQL_TruncateTables(t *testing.T) {
 // TestManager_SingletonBehavior verifica comportamiento singleton
 func TestManager_SingletonBehavior(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	config := NewConfig().

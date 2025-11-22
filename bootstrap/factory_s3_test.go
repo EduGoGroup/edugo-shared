@@ -19,10 +19,10 @@ func TestS3Factory_Creation(t *testing.T) {
 // TestS3Factory_CreateClient_ValidConfig verifica creación con config válida
 func TestS3Factory_CreateClient_ValidConfig(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping S3 test en modo short (requiere credenciales)")
+		t.Skip("Omitiendo test S3 en modo short (requiere credenciales)")
 	}
 
-	t.Skip("Skip S3 test - requiere credenciales AWS o LocalStack")
+	t.Skip("Omitir test S3 - requiere credenciales AWS o LocalStack")
 
 	ctx := context.Background()
 	factory := NewDefaultS3Factory()
@@ -47,10 +47,10 @@ func TestS3Factory_CreateClient_ValidConfig(t *testing.T) {
 // TestS3Factory_CreateClient_InvalidCredentials verifica error con credenciales inválidas
 func TestS3Factory_CreateClient_InvalidCredentials(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping S3 test en modo short")
+		t.Skip("Omitiendo test S3 en modo short")
 	}
 
-	t.Skip("Skip S3 test - requiere servicio S3 para validación")
+	t.Skip("Omitir test S3 - requiere servicio S3 para validación")
 
 	ctx := context.Background()
 	factory := NewDefaultS3Factory()
@@ -78,10 +78,10 @@ func TestS3Factory_CreateClient_InvalidCredentials(t *testing.T) {
 // TestS3Factory_CreatePresignClient verifica creación de presign client
 func TestS3Factory_CreatePresignClient(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping S3 test en modo short")
+		t.Skip("Omitiendo test S3 en modo short")
 	}
 
-	t.Skip("Skip S3 test - requiere cliente S3 válido")
+	t.Skip("Omitir test S3 - requiere cliente S3 válido")
 
 	// Nota: Este test requeriría un cliente S3 válido
 	// En un entorno real:

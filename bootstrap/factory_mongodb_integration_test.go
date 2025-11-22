@@ -14,7 +14,7 @@ import (
 // TestMongoDBFactory_CreateConnection_Success verifica creación exitosa de conexión
 func TestMongoDBFactory_CreateConnection_Success(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -56,7 +56,7 @@ func TestMongoDBFactory_CreateConnection_Success(t *testing.T) {
 // TestMongoDBFactory_CreateConnection_InvalidURI verifica error con URI inválida
 func TestMongoDBFactory_CreateConnection_InvalidURI(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -88,7 +88,7 @@ func TestMongoDBFactory_CreateConnection_InvalidURI(t *testing.T) {
 // TestMongoDBFactory_Ping_Success verifica ping exitoso
 func TestMongoDBFactory_Ping_Success(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -123,7 +123,7 @@ func TestMongoDBFactory_Ping_Success(t *testing.T) {
 // TestMongoDBFactory_GetDatabase verifica obtención de database
 func TestMongoDBFactory_GetDatabase(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -159,7 +159,7 @@ func TestMongoDBFactory_GetDatabase(t *testing.T) {
 // TestMongoDBFactory_Close_Success verifica cierre exitoso
 func TestMongoDBFactory_Close_Success(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -193,7 +193,7 @@ func TestMongoDBFactory_Close_Success(t *testing.T) {
 // TestMongoDBFactory_ConnectionPoolSettings verifica configuración del pool
 func TestMongoDBFactory_ConnectionPoolSettings(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -229,7 +229,7 @@ func TestMongoDBFactory_ConnectionPoolSettings(t *testing.T) {
 // TestMongoDBFactory_MultipleConnections verifica múltiples conexiones
 func TestMongoDBFactory_MultipleConnections(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -273,13 +273,13 @@ func TestMongoDBFactory_MultipleConnections(t *testing.T) {
 	}
 }
 
-// Define type alias for readability
+// Define alias de tipo para mejor legibilidad
 type mongoClient = mongo.Client
 
 // TestMongoDBFactory_DatabaseOperations verifica operaciones básicas
 func TestMongoDBFactory_DatabaseOperations(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -333,7 +333,7 @@ func TestMongoDBFactory_DatabaseOperations(t *testing.T) {
 // TestMongoDBFactory_PingWithTimeout verifica ping con timeout
 func TestMongoDBFactory_PingWithTimeout(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	config := containers.NewConfig().
@@ -369,7 +369,7 @@ func TestMongoDBFactory_PingWithTimeout(t *testing.T) {
 // TestMongoDBFactory_GetDatabase_MultipleDatabases verifica múltiples databases
 func TestMongoDBFactory_GetDatabase_MultipleDatabases(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -408,7 +408,7 @@ func TestMongoDBFactory_GetDatabase_MultipleDatabases(t *testing.T) {
 // TestMongoDBFactory_ConnectionTimeout verifica manejo de timeout de conexión
 func TestMongoDBFactory_ConnectionTimeout(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	// Contexto con timeout muy corto
@@ -437,7 +437,7 @@ func TestMongoDBFactory_ConnectionTimeout(t *testing.T) {
 // TestMongoDBFactory_CloseWithTimeout verifica cierre con timeout
 func TestMongoDBFactory_CloseWithTimeout(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -483,7 +483,7 @@ func TestMongoDBFactory_DefaultTimeout(t *testing.T) {
 // TestMongoDBFactory_ConcurrentOperations verifica operaciones concurrentes
 func TestMongoDBFactory_ConcurrentOperations(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()

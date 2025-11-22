@@ -17,7 +17,7 @@ import (
 // TestExecSQLFile_Success verifica ejecución exitosa de archivo SQL
 func TestExecSQLFile_Success(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -75,7 +75,7 @@ func TestExecSQLFile_Success(t *testing.T) {
 // TestExecSQLFile_FileNotFound verifica error cuando archivo no existe
 func TestExecSQLFile_FileNotFound(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -106,7 +106,7 @@ func TestExecSQLFile_FileNotFound(t *testing.T) {
 // TestExecSQLFile_InvalidSQL verifica error con SQL inválido
 func TestExecSQLFile_InvalidSQL(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -145,7 +145,7 @@ func TestExecSQLFile_InvalidSQL(t *testing.T) {
 // TestExecSQLFile_EmptyFile verifica ejecución de archivo vacío
 func TestExecSQLFile_EmptyFile(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -182,7 +182,7 @@ func TestExecSQLFile_EmptyFile(t *testing.T) {
 // TestExecSQLFile_MultipleStatements verifica múltiples statements
 func TestExecSQLFile_MultipleStatements(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -511,7 +511,7 @@ func TestRetryOperation_VariousErrors(t *testing.T) {
 // TestHelpers_Integration verifica integración de todas las funciones helper
 func TestHelpers_Integration(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()

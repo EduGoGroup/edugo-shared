@@ -14,7 +14,7 @@ import (
 // TestRabbitMQFactory_CreateConnection_Success verifica creación exitosa de conexión
 func TestRabbitMQFactory_CreateConnection_Success(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -56,7 +56,7 @@ func TestRabbitMQFactory_CreateConnection_Success(t *testing.T) {
 // TestRabbitMQFactory_CreateConnection_InvalidURL verifica error con URL inválida
 func TestRabbitMQFactory_CreateConnection_InvalidURL(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -76,7 +76,7 @@ func TestRabbitMQFactory_CreateConnection_InvalidURL(t *testing.T) {
 // TestRabbitMQFactory_CreateConnection_WithTimeout verifica timeout de conexión
 func TestRabbitMQFactory_CreateConnection_WithTimeout(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	// Contexto con timeout muy corto
@@ -99,7 +99,7 @@ func TestRabbitMQFactory_CreateConnection_WithTimeout(t *testing.T) {
 // TestRabbitMQFactory_CreateConnection_ContextCancellation verifica cancelación por contexto
 func TestRabbitMQFactory_CreateConnection_ContextCancellation(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	// Contexto ya cancelado
@@ -121,7 +121,7 @@ func TestRabbitMQFactory_CreateConnection_ContextCancellation(t *testing.T) {
 // TestRabbitMQFactory_CreateChannel_Success verifica creación exitosa de canal
 func TestRabbitMQFactory_CreateChannel_Success(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -162,7 +162,7 @@ func TestRabbitMQFactory_CreateChannel_Success(t *testing.T) {
 // TestRabbitMQFactory_CreateChannel_QoSConfigured verifica que QoS está configurado
 func TestRabbitMQFactory_CreateChannel_QoSConfigured(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -212,7 +212,7 @@ func TestRabbitMQFactory_CreateChannel_QoSConfigured(t *testing.T) {
 // TestRabbitMQFactory_DeclareQueue_Success verifica declaración exitosa de cola
 func TestRabbitMQFactory_DeclareQueue_Success(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -256,7 +256,7 @@ func TestRabbitMQFactory_DeclareQueue_Success(t *testing.T) {
 // TestRabbitMQFactory_DeclareQueue_WithConfiguration verifica configuración de cola
 func TestRabbitMQFactory_DeclareQueue_WithConfiguration(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -305,7 +305,7 @@ func TestRabbitMQFactory_DeclareQueue_WithConfiguration(t *testing.T) {
 // TestRabbitMQFactory_Close_Success verifica cierre exitoso
 func TestRabbitMQFactory_Close_Success(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -343,7 +343,7 @@ func TestRabbitMQFactory_Close_Success(t *testing.T) {
 // TestRabbitMQFactory_Close_WithNilChannel verifica cierre con canal nil
 func TestRabbitMQFactory_Close_WithNilChannel(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -378,7 +378,7 @@ func TestRabbitMQFactory_Close_WithNilChannel(t *testing.T) {
 // TestRabbitMQFactory_Close_AlreadyClosed verifica cierre de conexión ya cerrada
 func TestRabbitMQFactory_Close_AlreadyClosed(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -421,7 +421,7 @@ func TestRabbitMQFactory_Close_AlreadyClosed(t *testing.T) {
 // TestRabbitMQFactory_MultipleChannels verifica creación de múltiples canales
 func TestRabbitMQFactory_MultipleChannels(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -471,7 +471,7 @@ func TestRabbitMQFactory_MultipleChannels(t *testing.T) {
 // TestRabbitMQFactory_PublishConsume verifica flujo completo publish/consume
 func TestRabbitMQFactory_PublishConsume(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()

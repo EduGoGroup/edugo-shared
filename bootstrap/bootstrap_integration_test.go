@@ -46,7 +46,7 @@ func TestBootstrap_LoggerOnly(t *testing.T) {
 // TestBootstrap_LoggerAndPostgreSQL verifica logger + PostgreSQL
 func TestBootstrap_LoggerAndPostgreSQL(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -110,7 +110,7 @@ func TestBootstrap_LoggerAndPostgreSQL(t *testing.T) {
 // TestBootstrap_AllResources verifica inicialización de todos los recursos
 func TestBootstrap_AllResources(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -273,7 +273,7 @@ func TestBootstrap_OptionalResourceFailure(t *testing.T) {
 // TestBootstrap_WithHealthCheck verifica health check (skip=false)
 func TestBootstrap_WithHealthCheck(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()

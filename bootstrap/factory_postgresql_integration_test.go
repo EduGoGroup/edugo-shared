@@ -14,7 +14,7 @@ import (
 // TestPostgreSQLFactory_CreateConnection_Success verifica creación exitosa de conexión
 func TestPostgreSQLFactory_CreateConnection_Success(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -63,7 +63,7 @@ func TestPostgreSQLFactory_CreateConnection_Success(t *testing.T) {
 // TestPostgreSQLFactory_CreateConnection_InvalidConfig verifica error con config inválida
 func TestPostgreSQLFactory_CreateConnection_InvalidConfig(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -88,7 +88,7 @@ func TestPostgreSQLFactory_CreateConnection_InvalidConfig(t *testing.T) {
 // TestPostgreSQLFactory_CreateConnection_WithSSLMode verifica diferentes modos SSL
 func TestPostgreSQLFactory_CreateConnection_WithSSLMode(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -161,7 +161,7 @@ func TestPostgreSQLFactory_CreateConnection_WithSSLMode(t *testing.T) {
 // TestPostgreSQLFactory_Ping_Success verifica ping exitoso
 func TestPostgreSQLFactory_Ping_Success(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -202,7 +202,7 @@ func TestPostgreSQLFactory_Ping_Success(t *testing.T) {
 // TestPostgreSQLFactory_Close_Success verifica cierre exitoso
 func TestPostgreSQLFactory_Close_Success(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -242,7 +242,7 @@ func TestPostgreSQLFactory_Close_Success(t *testing.T) {
 // TestPostgreSQLFactory_CreateRawConnection_Success verifica creación de conexión SQL raw
 func TestPostgreSQLFactory_CreateRawConnection_Success(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -285,7 +285,7 @@ func TestPostgreSQLFactory_CreateRawConnection_Success(t *testing.T) {
 // TestPostgreSQLFactory_CreateRawConnection_InvalidConfig verifica error con config inválida
 func TestPostgreSQLFactory_CreateRawConnection_InvalidConfig(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -308,7 +308,7 @@ func TestPostgreSQLFactory_CreateRawConnection_InvalidConfig(t *testing.T) {
 // TestPostgreSQLFactory_ConnectionPoolSettings verifica configuración del pool
 func TestPostgreSQLFactory_ConnectionPoolSettings(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -355,7 +355,7 @@ func TestPostgreSQLFactory_ConnectionPoolSettings(t *testing.T) {
 // TestPostgreSQLFactory_WithCustomLogger verifica creación con logger custom
 func TestPostgreSQLFactory_WithCustomLogger(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -396,7 +396,7 @@ func TestPostgreSQLFactory_WithCustomLogger(t *testing.T) {
 // TestPostgreSQLFactory_MultipleConnections verifica múltiples conexiones
 func TestPostgreSQLFactory_MultipleConnections(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -507,7 +507,7 @@ func TestPostgreSQLFactory_BuildDSN_Scenarios(t *testing.T) {
 // TestPostgreSQLFactory_QueryExecution verifica ejecución de queries
 func TestPostgreSQLFactory_QueryExecution(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -564,7 +564,7 @@ func TestPostgreSQLFactory_QueryExecution(t *testing.T) {
 // TestPostgreSQLFactory_ConnectionTimeout verifica manejo de timeout
 func TestPostgreSQLFactory_ConnectionTimeout(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	// Contexto con timeout muy corto

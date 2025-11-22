@@ -12,7 +12,7 @@ import (
 
 func TestConnect_Integration(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	config := containers.NewConfig().
@@ -60,7 +60,7 @@ func TestConnect_Integration(t *testing.T) {
 
 func TestHealthCheck_Integration(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	config := containers.NewConfig().
@@ -82,7 +82,7 @@ func TestHealthCheck_Integration(t *testing.T) {
 
 func TestBasicOperations_Integration(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	config := containers.NewConfig().
@@ -152,7 +152,7 @@ func TestBasicOperations_Integration(t *testing.T) {
 
 func TestGetDatabase_Integration(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	config := containers.NewConfig().
@@ -215,7 +215,7 @@ func TestGetDatabase_Integration(t *testing.T) {
 
 func TestClose_Integration(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	config := containers.NewConfig().

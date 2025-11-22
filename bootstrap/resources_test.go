@@ -36,7 +36,7 @@ func TestResources_HasLogger(t *testing.T) {
 // TestResources_HasPostgreSQL verifica detección de PostgreSQL
 func TestResources_HasPostgreSQL(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -82,7 +82,7 @@ func TestResources_HasPostgreSQL(t *testing.T) {
 // TestResources_HasMongoDB verifica detección de MongoDB
 func TestResources_HasMongoDB(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -152,7 +152,7 @@ func TestResources_HasStorageClient(t *testing.T) {
 // TestResources_AllResourcesPresent verifica todos los recursos presentes
 func TestResources_AllResourcesPresent(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()

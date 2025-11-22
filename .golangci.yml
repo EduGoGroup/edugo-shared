@@ -1,6 +1,9 @@
 # Configuración para golangci-lint v2.x
 # https://golangci-lint.run/usage/configuration/
 
+# REQUERIDO en v2.x: especificar versión de configuración
+version: 2
+
 run:
   timeout: 5m
   issues-exit-code: 1

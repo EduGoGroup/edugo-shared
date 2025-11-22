@@ -27,10 +27,6 @@ linters-settings:
   govet:
     enable-all: true
 
-  # golint DEPRECADO - reemplazado por revive
-  # golint:
-  #   min-confidence: 0.8
-
   gofmt:
     simplify: true
 
@@ -58,21 +54,12 @@ linters-settings:
   gocyclo:
     min-complexity: 15
 
-  # maligned DEPRECADO - removido en golangci-lint v2.x
-  # maligned:
-  #   suggest-new: true
-
   dupl:
     threshold: 100
 
   goconst:
     min-len: 2
     min-occurrences: 2
-
-  # depguard disabled for shared library - allows all imports
-  # depguard:
-  #   list-type: blacklist
-  #   packages: []
 
   misspell:
     locale: US
@@ -104,8 +91,8 @@ linters:
     - gocyclo
     - gofmt
     - goimports
-    - revive  # replaces golint
-    - mnd     # replaces gomnd
+    - revive         # replaces golint
+    - mnd            # replaces gomnd
     - goprintffuncname
     - gosec
     - gosimple
@@ -119,17 +106,12 @@ linters:
     - predeclared    # detects shadowing
     - staticcheck
     - stylecheck
-    - typecheck
+    # - typecheck    # REMOVIDO: integrado al core en v2.x
     - unconvert
     - unparam
-    - unused  # replaces deadcode, structcheck, varcheck
+    - unused         # replaces deadcode, structcheck, varcheck
     - whitespace
     - copyloopvar    # replaces exportloopref
-    # Disable some that are too strict for this shared library
-    # - funlen
-    # - dogsled
-    # - dupl
-    # - depguard   # allows all imports for shared library
 
   disable: []
 

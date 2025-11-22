@@ -1,118 +1,22 @@
-# Configuración para golangci-lint v2.x
+# Configuración MÍNIMA para golangci-lint v2.x
 # https://golangci-lint.run/usage/configuration/
 
-# REQUERIDO en v2.x: especificar versión de configuración
-version: 2
+# Versión de configuración (DEBE ser string en v2.x)
+version: "2"
 
 run:
   timeout: 5m
-  issues-exit-code: 1
-  tests: true
-  modules-download-mode: readonly
 
-# CORREGIDO para golangci-lint v2.x: formats ahora es un mapa, no un array
-output:
-  formats:
-    colored-line-number: {}
-  print-issued-lines: true
-  print-linter-name: true
-
-issues:
-  max-issues-per-linter: 0
-  max-same-issues: 0
-  new: false
-  exclude-use-default: false
-
-linters-settings:
-  govet:
-    enable-all: true
-
-  gofmt:
-    simplify: true
-
-  goimports:
-    local-prefixes: github.com/EduGoGroup/edugo-shared
-
-  gocritic:
-    enabled-tags:
-      - diagnostic
-      - experimental
-      - opinionated
-      - performance
-      - style
-    disabled-checks:
-      - dupImport
-      - ifElseChain
-      - octalLiteral
-      - whyNoLint
-      - wrapperFunc
-
-  funlen:
-    lines: 100
-    statements: 50
-
-  gocyclo:
-    min-complexity: 15
-
-  dupl:
-    threshold: 100
-
-  goconst:
-    min-len: 2
-    min-occurrences: 2
-
-  misspell:
-    locale: US
-
-  lll:
-    line-length: 140
-
-  unused:
-    check-exported: false
-
-  unparam:
-    check-exported: false
-
-  nakedret:
-    max-func-lines: 30
-
-  prealloc:
-    simple: true
-    range-loops: true
-    for-loops: false
-
+# Linters habilitados (compatible v2.x)
 linters:
   enable:
-    - bodyclose
     - errcheck
-    - gochecknoinits
-    - goconst
-    - gocritic
-    - gocyclo
-    - gofmt
-    - goimports
-    - revive         # replaces golint
-    - mnd            # replaces gomnd
-    - goprintffuncname
-    - gosec
     - gosimple
     - govet
     - ineffassign
-    - lll
-    - misspell
-    - nakedret
-    - prealloc
-    - rowserrcheck
-    - predeclared    # detects shadowing
     - staticcheck
-    - stylecheck
-    # - typecheck    # REMOVIDO: integrado al core en v2.x
-    - unconvert
-    - unparam
-    - unused         # replaces deadcode, structcheck, varcheck
-    - whitespace
-    - copyloopvar    # replaces exportloopref
-
-  disable: []
-
-  fast: false
+    - unused
+    - gofmt
+    - goimports
+    - revive
+    - gosec

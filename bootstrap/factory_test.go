@@ -208,26 +208,13 @@ func TestLoggerFactory_CreateLogger_WithDifferentVersions(t *testing.T) {
 // MONGODB FACTORY TESTS
 // =============================================================================
 
-func TestMongoDBFactory_DefaultTimeout(t *testing.T) {
-	factory := NewDefaultMongoDBFactory()
-	require.NotNil(t, factory)
-
-	// Verificar que tiene timeout configurado
-	assert.NotZero(t, factory.connectionTimeout)
-}
+// TestMongoDBFactory_DefaultTimeout movido a factory_mongodb_integration_test.go
 
 // =============================================================================
 // POSTGRESQL FACTORY TESTS
 // =============================================================================
 
-func TestPostgreSQLFactory_WithCustomLogger(t *testing.T) {
-	// Crear factory con logger custom (nil)
-	factory1 := NewDefaultPostgreSQLFactory(nil)
-	require.NotNil(t, factory1)
-	require.NotNil(t, factory1.logger)
-
-	// Debería haber creado un logger por defecto
-}
+// TestPostgreSQLFactory_WithCustomLogger movido a factory_postgresql_integration_test.go
 
 func TestPostgreSQLFactory_BuildDSN(t *testing.T) {
 	factory := NewDefaultPostgreSQLFactory(nil)
@@ -299,13 +286,7 @@ func TestRabbitMQFactory_Creation(t *testing.T) {
 // S3 FACTORY TESTS
 // =============================================================================
 
-func TestS3Factory_Creation(t *testing.T) {
-	factory := NewDefaultS3Factory()
-	require.NotNil(t, factory)
-
-	// S3Factory debe ser creada correctamente
-	assert.IsType(t, &DefaultS3Factory{}, factory)
-}
+// TestS3Factory_Creation movido a factory_s3_test.go
 
 // =============================================================================
 // INTEGRATION TESTS

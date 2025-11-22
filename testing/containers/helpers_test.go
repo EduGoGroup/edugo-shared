@@ -38,7 +38,10 @@ func TestExecSQLFile_Success(t *testing.T) {
 	pg := manager.PostgreSQL()
 
 	// Obtener conexión raw
-	db, err := sql.Open("postgres", pg.DSN())
+	dsn, err := pg.ConnectionString(context.Background())
+	require.NoError(t, err)
+
+	db, err := sql.Open("postgres", dsn)
 	require.NoError(t, err)
 	defer db.Close()
 
@@ -93,7 +96,10 @@ func TestExecSQLFile_FileNotFound(t *testing.T) {
 	require.NoError(t, err)
 
 	pg := manager.PostgreSQL()
-	db, err := sql.Open("postgres", pg.DSN())
+	dsn, err := pg.ConnectionString(context.Background())
+	require.NoError(t, err)
+
+	db, err := sql.Open("postgres", dsn)
 	require.NoError(t, err)
 	defer db.Close()
 
@@ -124,7 +130,10 @@ func TestExecSQLFile_InvalidSQL(t *testing.T) {
 	require.NoError(t, err)
 
 	pg := manager.PostgreSQL()
-	db, err := sql.Open("postgres", pg.DSN())
+	dsn, err := pg.ConnectionString(context.Background())
+	require.NoError(t, err)
+
+	db, err := sql.Open("postgres", dsn)
 	require.NoError(t, err)
 	defer db.Close()
 
@@ -163,7 +172,10 @@ func TestExecSQLFile_EmptyFile(t *testing.T) {
 	require.NoError(t, err)
 
 	pg := manager.PostgreSQL()
-	db, err := sql.Open("postgres", pg.DSN())
+	dsn, err := pg.ConnectionString(context.Background())
+	require.NoError(t, err)
+
+	db, err := sql.Open("postgres", dsn)
 	require.NoError(t, err)
 	defer db.Close()
 
@@ -200,7 +212,10 @@ func TestExecSQLFile_MultipleStatements(t *testing.T) {
 	require.NoError(t, err)
 
 	pg := manager.PostgreSQL()
-	db, err := sql.Open("postgres", pg.DSN())
+	dsn, err := pg.ConnectionString(context.Background())
+	require.NoError(t, err)
+
+	db, err := sql.Open("postgres", dsn)
 	require.NoError(t, err)
 	defer db.Close()
 
@@ -534,7 +549,11 @@ func TestHelpers_Integration(t *testing.T) {
 	var db *sql.DB
 	err = RetryOperation(func() error {
 		var err error
-		db, err = sql.Open("postgres", pg.DSN())
+		dsn, err := pg.ConnectionString(context.Background())
+		if err != nil {
+			return err
+		}
+		db, err = sql.Open("postgres", dsn)
 		if err != nil {
 			return err
 		}

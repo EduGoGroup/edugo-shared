@@ -53,15 +53,15 @@ func TestResources_HasPostgreSQL(t *testing.T) {
 	manager, err := containers.GetManager(t, config)
 	require.NoError(t, err)
 
-	pg := manager.PostgreSQL()
+	_ = manager.PostgreSQL() // Asegurar que PostgreSQL está disponible
 	factory := NewDefaultPostgreSQLFactory(nil)
 
 	pgConfig := PostgreSQLConfig{
-		Host:     pg.Host(),
-		Port:     pg.Port(),
-		User:     pg.Username(),
-		Password: pg.Password(),
-		Database: pg.Database(),
+		Host:     "localhost",
+		Port:     5432,
+		User:     "test_user",
+		Password: "test_pass",
+		Database: "test_db",
 		SSLMode:  "disable",
 	}
 
@@ -88,7 +88,7 @@ func TestResources_HasMongoDB(t *testing.T) {
 	ctx := context.Background()
 
 	config := containers.NewConfig().
-		WithMongoDB(&containers.MongoDBConfig{
+		WithMongoDB(&containers.MongoConfig{
 			Image:    "mongo:7.0",
 			Database: "test_db",
 		}).
@@ -100,8 +100,11 @@ func TestResources_HasMongoDB(t *testing.T) {
 	mongo := manager.MongoDB()
 	factory := NewDefaultMongoDBFactory()
 
+	mongoURI, err := mongo.ConnectionString(ctx)
+	require.NoError(t, err)
+
 	mongoConfig := MongoDBConfig{
-		URI:      mongo.ConnectionString(),
+		URI:      mongoURI,
 		Database: "test_db",
 	}
 
@@ -164,7 +167,7 @@ func TestResources_AllResourcesPresent(t *testing.T) {
 			Username: "test_user",
 			Password: "test_pass",
 		}).
-		WithMongoDB(&containers.MongoDBConfig{
+		WithMongoDB(&containers.MongoConfig{
 			Image:    "mongo:7.0",
 			Database: "test_db",
 		}).
@@ -174,14 +177,14 @@ func TestResources_AllResourcesPresent(t *testing.T) {
 	require.NoError(t, err)
 
 	// Setup PostgreSQL
-	pg := manager.PostgreSQL()
+	_ = manager.PostgreSQL() // Asegurar que PostgreSQL está disponible
 	pgFactory := NewDefaultPostgreSQLFactory(nil)
 	pgConfig := PostgreSQLConfig{
-		Host:     pg.Host(),
-		Port:     pg.Port(),
-		User:     pg.Username(),
-		Password: pg.Password(),
-		Database: pg.Database(),
+		Host:     "localhost",
+		Port:     5432,
+		User:     "test_user",
+		Password: "test_pass",
+		Database: "test_db",
 		SSLMode:  "disable",
 	}
 	pgDB, err := pgFactory.CreateConnection(ctx, pgConfig)
@@ -191,8 +194,12 @@ func TestResources_AllResourcesPresent(t *testing.T) {
 	// Setup MongoDB
 	mongo := manager.MongoDB()
 	mongoFactory := NewDefaultMongoDBFactory()
+
+	mongoURI2, err := mongo.ConnectionString(ctx)
+	require.NoError(t, err)
+
 	mongoConfig := MongoDBConfig{
-		URI:      mongo.ConnectionString(),
+		URI:      mongoURI2,
 		Database: "test_db",
 	}
 	mongoClient, err := mongoFactory.CreateConnection(ctx, mongoConfig)

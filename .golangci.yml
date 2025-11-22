@@ -1,4 +1,4 @@
-# Configuración para golangci-lint
+# Configuración para golangci-lint v2.x
 # https://golangci-lint.run/usage/configuration/
 
 run:
@@ -7,9 +7,10 @@ run:
   tests: true
   modules-download-mode: readonly
 
+# CORREGIDO para golangci-lint v2.x: formats ahora es un mapa, no un array
 output:
   formats:
-    - format: colored-line-number
+    colored-line-number: {}
   print-issued-lines: true
   print-linter-name: true
 
@@ -22,16 +23,17 @@ issues:
 linters-settings:
   govet:
     enable-all: true
-  
-  golint:
-    min-confidence: 0.8
-  
+
+  # golint DEPRECADO - reemplazado por revive
+  # golint:
+  #   min-confidence: 0.8
+
   gofmt:
     simplify: true
-  
+
   goimports:
     local-prefixes: github.com/EduGoGroup/edugo-shared
-  
+
   gocritic:
     enabled-tags:
       - diagnostic
@@ -45,44 +47,45 @@ linters-settings:
       - octalLiteral
       - whyNoLint
       - wrapperFunc
-  
+
   funlen:
     lines: 100
     statements: 50
-  
+
   gocyclo:
     min-complexity: 15
-  
-  maligned:
-    suggest-new: true
-  
+
+  # maligned DEPRECADO - removido en golangci-lint v2.x
+  # maligned:
+  #   suggest-new: true
+
   dupl:
     threshold: 100
-  
+
   goconst:
     min-len: 2
     min-occurrences: 2
-  
+
   # depguard disabled for shared library - allows all imports
   # depguard:
   #   list-type: blacklist
   #   packages: []
-  
+
   misspell:
     locale: US
-  
+
   lll:
     line-length: 140
-  
+
   unused:
     check-exported: false
-  
+
   unparam:
     check-exported: false
-  
+
   nakedret:
     max-func-lines: 30
-  
+
   prealloc:
     simple: true
     range-loops: true
@@ -124,7 +127,7 @@ linters:
     # - dogsled
     # - dupl
     # - depguard   # allows all imports for shared library
-  
+
   disable: []
-  
+
   fast: false

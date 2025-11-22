@@ -112,7 +112,7 @@ func TestConnection_DeclareExchange(t *testing.T) {
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	tests := []struct {
 		name   string
@@ -160,7 +160,7 @@ func TestConnection_DeclareQueue(t *testing.T) {
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	tests := []struct {
 		name   string
@@ -214,7 +214,7 @@ func TestConnection_BindQueue(t *testing.T) {
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	// Declarar exchange
 	exchangeConfig := ExchangeConfig{
@@ -247,7 +247,7 @@ func TestConnection_SetPrefetchCount(t *testing.T) {
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	tests := []struct {
 		name  string
@@ -272,7 +272,7 @@ func TestConnection_HealthCheck_Success(t *testing.T) {
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	err = conn.HealthCheck()
 	assert.NoError(t, err)
@@ -299,7 +299,7 @@ func TestConnection_MultipleChannels(t *testing.T) {
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	// Obtener el canal principal
 	channel1 := conn.GetChannel()
@@ -315,7 +315,7 @@ func TestConnection_DeclareQueue_WithDLX(t *testing.T) {
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	// Declarar DLX exchange primero
 	dlxConfig := ExchangeConfig{
@@ -374,7 +374,7 @@ func TestConnection_ConcurrentHealthChecks(t *testing.T) {
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	// Ejecutar múltiples health checks concurrentemente
 	const concurrency = 10
@@ -418,7 +418,7 @@ func TestConnection_HealthCheck_CreatesTemporaryExchange(t *testing.T) {
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	// Ejecutar health check
 	err = conn.HealthCheck()
@@ -435,7 +435,7 @@ func TestConnection_BindQueue_WithMultipleRoutingKeys(t *testing.T) {
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	// Declarar exchange
 	exchangeConfig := ExchangeConfig{
@@ -471,7 +471,7 @@ func TestConnection_SetPrefetchCount_Zero(t *testing.T) {
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	// Prefetch count 0 significa "sin límite"
 	err = conn.SetPrefetchCount(0)
@@ -483,7 +483,7 @@ func TestConnection_DeclareExchange_DuplicateName(t *testing.T) {
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	config := ExchangeConfig{
 		Name:       "test_duplicate",

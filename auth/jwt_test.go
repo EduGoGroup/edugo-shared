@@ -284,8 +284,8 @@ func TestRefreshToken(t *testing.T) {
 		// Pero los metadatos cambian
 		assert.NotEqual(t, originalClaims.ID, refreshedClaims.ID, "JTI debe ser diferente")
 		// IssuedAt debe ser igual o más reciente (permitir pequeñas diferencias de timing)
-		assert.True(t, refreshedClaims.IssuedAt.Time.After(originalClaims.IssuedAt.Time) ||
-			refreshedClaims.IssuedAt.Time.Equal(originalClaims.IssuedAt.Time),
+		assert.True(t, refreshedClaims.IssuedAt.After(originalClaims.IssuedAt.Time) ||
+			refreshedClaims.IssuedAt.Equal(originalClaims.IssuedAt.Time),
 			"IssuedAt debe ser igual o más reciente")
 	})
 }

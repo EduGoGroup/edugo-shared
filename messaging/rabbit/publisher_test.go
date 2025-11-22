@@ -17,7 +17,7 @@ func TestNewPublisher(t *testing.T) {
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	publisher := NewPublisher(conn)
 	assert.NotNil(t, publisher)
@@ -30,7 +30,7 @@ func TestPublisher_Publish_BasicMessage(t *testing.T) {
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	// Setup exchange and queue
 	exchangeConfig := ExchangeConfig{
@@ -84,7 +84,7 @@ func TestPublisher_Publish_ToDefaultExchange(t *testing.T) {
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	// Setup queue (no need for explicit exchange with default exchange)
 	queueName := "test_default_exchange"
@@ -121,7 +121,7 @@ func TestPublisher_PublishWithPriority(t *testing.T) {
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	// Setup queue with max priority
 	queueName := "test_priority_queue"
@@ -164,7 +164,7 @@ func TestPublisher_Publish_InvalidJSON(t *testing.T) {
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	publisher := NewPublisher(conn)
 	require.NotNil(t, publisher)
@@ -184,7 +184,7 @@ func TestPublisher_Publish_ToNonExistentExchange(t *testing.T) {
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	publisher := NewPublisher(conn)
 	require.NotNil(t, publisher)
@@ -205,7 +205,7 @@ func TestPublisher_Close(t *testing.T) {
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	publisher := NewPublisher(conn)
 	require.NotNil(t, publisher)
@@ -220,7 +220,7 @@ func TestPublisher_Publish_MultipleMessages(t *testing.T) {
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	// Setup queue
 	queueName := "test_multiple_publish"
@@ -261,7 +261,7 @@ func TestPublisher_Publish_ConcurrentPublishing(t *testing.T) {
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	// Setup queue
 	queueName := "test_concurrent_publish"
@@ -323,7 +323,7 @@ func TestPublisher_Publish_WithContextTimeout(t *testing.T) {
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	// Setup queue
 	queueName := "test_context_timeout"
@@ -358,7 +358,7 @@ func TestPublisher_Publish_WithCancelledContext(t *testing.T) {
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	publisher := NewPublisher(conn)
 	require.NotNil(t, publisher)
@@ -383,7 +383,7 @@ func TestPublisher_Publish_ComplexMessage(t *testing.T) {
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	// Setup queue
 	queueName := "test_complex_message"
@@ -440,7 +440,7 @@ func TestPublisher_Publish_ComplexMessage(t *testing.T) {
 	waitForQueueMessages(t, rabbitContainer, queueName, 1, 5*time.Second)
 	channel, err := rabbitContainer.Channel()
 	require.NoError(t, err)
-	defer channel.Close()
+	defer func() { _ = channel.Close() }()
 
 	// Consume and verify the message content
 	msgs, err := channel.Consume(
@@ -474,7 +474,7 @@ func TestPublisher_PublishWithPriority_ZeroPriority(t *testing.T) {
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	// Setup queue
 	queueName := "test_zero_priority"
@@ -509,7 +509,7 @@ func TestPublisher_PublishWithPriority_MaxPriority(t *testing.T) {
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	// Setup queue with max priority
 	queueName := "test_max_priority"
@@ -546,7 +546,7 @@ func TestPublisher_Publish_EmptyMessage(t *testing.T) {
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	// Setup queue
 	queueName := "test_empty_message"
@@ -580,7 +580,7 @@ func TestPublisher_Publish_StringMessage(t *testing.T) {
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	// Setup queue
 	queueName := "test_string_message"
@@ -614,7 +614,7 @@ func TestPublisher_Lifecycle(t *testing.T) {
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	// Setup
 	queueName := "test_publisher_lifecycle"

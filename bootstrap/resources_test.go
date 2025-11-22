@@ -35,9 +35,7 @@ func TestResources_HasLogger(t *testing.T) {
 
 // TestResources_HasPostgreSQL verifica detección de PostgreSQL
 func TestResources_HasPostgreSQL(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Omitiendo test de integración en modo short")
-	}
+	skipIfNotIntegration(t)
 
 	ctx := context.Background()
 
@@ -53,17 +51,15 @@ func TestResources_HasPostgreSQL(t *testing.T) {
 	manager, err := containers.GetManager(t, config)
 	require.NoError(t, err)
 
-	_ = manager.PostgreSQL() // Asegurar que PostgreSQL está disponible
+	pg := manager.PostgreSQL()
 	factory := NewDefaultPostgreSQLFactory(nil)
 
-	pgConfig := PostgreSQLConfig{
-		Host:     "localhost",
-		Port:     5432,
-		User:     "test_user",
-		Password: "test_pass",
-		Database: "test_db",
-		SSLMode:  "disable",
-	}
+	// Obtener config dinámico del container
+	connStr, err := pg.ConnectionString(ctx)
+	require.NoError(t, err)
+
+	pgConfig, err := parsePostgresConnectionString(connStr)
+	require.NoError(t, err)
 
 	db, err := factory.CreateConnection(ctx, pgConfig)
 	require.NoError(t, err)
@@ -81,9 +77,7 @@ func TestResources_HasPostgreSQL(t *testing.T) {
 
 // TestResources_HasMongoDB verifica detección de MongoDB
 func TestResources_HasMongoDB(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Omitiendo test de integración en modo short")
-	}
+	skipIfNotIntegration(t)
 
 	ctx := context.Background()
 
@@ -154,9 +148,7 @@ func TestResources_HasStorageClient(t *testing.T) {
 
 // TestResources_AllResourcesPresent verifica todos los recursos presentes
 func TestResources_AllResourcesPresent(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Omitiendo test de integración en modo short")
-	}
+	skipIfNotIntegration(t)
 
 	ctx := context.Background()
 
@@ -177,16 +169,15 @@ func TestResources_AllResourcesPresent(t *testing.T) {
 	require.NoError(t, err)
 
 	// Setup PostgreSQL
-	_ = manager.PostgreSQL() // Asegurar que PostgreSQL está disponible
+	pg := manager.PostgreSQL()
 	pgFactory := NewDefaultPostgreSQLFactory(nil)
-	pgConfig := PostgreSQLConfig{
-		Host:     "localhost",
-		Port:     5432,
-		User:     "test_user",
-		Password: "test_pass",
-		Database: "test_db",
-		SSLMode:  "disable",
-	}
+
+	connStr, err := pg.ConnectionString(ctx)
+	require.NoError(t, err)
+
+	pgConfig, err := parsePostgresConnectionString(connStr)
+	require.NoError(t, err)
+
 	pgDB, err := pgFactory.CreateConnection(ctx, pgConfig)
 	require.NoError(t, err)
 	defer pgFactory.Close(pgDB)
@@ -195,11 +186,11 @@ func TestResources_AllResourcesPresent(t *testing.T) {
 	mongo := manager.MongoDB()
 	mongoFactory := NewDefaultMongoDBFactory()
 
-	mongoURI2, err := mongo.ConnectionString(ctx)
+	mongoURI, err := mongo.ConnectionString(ctx)
 	require.NoError(t, err)
 
 	mongoConfig := MongoDBConfig{
-		URI:      mongoURI2,
+		URI:      mongoURI,
 		Database: "test_db",
 	}
 	mongoClient, err := mongoFactory.CreateConnection(ctx, mongoConfig)

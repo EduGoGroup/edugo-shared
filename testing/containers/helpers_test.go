@@ -14,6 +14,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// skipIfNotIntegration skipea el test si no está habilitada INTEGRATION_TESTS
+func skipIfNotIntegration(t *testing.T) {
+	if os.Getenv("INTEGRATION_TESTS") != "true" {
+		t.Skip("Skipping integration test - set INTEGRATION_TESTS=true to run")
+	}
+}
+
 // TestExecSQLFile_Success verifica ejecución exitosa de archivo SQL
 func TestExecSQLFile_Success(t *testing.T) {
 	if testing.Short() {

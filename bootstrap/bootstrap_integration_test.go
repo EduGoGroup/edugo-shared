@@ -2,12 +2,49 @@ package bootstrap
 
 import (
 	"context"
+	"net/url"
+	"os"
+	"strconv"
 	"testing"
 
 	"github.com/EduGoGroup/edugo-shared/testing/containers"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+// skipIfNotIntegration skipea el test si no está habilitada la variable INTEGRATION_TESTS
+func skipIfNotIntegration(t *testing.T) {
+	if os.Getenv("INTEGRATION_TESTS") != "true" {
+		t.Skip("Skipping integration test - set INTEGRATION_TESTS=true to run")
+	}
+}
+
+// parsePostgresConnectionString parsea un connection string de PostgreSQL y retorna un PostgreSQLConfig
+func parsePostgresConnectionString(connStr string) (PostgreSQLConfig, error) {
+	// Formato: postgres://user:password@host:port/database?sslmode=disable
+	u, err := url.Parse(connStr)
+	if err != nil {
+		return PostgreSQLConfig{}, err
+	}
+
+	password, _ := u.User.Password()
+	port, _ := strconv.Atoi(u.Port())
+
+	config := PostgreSQLConfig{
+		Host:     u.Hostname(),
+		Port:     port,
+		User:     u.User.Username(),
+		Password: password,
+		Database: u.Path[1:], // Remove leading "/"
+		SSLMode:  u.Query().Get("sslmode"),
+	}
+
+	if config.SSLMode == "" {
+		config.SSLMode = "disable"
+	}
+
+	return config, nil
+}
 
 // TestBootstrap_LoggerOnly verifica inicialización solo de logger
 func TestBootstrap_LoggerOnly(t *testing.T) {
@@ -45,9 +82,7 @@ func TestBootstrap_LoggerOnly(t *testing.T) {
 
 // TestBootstrap_LoggerAndPostgreSQL verifica logger + PostgreSQL
 func TestBootstrap_LoggerAndPostgreSQL(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Omitiendo test de integración en modo short")
-	}
+	skipIfNotIntegration(t)
 
 	ctx := context.Background()
 
@@ -64,7 +99,15 @@ func TestBootstrap_LoggerAndPostgreSQL(t *testing.T) {
 	manager, err := containers.GetManager(t, containerConfig)
 	require.NoError(t, err)
 
-	_ = manager.PostgreSQL() // Asegurar que PostgreSQL está disponible
+	pg := manager.PostgreSQL()
+
+	// Obtener connection string dinámico del container
+	connStr, err := pg.ConnectionString(ctx)
+	require.NoError(t, err)
+
+	// Parsear connection string a PostgreSQLConfig
+	pgConfig, err := parsePostgresConnectionString(connStr)
+	require.NoError(t, err)
 
 	// Factories
 	factories := &Factories{
@@ -72,8 +115,7 @@ func TestBootstrap_LoggerAndPostgreSQL(t *testing.T) {
 		PostgreSQL: NewDefaultPostgreSQLFactory(nil),
 	}
 
-	// Config con PostgreSQL usando DB directamente del container
-	// El container ya tiene la conexión configurada
+	// Config con PostgreSQL usando datos dinámicos del container
 	type AppConfig struct {
 		Environment string
 		Version     string
@@ -83,14 +125,7 @@ func TestBootstrap_LoggerAndPostgreSQL(t *testing.T) {
 	appConfig := AppConfig{
 		Environment: "test",
 		Version:     "1.0.0",
-		PostgreSQL: PostgreSQLConfig{
-			Host:     "localhost",
-			Port:     5432,
-			User:     "test_user",
-			Password: "test_pass",
-			Database: "test_db",
-			SSLMode:  "disable",
-		},
+		PostgreSQL:  pgConfig,
 	}
 
 	resources, err := Bootstrap(
@@ -110,9 +145,7 @@ func TestBootstrap_LoggerAndPostgreSQL(t *testing.T) {
 
 // TestBootstrap_AllResources verifica inicialización de todos los recursos
 func TestBootstrap_AllResources(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Omitiendo test de integración en modo short")
-	}
+	skipIfNotIntegration(t)
 
 	ctx := context.Background()
 
@@ -131,7 +164,14 @@ func TestBootstrap_AllResources(t *testing.T) {
 	manager, err := containers.GetManager(t, containerConfig)
 	require.NoError(t, err)
 
-	_ = manager.PostgreSQL() // Asegurar que PostgreSQL está disponible
+	pg := manager.PostgreSQL()
+
+	// Obtener connection string dinámico
+	connStr, err := pg.ConnectionString(ctx)
+	require.NoError(t, err)
+
+	pgConfig, err := parsePostgresConnectionString(connStr)
+	require.NoError(t, err)
 
 	// Factories - solo las que vamos a usar
 	factories := &Factories{
@@ -149,14 +189,7 @@ func TestBootstrap_AllResources(t *testing.T) {
 	fullConfig := FullConfig{
 		Environment: "test",
 		Version:     "1.0.0",
-		PostgreSQL: PostgreSQLConfig{
-			Host:     "localhost",
-			Port:     5432,
-			User:     "test_user",
-			Password: "test_pass",
-			Database: "test_db",
-			SSLMode:  "disable",
-		},
+		PostgreSQL:  pgConfig,
 	}
 
 	resources, err := Bootstrap(
@@ -252,9 +285,7 @@ func TestBootstrap_OptionalResourceFailure(t *testing.T) {
 
 // TestBootstrap_WithHealthCheck verifica health check (skip=false)
 func TestBootstrap_WithHealthCheck(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Omitiendo test de integración en modo short")
-	}
+	skipIfNotIntegration(t)
 
 	ctx := context.Background()
 
@@ -271,14 +302,21 @@ func TestBootstrap_WithHealthCheck(t *testing.T) {
 	manager, err := containers.GetManager(t, containerConfig)
 	require.NoError(t, err)
 
-	_ = manager.PostgreSQL() // Asegurar que PostgreSQL está disponible
+	pg := manager.PostgreSQL()
+
+	// Obtener connection string dinámico
+	connStr, err := pg.ConnectionString(ctx)
+	require.NoError(t, err)
+
+	pgConfig, err := parsePostgresConnectionString(connStr)
+	require.NoError(t, err)
 
 	factories := &Factories{
 		Logger:     NewDefaultLoggerFactory(),
 		PostgreSQL: NewDefaultPostgreSQLFactory(nil),
 	}
 
-	type AppConfig struct {
+	type AppConfig struct{
 		Environment string
 		Version     string
 		PostgreSQL  PostgreSQLConfig
@@ -287,14 +325,7 @@ func TestBootstrap_WithHealthCheck(t *testing.T) {
 	appConfig := AppConfig{
 		Environment: "test",
 		Version:     "1.0.0",
-		PostgreSQL: PostgreSQLConfig{
-			Host:     "localhost",
-			Port:     5432,
-			User:     "test_user",
-			Password: "test_pass",
-			Database: "test_db",
-			SSLMode:  "disable",
-		},
+		PostgreSQL:  pgConfig,
 	}
 
 	// Con health check habilitado (default)

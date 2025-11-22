@@ -55,7 +55,7 @@ func TestAppError_Error(t *testing.T) {
 
 func TestAppError_WithDetails(t *testing.T) {
 	err := errors.New(errors.ErrorCodeValidation, "validation failed")
-	err.WithDetails("field 'email' is invalid")
+	_ = err.WithDetails("field 'email' is invalid")
 
 	if err.Details != "field 'email' is invalid" {
 		t.Errorf("Details not set correctly: %s", err.Details)
@@ -64,7 +64,7 @@ func TestAppError_WithDetails(t *testing.T) {
 
 func TestAppError_WithField(t *testing.T) {
 	err := errors.New(errors.ErrorCodeNotFound, "not found")
-	err.WithField("resource", "user").WithField("id", 123)
+	_ = err.WithField("resource", "user").WithField("id", 123)
 
 	if err.Fields["resource"] != "user" {
 		t.Error("Field 'resource' not set")
@@ -77,7 +77,7 @@ func TestAppError_WithField(t *testing.T) {
 func TestAppError_WithInternal(t *testing.T) {
 	internal := fmt.Errorf("db connection failed")
 	err := errors.New(errors.ErrorCodeDatabaseError, "database error")
-	err.WithInternal(internal)
+	_ = err.WithInternal(internal)
 
 	if err.Internal != internal {
 		t.Error("Internal error not set")

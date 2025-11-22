@@ -19,7 +19,7 @@ func captureOutput(level, format string, f func(log logger.Logger)) string {
 	outCh := make(chan string)
 	go func() {
 		var buf bytes.Buffer
-		io.Copy(&buf, r)
+		_, _ = io.Copy(&buf, r)
 		outCh <- buf.String()
 	}()
 
@@ -27,7 +27,7 @@ func captureOutput(level, format string, f func(log logger.Logger)) string {
 	log := logger.NewZapLogger(level, format)
 	f(log)
 
-	w.Close()
+	_ = w.Close()
 	os.Stdout = old
 	return <-outCh
 }

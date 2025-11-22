@@ -10,7 +10,7 @@ import (
 
 func TestHealthCheck_Integration(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	pgConfig := &containers.PostgresConfig{
@@ -50,7 +50,7 @@ func TestHealthCheck_Integration(t *testing.T) {
 
 func TestGetStats_Integration(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()

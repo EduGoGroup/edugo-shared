@@ -34,7 +34,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: "1.25"
-          cache: true
+          cache: false # Monorepo: cada módulo tiene su propio go.sum
 
       - name: Configurar acceso a repos privados
         run: |

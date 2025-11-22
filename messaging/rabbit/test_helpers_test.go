@@ -17,7 +17,7 @@ func waitForQueueMessages(t *testing.T, container *containers.RabbitMQContainer,
 		channel, err := container.Channel()
 		require.NoError(t, err)
 
-		queueInfo, err := channel.QueueInspect(queueName)
+		queueInfo, err := channel.QueueDeclarePassive(queueName, false, false, false, false, nil)
 		_ = channel.Close()
 		require.NoError(t, err)
 
@@ -41,7 +41,7 @@ func waitForQueueConsumers(t *testing.T, container *containers.RabbitMQContainer
 		channel, err := container.Channel()
 		require.NoError(t, err)
 
-		queueInfo, err := channel.QueueInspect(queueName)
+		queueInfo, err := channel.QueueDeclarePassive(queueName, false, false, false, false, nil)
 		_ = channel.Close()
 		require.NoError(t, err)
 

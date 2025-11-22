@@ -155,7 +155,7 @@ func BenchmarkHashPassword(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		HashPassword(password)
+		_, _ = HashPassword(password)
 	}
 }
 
@@ -166,6 +166,6 @@ func BenchmarkVerifyPassword(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		VerifyPassword(hash, password)
+		_ = VerifyPassword(hash, password)
 	}
 }

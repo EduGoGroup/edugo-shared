@@ -98,9 +98,9 @@ func TestGenerateToken(t *testing.T) {
 
 		// Verificar tiempos
 		now := time.Now()
-		assert.True(t, claims.IssuedAt.Time.Before(now.Add(1*time.Second)))
-		assert.True(t, claims.ExpiresAt.Time.After(now))
-		assert.True(t, claims.NotBefore.Time.Before(now.Add(1*time.Second)))
+		assert.True(t, claims.IssuedAt.Before(now.Add(1*time.Second)))
+		assert.True(t, claims.ExpiresAt.After(now))
+		assert.True(t, claims.NotBefore.Before(now.Add(1*time.Second)))
 	})
 
 	t.Run("genera token con expiración personalizada", func(t *testing.T) {

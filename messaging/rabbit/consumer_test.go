@@ -126,7 +126,7 @@ func TestConsumer_Consume_BasicMessage(t *testing.T) {
 	}
 	consumer := NewConsumer(conn, consumerConfig)
 	require.NotNil(t, consumer)
-	defer consumer.Close()
+	defer func() { _ = consumer.Close() }()
 
 	// Setup message handler
 	receivedMessages := make(chan []byte, 1)
@@ -149,7 +149,7 @@ func TestConsumer_Consume_BasicMessage(t *testing.T) {
 	testMessage := []byte("test message")
 	channel, err := rabbitContainer.Channel()
 	require.NoError(t, err)
-	defer channel.Close()
+	defer func() { _ = channel.Close() }()
 
 	err = channel.PublishWithContext(
 		ctx,
@@ -200,7 +200,7 @@ func TestConsumer_Consume_WithManualAck(t *testing.T) {
 	}
 	consumer := NewConsumer(conn, consumerConfig)
 	require.NotNil(t, consumer)
-	defer consumer.Close()
+	defer func() { _ = consumer.Close() }()
 
 	// Setup message handler
 	receivedMessages := make(chan []byte, 1)
@@ -223,7 +223,7 @@ func TestConsumer_Consume_WithManualAck(t *testing.T) {
 	testMessage := []byte("test message with ack")
 	channel, err := rabbitContainer.Channel()
 	require.NoError(t, err)
-	defer channel.Close()
+	defer func() { _ = channel.Close() }()
 
 	err = channel.PublishWithContext(
 		ctx,
@@ -277,7 +277,7 @@ func TestConsumer_Consume_ErrorHandling(t *testing.T) {
 	}
 	consumer := NewConsumer(conn, consumerConfig)
 	require.NotNil(t, consumer)
-	defer consumer.Close()
+	defer func() { _ = consumer.Close() }()
 
 	// Setup message handler that returns error
 	receivedCount := 0
@@ -303,7 +303,7 @@ func TestConsumer_Consume_ErrorHandling(t *testing.T) {
 	testMessage := []byte("test error message")
 	channel, err := rabbitContainer.Channel()
 	require.NoError(t, err)
-	defer channel.Close()
+	defer func() { _ = channel.Close() }()
 
 	err = channel.PublishWithContext(
 		ctx,
@@ -337,7 +337,7 @@ func TestConsumer_Consume_ErrorHandling(t *testing.T) {
 	assert.GreaterOrEqual(t, count, 1, "El mensaje debe haber sido recibido al menos una vez")
 
 	// After stopping consumer, message should still be in queue (last requeue)
-	queueInfo, err := channel.QueueInspect(queueName)
+	queueInfo, err := channel.QueueDeclarePassive(queueName, false, false, false, false, nil)
 	require.NoError(t, err)
 	assert.GreaterOrEqual(t, queueInfo.Messages, 0, "Verificar mensajes en cola")
 }
@@ -369,7 +369,7 @@ func TestConsumer_Consume_ContextCancellation(t *testing.T) {
 	}
 	consumer := NewConsumer(conn, consumerConfig)
 	require.NotNil(t, consumer)
-	defer consumer.Close()
+	defer func() { _ = consumer.Close() }()
 
 	// Setup handler
 	handlerCalled := false
@@ -413,7 +413,7 @@ func TestConsumer_Consume_InvalidQueue(t *testing.T) {
 	}
 	consumer := NewConsumer(conn, consumerConfig)
 	require.NotNil(t, consumer)
-	defer consumer.Close()
+	defer func() { _ = consumer.Close() }()
 
 	handler := func(ctx context.Context, body []byte) error {
 		return nil
@@ -452,7 +452,7 @@ func TestConsumer_Consume_MultipleMessages(t *testing.T) {
 	}
 	consumer := NewConsumer(conn, consumerConfig)
 	require.NotNil(t, consumer)
-	defer consumer.Close()
+	defer func() { _ = consumer.Close() }()
 
 	// Setup message handler
 	receivedMessages := make([][]byte, 0)
@@ -477,7 +477,7 @@ func TestConsumer_Consume_MultipleMessages(t *testing.T) {
 	// Publish multiple messages
 	channel, err := rabbitContainer.Channel()
 	require.NoError(t, err)
-	defer channel.Close()
+	defer func() { _ = channel.Close() }()
 
 	messageCount := 5
 	for i := 0; i < messageCount; i++ {
@@ -685,7 +685,7 @@ func TestConsumer_Consume_WithPrefetch(t *testing.T) {
 	}
 	consumer := NewConsumer(conn, consumerConfig)
 	require.NotNil(t, consumer)
-	defer consumer.Close()
+	defer func() { _ = consumer.Close() }()
 
 	receivedCount := 0
 	var mu sync.Mutex

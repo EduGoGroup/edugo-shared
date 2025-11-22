@@ -40,7 +40,7 @@ func TestConnect_Success(t *testing.T) {
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
 	require.NotNil(t, conn)
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	assert.NotNil(t, conn.conn)
 	assert.NotNil(t, conn.channel)
@@ -59,7 +59,7 @@ func TestConnection_GetChannel(t *testing.T) {
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	channel := conn.GetChannel()
 	assert.NotNil(t, channel)
@@ -71,7 +71,7 @@ func TestConnection_GetConnection(t *testing.T) {
 
 	conn, err := Connect(connectionString)
 	require.NoError(t, err)
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	amqpConn := conn.GetConnection()
 	assert.NotNil(t, amqpConn)
@@ -408,7 +408,7 @@ func TestConnection_ReconnectAfterClose(t *testing.T) {
 	conn2, err := Connect(connectionString)
 	require.NoError(t, err)
 	require.NotNil(t, conn2)
-	defer conn2.Close()
+	defer func() { _ = conn2.Close() }()
 
 	assert.False(t, conn2.IsClosed())
 }

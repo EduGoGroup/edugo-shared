@@ -58,7 +58,7 @@ func TestPublisher_Publish_BasicMessage(t *testing.T) {
 	// Create publisher
 	publisher := NewPublisher(conn)
 	require.NotNil(t, publisher)
-	defer publisher.Close()
+	defer func() { _ = publisher.Close() }()
 
 	// Publish message
 	type TestMessage struct {
@@ -101,7 +101,7 @@ func TestPublisher_Publish_ToDefaultExchange(t *testing.T) {
 	// Create publisher
 	publisher := NewPublisher(conn)
 	require.NotNil(t, publisher)
-	defer publisher.Close()
+	defer func() { _ = publisher.Close() }()
 
 	// Publish to default exchange (empty string) with queue name as routing key
 	testMsg := map[string]interface{}{
@@ -140,7 +140,7 @@ func TestPublisher_PublishWithPriority(t *testing.T) {
 	// Create publisher
 	publisher := NewPublisher(conn)
 	require.NotNil(t, publisher)
-	defer publisher.Close()
+	defer func() { _ = publisher.Close() }()
 
 	// Publish messages with different priorities
 	priorities := []uint8{0, 5, 10}
@@ -168,7 +168,7 @@ func TestPublisher_Publish_InvalidJSON(t *testing.T) {
 
 	publisher := NewPublisher(conn)
 	require.NotNil(t, publisher)
-	defer publisher.Close()
+	defer func() { _ = publisher.Close() }()
 
 	// Try to publish something that can't be marshaled to JSON
 	invalidMsg := make(chan int) // channels can't be marshaled to JSON
@@ -188,7 +188,7 @@ func TestPublisher_Publish_ToNonExistentExchange(t *testing.T) {
 
 	publisher := NewPublisher(conn)
 	require.NotNil(t, publisher)
-	defer publisher.Close()
+	defer func() { _ = publisher.Close() }()
 
 	testMsg := map[string]string{
 		"test": "message",
@@ -237,7 +237,7 @@ func TestPublisher_Publish_MultipleMessages(t *testing.T) {
 	// Create publisher
 	publisher := NewPublisher(conn)
 	require.NotNil(t, publisher)
-	defer publisher.Close()
+	defer func() { _ = publisher.Close() }()
 
 	// Publish multiple messages
 	messageCount := 10
@@ -278,7 +278,7 @@ func TestPublisher_Publish_ConcurrentPublishing(t *testing.T) {
 	// Create publisher
 	publisher := NewPublisher(conn)
 	require.NotNil(t, publisher)
-	defer publisher.Close()
+	defer func() { _ = publisher.Close() }()
 
 	// Publish messages concurrently
 	concurrency := 5
@@ -339,7 +339,7 @@ func TestPublisher_Publish_WithContextTimeout(t *testing.T) {
 
 	publisher := NewPublisher(conn)
 	require.NotNil(t, publisher)
-	defer publisher.Close()
+	defer func() { _ = publisher.Close() }()
 
 	// Create a context with timeout
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -362,7 +362,7 @@ func TestPublisher_Publish_WithCancelledContext(t *testing.T) {
 
 	publisher := NewPublisher(conn)
 	require.NotNil(t, publisher)
-	defer publisher.Close()
+	defer func() { _ = publisher.Close() }()
 
 	// Create a cancelled context
 	ctx, cancel := context.WithCancel(context.Background())
@@ -399,7 +399,7 @@ func TestPublisher_Publish_ComplexMessage(t *testing.T) {
 
 	publisher := NewPublisher(conn)
 	require.NotNil(t, publisher)
-	defer publisher.Close()
+	defer func() { _ = publisher.Close() }()
 
 	// Complex nested structure
 	type Address struct {
@@ -490,7 +490,7 @@ func TestPublisher_PublishWithPriority_ZeroPriority(t *testing.T) {
 
 	publisher := NewPublisher(conn)
 	require.NotNil(t, publisher)
-	defer publisher.Close()
+	defer func() { _ = publisher.Close() }()
 
 	testMsg := map[string]string{
 		"message": "zero priority message",
@@ -527,7 +527,7 @@ func TestPublisher_PublishWithPriority_MaxPriority(t *testing.T) {
 
 	publisher := NewPublisher(conn)
 	require.NotNil(t, publisher)
-	defer publisher.Close()
+	defer func() { _ = publisher.Close() }()
 
 	testMsg := map[string]string{
 		"message": "max priority message",
@@ -562,7 +562,7 @@ func TestPublisher_Publish_EmptyMessage(t *testing.T) {
 
 	publisher := NewPublisher(conn)
 	require.NotNil(t, publisher)
-	defer publisher.Close()
+	defer func() { _ = publisher.Close() }()
 
 	// Publish empty map
 	emptyMsg := map[string]interface{}{}
@@ -596,7 +596,7 @@ func TestPublisher_Publish_StringMessage(t *testing.T) {
 
 	publisher := NewPublisher(conn)
 	require.NotNil(t, publisher)
-	defer publisher.Close()
+	defer func() { _ = publisher.Close() }()
 
 	// Publish string message (will be JSON-encoded as a string)
 	stringMsg := "Hello, World!"

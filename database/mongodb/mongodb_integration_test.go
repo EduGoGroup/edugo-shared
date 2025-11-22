@@ -185,7 +185,7 @@ func TestGetDatabase_Integration(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Error conectando: %v", err)
 	}
-	defer client.Disconnect(ctx)
+	defer func() { _ = client.Disconnect(ctx) }()
 
 	t.Run("get database", func(t *testing.T) {
 		db := mongodb.GetDatabase(client, "test_db")

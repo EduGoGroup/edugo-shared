@@ -80,21 +80,6 @@ bootstrap:
     - "Objetivo: 40% → 60%"
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# MÓDULOS DE NEGOCIO (Media-Alta Prioridad)
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-evaluation:
-  threshold: 95
-  current: 100.0
-  target: 100
-  status: "✅ Perfecto"
-  priority: "Mantener"
-  notes: "100% de cobertura. Proteger con umbral alto"
-  actions:
-    - "Mantener 100%"
-    - "Agregar tests de regresión para cambios futuros"
-
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # MÓDULOS DE BASE DE DATOS (Media Prioridad)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -225,8 +210,8 @@ metrics:
     target: 12
 
   modules_excellent:
-    current: 5 # auth, logger, lifecycle, evaluation, middleware/gin
-    target: 8
+    current: 4 # auth, logger, lifecycle, middleware/gin
+    target: 7
 
   modules_critical:
     current: 1 # messaging/rabbit

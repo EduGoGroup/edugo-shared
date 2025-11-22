@@ -214,33 +214,7 @@ func TestBootstrap_LoggerCreationFailure(t *testing.T) {
 	}
 }
 
-func TestBootstrap_OptionalResourceFailure(t *testing.T) {
-	ctx := context.Background()
-
-	// Setup mocks: logger ok, postgresql falla
-	mocks := createMockFactories(false, true, false, false, false)
-	factories := &Factories{}
-
-	// Test: PostgreSQL es opcional, no debe fallar el bootstrap
-	resources, err := Bootstrap(
-		ctx,
-		nil,
-		factories,
-		nil,
-		WithRequiredResources("logger"),
-		WithOptionalResources("postgresql"),
-		WithMockFactories(mocks),
-		WithSkipHealthCheck(),
-	)
-
-	if err != nil {
-		t.Fatalf("Expected successful bootstrap with optional resource failure, got error: %v", err)
-	}
-
-	if resources.PostgreSQL != nil {
-		t.Fatal("Expected PostgreSQL to be nil when optional and fails")
-	}
-}
+// TestBootstrap_OptionalResourceFailure movido a bootstrap_integration_test.go
 
 func TestBootstrap_RequiredResourceFailure(t *testing.T) {
 	ctx := context.Background()
@@ -347,25 +321,7 @@ func TestBootstrap_SkipHealthCheck(t *testing.T) {
 	}
 }
 
-func TestDefaultBootstrapOptions(t *testing.T) {
-	opts := DefaultBootstrapOptions()
-
-	if opts == nil {
-		t.Fatal("Expected options to be non-nil")
-	}
-
-	if len(opts.RequiredResources) != 1 || opts.RequiredResources[0] != "logger" {
-		t.Error("Expected logger to be the default required resource")
-	}
-
-	if opts.SkipHealthCheck {
-		t.Error("Expected SkipHealthCheck to be false by default")
-	}
-
-	if !opts.StopOnFirstError {
-		t.Error("Expected StopOnFirstError to be true by default")
-	}
-}
+// TestDefaultBootstrapOptions duplicado - ver options_test.go
 
 func TestFactoriesValidate(t *testing.T) {
 	// Test: Validate con factory faltante
@@ -419,14 +375,14 @@ func TestResources_HasMethods(t *testing.T) {
 
 func TestPerformHealthChecks_AllPass(t *testing.T) {
 	logger := logrus.New()
-	
+
 	resources := &Resources{
 		Logger: logger,
 	}
-	
+
 	opts := DefaultBootstrapOptions()
 	ctx := context.Background()
-	
+
 	err := performHealthChecks(ctx, resources, opts)
 	if err != nil {
 		t.Errorf("Expected no error, got: %v", err)
@@ -437,7 +393,7 @@ func TestPerformHealthChecks_WithoutLogger(t *testing.T) {
 	resources := &Resources{}
 	opts := DefaultBootstrapOptions()
 	ctx := context.Background()
-	
+
 	err := performHealthChecks(ctx, resources, opts)
 	if err != nil {
 		t.Errorf("Expected no error without logger, got: %v", err)
@@ -448,11 +404,11 @@ func TestPerformHealthChecks_ContextTimeout(t *testing.T) {
 	logger := logrus.New()
 	resources := &Resources{Logger: logger}
 	opts := DefaultBootstrapOptions()
-	
+
 	// Crear un contexto ya cancelado
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
-	
+
 	// El health check debería manejar el contexto cancelado correctamente
 	err := performHealthChecks(ctx, resources, opts)
 	// No debería fallar porque no hay recursos que validar

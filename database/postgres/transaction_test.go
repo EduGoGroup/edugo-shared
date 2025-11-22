@@ -12,7 +12,7 @@ import (
 
 func TestWithTransaction_Integration(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()
@@ -112,7 +112,7 @@ func TestWithTransaction_Integration(t *testing.T) {
 
 func TestWithTransactionIsolation_Integration(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping integration test en modo short")
+		t.Skip("Omitiendo test de integración en modo short")
 	}
 
 	ctx := context.Background()

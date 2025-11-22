@@ -64,11 +64,25 @@ jobs:
         working-directory: ${{ matrix.module }}
         run: go build -v ./...
 
+  # =====================================================
+  # MEJORADO: Job lint aplicando lecciones de SPRINT-4
+  # 
+  # NO MIGRADO a workflow reusable porque:
+  # - edugo-shared es un MONOREPO con 7 módulos
+  # - Workflow reusable está diseñado para módulo único
+  # - GitHub Actions NO soporta bien strategy.matrix con uses
+  #
+  # MEJORAS APLICADAS:
+  # - golangci-lint-action@v7 (compatible con golangci-lint v2.x)
+  # - golangci-lint v2.4.0 (compilado con Go 1.25)
+  # - Mantiene estructura de matriz para monorepo
+  # =====================================================
   lint:
-    name: Linter (Optional)
+    name: Lint ${{ matrix.module }}
     runs-on: ubuntu-latest
     continue-on-error: true  # No falla el CI si el linter tiene warnings
     strategy:
+      fail-fast: false
       matrix:
         module:
           - common
@@ -88,15 +102,18 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
+          cache-dependency-path: ${{ matrix.module }}/go.sum
 
-      - name: Instalar golangci-lint
-        run: |
-          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin
-          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
-
-      - name: Ejecutar linter en ${{ matrix.module }}
+      - name: Descargar dependencias
         working-directory: ${{ matrix.module }}
-        run: golangci-lint run --timeout=5m || echo "Linter warnings found (not critical)"
+        run: go mod download
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v7
+        with:
+          version: v2.4.0
+          working-directory: ${{ matrix.module }}
+          args: --timeout=5m
 
   compatibility:
     name: Go ${{ matrix.go-version }} Compatibility

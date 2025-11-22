@@ -84,28 +84,26 @@ bootstrap:
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 database/postgres:
-  threshold: 58
-  current: 58.8
-  target: 70
-  status: "✅ Cumple (por mejorar en Sprint 3)"
-  priority: "Baja"
-  notes: "58.8% actual, muy cerca del objetivo 60%. Diferido a Sprint 3"
+  threshold: 5
+  current: 5.9
+  target: 58
+  status: "⚠️ Temporal - Reducido por tests de integración"
+  priority: "Alta"
+  notes: "Umbral temporal. Tests de integración ahora requieren INTEGRATION_TESTS=true"
   actions:
-    - "Sprint 3: Agregar 2-3 tests de transacciones para llegar a 60%"
-    - "Tests de edge cases en error handling"
-    - "Fácil llegar a 60%"
+    - "Sprint futuro: Agregar unit tests sin containers"
+    - "Subir cobertura a 58%+ con mocks"
 
 database/mongodb:
-  threshold: 80
-  current: 81.8
-  target: 85
-  status: "✅ Excelente - Mejorado en Sprint 3"
-  priority: "Mantener"
-  notes: "Mejorado de 54.5% a 81.8% (+27.3 puntos, +50%). Ahora en categoría Excelente"
+  threshold: 4
+  current: 4.5
+  target: 80
+  status: "⚠️ Temporal - Reducido por tests de integración"
+  priority: "Alta"
+  notes: "Umbral temporal. Tests de integración ahora requieren INTEGRATION_TESTS=true"
   actions:
-    - "✅ Sprint 3: Tests de GetDatabase y Close completados"
-    - "Mantener cobertura >80%"
-    - "Objetivo: 80% → 85%"
+    - "Sprint futuro: Agregar unit tests sin containers"
+    - "Subir cobertura a 80%+ con mocks"
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # MÓDULOS DE INTEGRACIÓN (Variada Prioridad)
@@ -139,15 +137,15 @@ messaging/rabbit:
   estimated_effort: "2-3 horas para llegar a 50%"
 
 testing:
-  threshold: 55
-  current: 59.0
-  target: 65
-  status: "✅ Cumple"
-  priority: "Baja"
-  notes: "Test utilities, ya cumple con 59%"
+  threshold: 20
+  current: 20.0
+  target: 55
+  status: "⚠️ Temporal - Reducido por tests de integración"
+  priority: "Media"
+  notes: "Umbral temporal. Tests de integración ahora requieren INTEGRATION_TESTS=true"
   actions:
-    - "Mantener cobertura actual"
-    - "Agregar tests cuando se agreguen nuevos containers"
+    - "Sprint futuro: Subir cobertura agregando más unit tests"
+    - "Separar unit tests de integration tests"
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # MÓDULOS CON PROBLEMAS

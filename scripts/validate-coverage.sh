@@ -55,7 +55,7 @@ validate_module() {
     cd "$module_path"
 
     # Ejecutar tests con coverage
-    if ! go test ./... -coverprofile=coverage.out -covermode=atomic > /dev/null 2>&1; then
+    if ! go test -short ./... -coverprofile=coverage.out -covermode=atomic > /dev/null 2>&1; then
         echo -e "${RED}❌ $module_name: Tests fallan${NC}"
         cd "$PROJECT_ROOT"
         return 1

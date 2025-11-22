@@ -98,9 +98,9 @@ func TestGenerateToken(t *testing.T) {
 
 		// Verificar tiempos
 		now := time.Now()
-		assert.True(t, claims.IssuedAt.Time.Before(now.Add(1*time.Second)))
-		assert.True(t, claims.ExpiresAt.Time.After(now))
-		assert.True(t, claims.NotBefore.Time.Before(now.Add(1*time.Second)))
+		assert.True(t, claims.IssuedAt.Before(now.Add(1*time.Second)))
+		assert.True(t, claims.ExpiresAt.After(now))
+		assert.True(t, claims.NotBefore.Before(now.Add(1*time.Second)))
 	})
 
 	t.Run("genera token con expiración personalizada", func(t *testing.T) {
@@ -284,8 +284,8 @@ func TestRefreshToken(t *testing.T) {
 		// Pero los metadatos cambian
 		assert.NotEqual(t, originalClaims.ID, refreshedClaims.ID, "JTI debe ser diferente")
 		// IssuedAt debe ser igual o más reciente (permitir pequeñas diferencias de timing)
-		assert.True(t, refreshedClaims.IssuedAt.Time.After(originalClaims.IssuedAt.Time) ||
-			refreshedClaims.IssuedAt.Time.Equal(originalClaims.IssuedAt.Time),
+		assert.True(t, refreshedClaims.IssuedAt.After(originalClaims.IssuedAt.Time) ||
+			refreshedClaims.IssuedAt.Equal(originalClaims.IssuedAt.Time),
 			"IssuedAt debe ser igual o más reciente")
 	})
 }

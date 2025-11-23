@@ -1,6 +1,6 @@
 # Umbrales de Cobertura por Módulo - edugo-shared
-# Última actualización: 2025-11-20
-# Generado por: SPRINT-2 Tarea 1.2
+# Última actualización: 2025-11-23
+# Actualizado por: Validación y limpieza de tests unitarios
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # FORMATO
@@ -87,23 +87,48 @@ database/postgres:
   threshold: 5
   current: 5.9
   target: 58
-  status: "⚠️ Temporal - Reducido por tests de integración"
+  status: "⚠️ Cobertura baja - Requiere mocks (sqlmock)"
   priority: "Alta"
-  notes: "Umbral temporal. Tests de integración ahora requieren INTEGRATION_TESTS=true"
+  notes: "Tests unitarios básicos agregados (constantes, validación config). config.go excluido de métrica (solo struct sin lógica). Para alcanzar meta 58% se requiere sqlmock para connection.go y transaction.go"
+  exclude_files:
+    - "config.go" # Solo struct Config y DefaultConfig() - sin lógica de negocio
+  coverage_breakdown:
+    - "DefaultConfig(): 100% ✅ (testeado)"
+    - "Close(): 66.7% ✅ (nil case testeado)"
+    - "Connect(): 0% ❌ (requiere sqlmock)"
+    - "HealthCheck(): 0% ❌ (requiere sqlmock)"
+    - "GetStats(): 0% ❌ (requiere sqlmock)"
+    - "WithTransaction(): 0% ❌ (requiere sqlmock)"
+    - "WithTransactionIsolation(): 0% ❌ (requiere sqlmock)"
   actions:
-    - "Sprint futuro: Agregar unit tests sin containers"
-    - "Subir cobertura a 58%+ con mocks"
+    - "✅ Tests de constantes agregados (previenen regresiones)"
+    - "✅ Tests de validación de Config agregados"
+    - "Futuro: Implementar tests con sqlmock para funciones de conexión"
+    - "Futuro: Tests de transacciones con sqlmock"
+    - "Objetivo: 5.9% → 58% (requiere ~15h con sqlmock)"
 
 database/mongodb:
-  threshold: 4
-  current: 4.5
+  threshold: 10
+  current: 13.6
   target: 80
-  status: "⚠️ Temporal - Reducido por tests de integración"
+  status: "⚠️ Cobertura baja - Requiere mocks (mongo driver)"
   priority: "Alta"
-  notes: "Umbral temporal. Tests de integración ahora requieren INTEGRATION_TESTS=true"
+  notes: "Tests unitarios básicos agregados (+9.1% desde 4.5%). config.go excluido de métrica (solo struct sin lógica). Para alcanzar meta 80% se requiere mocks del mongo driver"
+  exclude_files:
+    - "config.go" # Solo struct Config y DefaultConfig() - sin lógica de negocio
+  coverage_breakdown:
+    - "DefaultConfig(): 100% ✅ (testeado)"
+    - "Close(): 40% ✅ (nil case testeado)"
+    - "Connect(): 0% ❌ (requiere mocks de mongo.Client)"
+    - "GetDatabase(): 0% ❌ (requiere mocks)"
+    - "HealthCheck(): 0% ❌ (requiere mocks)"
   actions:
-    - "Sprint futuro: Agregar unit tests sin containers"
-    - "Subir cobertura a 80%+ con mocks"
+    - "✅ Tests de constantes agregados (previenen regresiones)"
+    - "✅ Tests de validación de Config agregados"
+    - "✅ Incremento de cobertura +9.1% (4.5% → 13.6%)"
+    - "Futuro: Implementar mocks de mongo.Client para Connect()"
+    - "Futuro: Tests de HealthCheck() con mocks"
+    - "Objetivo: 13.6% → 80% (requiere ~12h con mocks)"
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # MÓDULOS DE INTEGRACIÓN (Variada Prioridad)
@@ -138,14 +163,27 @@ messaging/rabbit:
 
 testing:
   threshold: 20
-  current: 20.0
+  current: 21.0
   target: 55
-  status: "⚠️ Temporal - Reducido por tests de integración"
+  status: "✅ Incremento mínimo - Requiere más tests unitarios"
   priority: "Media"
-  notes: "Umbral temporal. Tests de integración ahora requieren INTEGRATION_TESTS=true"
+  notes: "Tests unitarios de helpers agregados (+1%). Tests de integración requieren INTEGRATION_TESTS=true. Para alcanzar meta 55% se requieren tests unitarios de options.go, config.go y manager.go sin containers"
+  exclude_files:
+    - "*_integration_test.go" # Tests de integración requieren containers
+  coverage_breakdown:
+    containers:
+      - "helpers.go: Parcialmente cubierto con helpers_unit_test.go ✅"
+      - "options.go: 0% ❌ (requiere tests unitarios)"
+      - "config.go: 0% ❌ (requiere tests unitarios)"
+      - "manager.go: 0% ❌ (requiere mocks, muy acoplado a containers)"
+      - "postgres.go, mongodb.go, rabbitmq.go: Requieren containers (tests de integración)"
   actions:
-    - "Sprint futuro: Subir cobertura agregando más unit tests"
-    - "Separar unit tests de integration tests"
+    - "✅ helpers_unit_test.go agregado (9 tests, edge cases de paths)"
+    - "✅ Incremento de cobertura +1% (20% → 21%)"
+    - "Futuro: Agregar options_unit_test.go para configuración de containers"
+    - "Futuro: Agregar config_unit_test.go para builder pattern"
+    - "Futuro: Considerar refactor de manager.go para facilitar tests unitarios"
+    - "Objetivo: 21% → 55% (requiere ~8-10h de trabajo)"
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # MÓDULOS CON PROBLEMAS

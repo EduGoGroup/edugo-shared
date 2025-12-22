@@ -130,6 +130,62 @@ func (pc *PostgresContainer) Truncate(ctx context.Context, tables ...string) err
 	return nil
 }
 
+// Host retorna el hostname del container PostgreSQL.
+//
+// Parámetros:
+//   - ctx: contexto para la operación
+//
+// Retorna el hostname del container o un error si no se puede obtener.
+// El hostname es típicamente "localhost" cuando el container está expuesto
+// en el host local.
+func (pc *PostgresContainer) Host(ctx context.Context) (string, error) {
+	return pc.container.Host(ctx)
+}
+
+// MappedPort retorna el puerto mapeado del container PostgreSQL.
+//
+// Parámetros:
+//   - ctx: contexto para la operación
+//
+// Retorna el número de puerto del host que está mapeado al puerto 5432
+// del container, o un error si no se puede obtener. Este puerto se asigna
+// dinámicamente cuando el container inicia y es necesario para establecer
+// conexiones desde el host.
+func (pc *PostgresContainer) MappedPort(ctx context.Context) (int, error) {
+	port, err := pc.container.MappedPort(ctx, "5432/tcp")
+	if err != nil {
+		return 0, err
+	}
+	return port.Int(), nil
+}
+
+// Username retorna el nombre de usuario configurado para PostgreSQL.
+//
+// Retorna el nombre de usuario que se utilizó al crear el container.
+// Este valor proviene de la configuración PostgresConfig y se usa
+// para autenticación en las conexiones a la base de datos.
+func (pc *PostgresContainer) Username() string {
+	return pc.config.Username
+}
+
+// Password retorna la contraseña configurada para PostgreSQL.
+//
+// Retorna la contraseña que se utilizó al crear el container.
+// Este valor proviene de la configuración PostgresConfig y se usa
+// para autenticación en las conexiones a la base de datos.
+func (pc *PostgresContainer) Password() string {
+	return pc.config.Password
+}
+
+// Database retorna el nombre de la base de datos configurada.
+//
+// Retorna el nombre de la base de datos que se creó automáticamente
+// al iniciar el container. Este valor proviene de la configuración
+// PostgresConfig y es la base de datos por defecto para las conexiones.
+func (pc *PostgresContainer) Database() string {
+	return pc.config.Database
+}
+
 // Terminate termina el container y cierra las conexiones
 func (pc *PostgresContainer) Terminate(ctx context.Context) error {
 	if pc.db != nil {

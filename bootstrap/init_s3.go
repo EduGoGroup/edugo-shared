@@ -58,7 +58,7 @@ func initS3(
 	if resources.Logger != nil {
 		resources.Logger.With(
 			logger.FieldBucket, s3Config.Bucket,
-			"region", s3Config.Region,
+			logger.FieldRegion, s3Config.Region,
 		).Info("S3 client initialized")
 	}
 

@@ -330,7 +330,10 @@ func TestMain(m *testing.M) {
         WithRabbitMQ(nil).
         Build()
     
-    manager, err := containers.GetManager(nil, config)
+    // Nota: Pasar un logger básico en lugar de nil facilita el debugging
+    // cuando ocurren errores durante la creación de containers
+    logger := log.New(os.Stdout, "[containers] ", log.LstdFlags)
+    manager, err := containers.GetManager(logger, config)
     if err != nil {
         log.Fatal("Failed to create containers:", err)
     }

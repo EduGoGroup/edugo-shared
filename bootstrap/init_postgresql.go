@@ -57,8 +57,8 @@ func initPostgreSQL(
 	// Log éxito
 	if resources.Logger != nil {
 		resources.Logger.With(
-			"host", pgConfig.Host,
-			"port", pgConfig.Port,
+			logger.FieldHost, pgConfig.Host,
+			logger.FieldPort, pgConfig.Port,
 			logger.FieldDatabase, pgConfig.Database,
 		).Info("PostgreSQL connection established")
 	}

@@ -4,7 +4,9 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// logrusLogger es la implementación de Logger usando Logrus
+// logrusLogger es la implementación privada de la interface Logger usando
+// la librería Logrus como backend. Mantiene una referencia al logger base
+// y una entry que acumula campos contextuales a través de llamadas a With().
 type logrusLogger struct {
 	logger *logrus.Logger
 	entry  *logrus.Entry
@@ -43,7 +45,14 @@ func (l *logrusLogger) Fatal(msg string, fields ...interface{}) {
 	l.entry.WithFields(convertToLogrusFields(fields...)).Fatal(msg)
 }
 
-// With agrega campos contextuales al logger
+// With agrega campos contextuales al logger y retorna un nuevo logger con esos campos.
+//
+// Los campos se pasan en pares clave-valor:
+//
+//	logger.With("user_id", 123, "action", "login")
+//
+// Las claves deben ser strings. Si hay un número impar de argumentos,
+// el último se ignora silenciosamente.
 func (l *logrusLogger) With(fields ...interface{}) Logger {
 	return &logrusLogger{
 		logger: l.logger,
@@ -56,7 +65,19 @@ func (l *logrusLogger) Sync() error {
 	return nil
 }
 
-// convertToLogrusFields convierte los campos variádicos a logrus.Fields
+// convertToLogrusFields convierte los campos variádicos a logrus.Fields.
+//
+// Espera que los argumentos se pasen en forma de pares clave-valor:
+//
+//	convertToLogrusFields("clave1", valor1, "clave2", valor2, ...)
+//
+// Comportamiento:
+//   - Las claves deben ser de tipo string. Si una clave no es string,
+//     se ignora ese par completo (no se agrega ninguna entrada al resultado).
+//   - Si se recibe un número impar de argumentos, el último argumento queda
+//     sin pareja y se ignora silenciosamente.
+//   - Los valores se almacenan tal cual se reciben, sin transformaciones
+//     adicionales.
 func convertToLogrusFields(fields ...interface{}) logrus.Fields {
 	result := logrus.Fields{}
 

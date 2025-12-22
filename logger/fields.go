@@ -45,6 +45,9 @@ const (
 	// FieldHost es el hostname del servidor
 	FieldHost = "host"
 
+	// FieldPort es el puerto del servidor
+	FieldPort = "port"
+
 	// FieldIP es la dirección IP del cliente
 	FieldIP = "ip"
 
@@ -101,6 +104,9 @@ const (
 
 	// FieldBucket es el nombre del bucket de almacenamiento
 	FieldBucket = "bucket"
+
+	// FieldRegion es la región del servicio cloud (AWS, GCP, Azure)
+	FieldRegion = "region"
 
 	// FieldKey es la clave del objeto en almacenamiento
 	FieldKey = "key"

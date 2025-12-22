@@ -419,3 +419,102 @@ func TestPerformHealthChecks_ContextTimeout(t *testing.T) {
 		t.Errorf("Expected no error with cancelled context and no resources, got: %v", err)
 	}
 }
+
+func TestExtractEnvAndVersion(t *testing.T) {
+	tests := []struct {
+		name        string
+		config      interface{}
+		wantEnv     string
+		wantVersion string
+	}{
+		{
+			name:        "nil config returns defaults",
+			config:      nil,
+			wantEnv:     "unknown",
+			wantVersion: "0.0.0",
+		},
+		{
+			name: "struct with Environment and Version",
+			config: struct {
+				Environment string
+				Version     string
+			}{
+				Environment: "prod",
+				Version:     "1.2.3",
+			},
+			wantEnv:     "prod",
+			wantVersion: "1.2.3",
+		},
+		{
+			name: "struct with only Environment",
+			config: struct {
+				Environment string
+			}{
+				Environment: "dev",
+			},
+			wantEnv:     "dev",
+			wantVersion: "0.0.0",
+		},
+		{
+			name: "pointer to struct",
+			config: &struct {
+				Environment string
+				Version     string
+			}{
+				Environment: "qa",
+				Version:     "2.0.0",
+			},
+			wantEnv:     "qa",
+			wantVersion: "2.0.0",
+		},
+		{
+			name: "empty strings use defaults",
+			config: struct {
+				Environment string
+				Version     string
+			}{
+				Environment: "",
+				Version:     "",
+			},
+			wantEnv:     "unknown",
+			wantVersion: "0.0.0",
+		},
+		{
+			name: "struct without fields",
+			config: struct {
+				Other string
+			}{
+				Other: "value",
+			},
+			wantEnv:     "unknown",
+			wantVersion: "0.0.0",
+		},
+		{
+			name:        "non-struct config",
+			config:      "string",
+			wantEnv:     "unknown",
+			wantVersion: "0.0.0",
+		},
+		{
+			name: "nil pointer to struct",
+			config: (*struct {
+				Environment string
+				Version     string
+			})(nil),
+			wantEnv:     "unknown",
+			wantVersion: "0.0.0",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotEnv, gotVersion := extractEnvAndVersion(tt.config)
+			if gotEnv != tt.wantEnv {
+				t.Errorf("extractEnvAndVersion() env = %v, want %v", gotEnv, tt.wantEnv)
+			}
+			if gotVersion != tt.wantVersion {
+				t.Errorf("extractEnvAndVersion() version = %v, want %v", gotVersion, tt.wantVersion)
+			}
+		})
+	}
+}

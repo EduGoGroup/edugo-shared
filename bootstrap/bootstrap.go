@@ -428,11 +428,55 @@ func logWarning(logger *logrus.Logger, msg string, err error) {
 	}
 }
 
-// extractEnvAndVersion extrae environment y version de la configuración
-// Por ahora retorna valores por defecto, será implementado según BaseConfig
+// extractEnvAndVersion extrae los campos Environment y Version de una configuración.
+//
+// Busca campos llamados "Environment" y "Version" en el struct proporcionado.
+// Si no los encuentra o el config es nil, retorna valores por defecto.
+//
+// Parámetros:
+//   - config: Struct de configuración (puede ser valor o puntero)
+//
+// Retorna:
+//   - environment: Valor del campo Environment o "unknown"
+//   - version: Valor del campo Version o "0.0.0"
 func extractEnvAndVersion(config interface{}) (string, string) {
-	// TODO: Implementar extracción real cuando BaseConfig esté integrado
-	return "local", "0.0.0"
+	if config == nil {
+		return "unknown", "0.0.0"
+	}
+
+	v := reflect.ValueOf(config)
+	if v.Kind() == reflect.Ptr {
+		if v.IsNil() {
+			return "unknown", "0.0.0"
+		}
+		v = v.Elem()
+	}
+
+	if v.Kind() != reflect.Struct {
+		return "unknown", "0.0.0"
+	}
+
+	// Buscar campo Environment
+	env := "unknown"
+	envField := v.FieldByName("Environment")
+	if envField.IsValid() && envField.Kind() == reflect.String {
+		env = envField.String()
+		if env == "" {
+			env = "unknown"
+		}
+	}
+
+	// Buscar campo Version
+	version := "0.0.0"
+	versionField := v.FieldByName("Version")
+	if versionField.IsValid() && versionField.Kind() == reflect.String {
+		ver := versionField.String()
+		if ver != "" {
+			version = ver
+		}
+	}
+
+	return env, version
 }
 
 // extractPostgreSQLConfig extrae configuración de PostgreSQL usando reflection

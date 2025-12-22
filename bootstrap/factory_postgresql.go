@@ -81,7 +81,9 @@ func (f *DefaultPostgreSQLFactory) CreateRawConnection(ctx context.Context, conf
 
 	// Verificar conexión
 	if err := db.PingContext(ctx); err != nil {
-		db.Close()
+		if closeErr := db.Close(); closeErr != nil {
+			return nil, fmt.Errorf("failed to ping PostgreSQL and close: ping=%w, close=%v", err, closeErr)
+		}
 		return nil, fmt.Errorf("failed to ping raw PostgreSQL: %w", err)
 	}
 

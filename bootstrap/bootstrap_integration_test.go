@@ -2,6 +2,7 @@ package bootstrap
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 	"os"
 	"strconv"
@@ -28,7 +29,10 @@ func parsePostgresConnectionString(connStr string) (PostgreSQLConfig, error) {
 	}
 
 	password, _ := u.User.Password()
-	port, _ := strconv.Atoi(u.Port())
+	port, err := strconv.Atoi(u.Port())
+	if err != nil {
+		return PostgreSQLConfig{}, fmt.Errorf("invalid port: %w", err)
+	}
 
 	config := PostgreSQLConfig{
 		Host:     u.Hostname(),

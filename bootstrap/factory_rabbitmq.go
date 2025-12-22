@@ -64,7 +64,9 @@ func (f *DefaultRabbitMQFactory) CreateChannel(conn *amqp.Connection) (*amqp.Cha
 		0,     // prefetch size
 		false, // global
 	); err != nil {
-		channel.Close()
+		if closeErr := channel.Close(); closeErr != nil {
+			return nil, fmt.Errorf("failed to set QoS and close channel: qos=%w, close=%v", err, closeErr)
+		}
 		return nil, fmt.Errorf("failed to set QoS: %w", err)
 	}
 

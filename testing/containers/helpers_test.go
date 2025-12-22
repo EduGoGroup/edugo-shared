@@ -1,3 +1,4 @@
+//nolint:errcheck // Tests: errores de Close() en cleanup se ignoran intencionalmente
 package containers
 
 import (
@@ -13,13 +14,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-// skipIfNotIntegration skipea el test si no está habilitada INTEGRATION_TESTS
-func skipIfNotIntegration(t *testing.T) {
-	if os.Getenv("INTEGRATION_TESTS") != "true" {
-		t.Skip("Skipping integration test - set INTEGRATION_TESTS=true to run")
-	}
-}
 
 // TestExecSQLFile_Success verifica ejecución exitosa de archivo SQL
 func TestExecSQLFile_Success(t *testing.T) {
@@ -68,7 +62,7 @@ func TestExecSQLFile_Success(t *testing.T) {
 		INSERT INTO test_table (name) VALUES ('test3');
 	`
 
-	err = os.WriteFile(sqlFile, []byte(sqlContent), 0644)
+	err = os.WriteFile(sqlFile, []byte(sqlContent), 0600)
 	require.NoError(t, err)
 
 	// Ejecutar archivo SQL
@@ -149,7 +143,7 @@ func TestExecSQLFile_InvalidSQL(t *testing.T) {
 	sqlFile := filepath.Join(tmpDir, "invalid.sql")
 
 	invalidSQL := "THIS IS NOT VALID SQL SYNTAX!!!"
-	err = os.WriteFile(sqlFile, []byte(invalidSQL), 0644)
+	err = os.WriteFile(sqlFile, []byte(invalidSQL), 0600)
 	require.NoError(t, err)
 
 	// Ejecutar debe fallar
@@ -190,7 +184,7 @@ func TestExecSQLFile_EmptyFile(t *testing.T) {
 	tmpDir := t.TempDir()
 	sqlFile := filepath.Join(tmpDir, "empty.sql")
 
-	err = os.WriteFile(sqlFile, []byte(""), 0644)
+	err = os.WriteFile(sqlFile, []byte(""), 0600)
 	require.NoError(t, err)
 
 	// Ejecutar archivo vacío (no debe dar error)
@@ -241,7 +235,7 @@ func TestExecSQLFile_MultipleStatements(t *testing.T) {
 		INSERT INTO posts (user_id, title) VALUES (2, 'Post 3');
 	`
 
-	err = os.WriteFile(sqlFile, []byte(multiSQL), 0644)
+	err = os.WriteFile(sqlFile, []byte(multiSQL), 0600)
 	require.NoError(t, err)
 
 	err = ExecSQLFile(ctx, db, sqlFile)
@@ -525,7 +519,7 @@ func TestRetryOperation_VariousErrors(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 			}
-			assert.Equal(t, int32(tt.expectedCalls), callCount.Load())
+			assert.Equal(t, int32(tt.expectedCalls), callCount.Load()) //nolint:gosec // expectedCalls es siempre pequeño (1-3)
 		})
 	}
 }
@@ -588,7 +582,7 @@ func TestHelpers_Integration(t *testing.T) {
 		INSERT INTO integration_test (name, value) VALUES ('test', 42);
 	`
 
-	err = os.WriteFile(schemaFile, []byte(schemaSQL), 0644)
+	err = os.WriteFile(schemaFile, []byte(schemaSQL), 0600)
 	require.NoError(t, err)
 
 	err = ExecSQLFile(ctx, db, schemaFile)

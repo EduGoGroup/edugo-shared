@@ -107,7 +107,7 @@ logger:
   format: json
 `
 
-	if err := os.WriteFile(configFile, []byte(yamlContent), 0644); err != nil {
+	if err := os.WriteFile(configFile, []byte(yamlContent), 0600); err != nil {
 		t.Fatalf("Failed to create test config file: %v", err)
 	}
 
@@ -184,7 +184,7 @@ logger:
   format: json
 `
 
-	if err := os.WriteFile(configFile, []byte(yamlContent), 0644); err != nil {
+	if err := os.WriteFile(configFile, []byte(yamlContent), 0600); err != nil {
 		t.Fatalf("Failed to create test config file: %v", err)
 	}
 

@@ -1,3 +1,4 @@
+//nolint:errcheck // Tests: errores de Terminate() en cleanup se ignoran intencionalmente
 package containers
 
 import (
@@ -6,6 +7,8 @@ import (
 )
 
 // TestPostgresContainer_Integration tests completos de PostgreSQL
+//
+//nolint:gocyclo // Test de integración con múltiples subtests requiere alta complejidad
 func TestPostgresContainer_Integration(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Omitiendo test de integración en modo short")
@@ -102,7 +105,7 @@ func TestPostgresContainer_Integration(t *testing.T) {
 				id SERIAL PRIMARY KEY,
 				name VARCHAR(100)
 			);
-			
+
 			CREATE TABLE test_books (
 				id SERIAL PRIMARY KEY,
 				title VARCHAR(100),

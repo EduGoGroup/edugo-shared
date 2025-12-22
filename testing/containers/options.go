@@ -24,10 +24,8 @@ type PostgresConfig struct {
 	InitScripts []string // Scripts SQL para ejecutar al iniciar
 }
 
-// MongoConfig configura el container de MongoDB
 // MongoConfig configura el container de MongoDB.
 // Permite especificar la imagen Docker, nombre de base de datos y autenticación opcional.
-
 type MongoConfig struct {
 	Image    string // Imagen Docker (default: "mongo:7.0")
 	Database string // Nombre de la base de datos (default: "edugo_test")
@@ -35,20 +33,16 @@ type MongoConfig struct {
 	Password string // Contraseña (default: "")
 }
 
-// RabbitConfig configura el container de RabbitMQ
 // RabbitConfig configura el container de RabbitMQ.
 // Permite especificar la imagen Docker y credenciales de acceso.
-
 type RabbitConfig struct {
 	Image    string // Imagen Docker (default: "rabbitmq:3.12-management-alpine")
 	Username string // Usuario (default: "edugo_user")
 	Password string // Contraseña (default: "edugo_pass")
 }
 
-// ConfigBuilder permite construir una Config de forma fluida
 // ConfigBuilder permite construir una Config de forma fluida usando el patrón Builder.
 // Proporciona métodos encadenables para configurar cada tipo de container.
-
 type ConfigBuilder struct {
 	config *Config
 }

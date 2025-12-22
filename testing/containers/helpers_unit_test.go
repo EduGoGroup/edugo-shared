@@ -73,11 +73,11 @@ func TestExecSQLFile_FilePermissions_Unit(t *testing.T) {
 	sqlFile := filepath.Join(tmpDir, "no_read.sql")
 
 	// Crear archivo sin permisos de lectura
-	err := os.WriteFile(sqlFile, []byte("SELECT 1"), 0000)
+	err := os.WriteFile(sqlFile, []byte("SELECT 1"), 0000) //nolint:gosec // Intencional para test de permisos
 	require.NoError(t, err)
 
 	// Restaurar permisos al final para cleanup
-	defer os.Chmod(sqlFile, 0644)
+	defer func() { _ = os.Chmod(sqlFile, 0600) }() //nolint:errcheck // Cleanup en defer
 
 	ctx := context.Background()
 	err = ExecSQLFile(ctx, nil, sqlFile)
@@ -198,12 +198,12 @@ func TestExecSQLFile_FileExistsButEmpty_Unit(t *testing.T) {
 	sqlFile := filepath.Join(tmpDir, "empty.sql")
 
 	// Crear archivo vacío
-	err := os.WriteFile(sqlFile, []byte(""), 0644)
+	err := os.WriteFile(sqlFile, []byte(""), 0600)
 	require.NoError(t, err)
 
 	// ExecSQLFile puede leer el archivo vacío exitosamente
 	// pero fallará al ejecutar porque db es nil
 	// Este test verifica que al menos se puede LEER el archivo
-	_, readErr := os.ReadFile(sqlFile)
+	_, readErr := os.ReadFile(sqlFile) //nolint:gosec // Path viene de t.TempDir(), es seguro
 	assert.NoError(t, readErr, "Debe poder leer archivo vacío")
 }

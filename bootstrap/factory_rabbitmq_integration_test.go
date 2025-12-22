@@ -332,8 +332,15 @@ func TestRabbitMQFactory_DeclareQueue_WithConfiguration(t *testing.T) {
 	// Verificar que la cola fue creada
 	assert.Equal(t, queueName, queue.Name)
 
-	// Inspeccionar cola para verificar argumentos
-	inspected, err := channel.QueueInspect(queueName)
+	// Inspeccionar cola para verificar argumentos usando QueueDeclarePassive
+	inspected, err := channel.QueueDeclarePassive(
+		queueName, // name
+		true,      // durable
+		false,     // delete when unused
+		false,     // exclusive
+		false,     // no-wait
+		nil,       // arguments
+	)
 	require.NoError(t, err)
 	assert.Equal(t, queueName, inspected.Name)
 }

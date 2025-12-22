@@ -18,6 +18,8 @@ import (
 //   - options: Opciones adicionales de configuración
 //
 // Retorna los recursos inicializados o error si falla algún recurso requerido.
+//
+//nolint:gocyclo // Complejidad justificada: orquesta inicialización secuencial de múltiples recursos
 func Bootstrap(
 	ctx context.Context,
 	config interface{},

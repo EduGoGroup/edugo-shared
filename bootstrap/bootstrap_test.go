@@ -94,14 +94,14 @@ func (m *mockRabbitMQFactory) CreateConnection(ctx context.Context, config Rabbi
 	if m.shouldFail {
 		return nil, errors.New("mock rabbitmq connection failed")
 	}
-	return nil, nil // Retornamos nil porque no podemos crear una conexión real
+	return nil, nil //nolint:nilnil // Mock: no podemos crear una conexión real en tests
 }
 
 func (m *mockRabbitMQFactory) CreateChannel(conn *amqp.Connection) (*amqp.Channel, error) {
 	if m.shouldFail {
 		return nil, errors.New("mock rabbitmq channel failed")
 	}
-	return nil, nil
+	return nil, nil //nolint:nilnil // Mock: no podemos crear un canal real en tests
 }
 
 func (m *mockRabbitMQFactory) DeclareQueue(channel *amqp.Channel, queueName string) (amqp.Queue, error) {
@@ -121,7 +121,7 @@ func (m *mockS3Factory) CreateClient(ctx context.Context, config S3Config) (*s3.
 	if m.shouldFail {
 		return nil, errors.New("mock s3 client failed")
 	}
-	return nil, nil
+	return nil, nil //nolint:nilnil // Mock: no podemos crear un cliente S3 real en tests
 }
 
 func (m *mockS3Factory) CreatePresignClient(client *s3.Client) *s3.PresignClient {

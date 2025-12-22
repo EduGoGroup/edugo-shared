@@ -220,6 +220,8 @@ func (f *Factories) Validate(requiredResources []string) error {
 // =============================================================================
 
 // ErrMissingFactory se lanza cuando falta una factory requerida
+//
+//nolint:errname // Mantener nombre Err* para compatibilidad con API existente
 type ErrMissingFactory struct {
 	Resource string
 }

@@ -3,6 +3,7 @@ package bootstrap
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
@@ -82,7 +83,10 @@ func (f *DefaultPostgreSQLFactory) CreateRawConnection(ctx context.Context, conf
 	// Verificar conexión
 	if err := db.PingContext(ctx); err != nil {
 		if closeErr := db.Close(); closeErr != nil {
-			return nil, fmt.Errorf("failed to ping PostgreSQL and close: ping=%w, close=%v", err, closeErr)
+			return nil, errors.Join(
+				fmt.Errorf("failed to ping PostgreSQL: %w", err),
+				fmt.Errorf("failed to close connection: %w", closeErr),
+			)
 		}
 		return nil, fmt.Errorf("failed to ping raw PostgreSQL: %w", err)
 	}

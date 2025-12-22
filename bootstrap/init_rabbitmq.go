@@ -2,6 +2,7 @@ package bootstrap
 
 import (
 	"context"
+	"errors"
 	"fmt"
 )
 
@@ -48,7 +49,12 @@ func initRabbitMQ(
 	// Crear canal
 	channel, err := factories.RabbitMQ.CreateChannel(conn)
 	if err != nil {
-		conn.Close()
+		if closeErr := conn.Close(); closeErr != nil {
+			return errors.Join(
+				fmt.Errorf("failed to create RabbitMQ channel: %w", err),
+				fmt.Errorf("failed to close connection: %w", closeErr),
+			)
+		}
 		return fmt.Errorf("failed to create RabbitMQ channel: %w", err)
 	}
 

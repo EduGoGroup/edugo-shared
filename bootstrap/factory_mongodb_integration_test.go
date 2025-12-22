@@ -480,7 +480,9 @@ func TestMongoDBFactory_ConnectionTimeout(t *testing.T) {
 	if err == nil && client != nil {
 		err = factory.Ping(ctx, client)
 		assert.Error(t, err, "Ping debe fallar con timeout")
-		_ = factory.Close(context.Background(), client)
+		if closeErr := factory.Close(context.Background(), client); closeErr != nil {
+			t.Logf("Failed to close MongoDB client: %v", closeErr)
+		}
 	}
 }
 

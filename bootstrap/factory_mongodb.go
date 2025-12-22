@@ -2,6 +2,7 @@ package bootstrap
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -50,7 +51,10 @@ func (f *DefaultMongoDBFactory) CreateConnection(ctx context.Context, config Mon
 	// Verificar conexión
 	if err := f.Ping(ctx, client); err != nil {
 		if disconnectErr := client.Disconnect(ctx); disconnectErr != nil {
-			return nil, fmt.Errorf("failed to ping MongoDB and disconnect: ping=%w, disconnect=%v", err, disconnectErr)
+			return nil, errors.Join(
+				fmt.Errorf("failed to ping MongoDB: %w", err),
+				fmt.Errorf("failed to disconnect: %w", disconnectErr),
+			)
 		}
 		return nil, fmt.Errorf("failed to ping MongoDB: %w", err)
 	}

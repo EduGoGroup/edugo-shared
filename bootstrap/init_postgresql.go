@@ -3,6 +3,8 @@ package bootstrap
 import (
 	"context"
 	"fmt"
+
+	"github.com/EduGoGroup/edugo-shared/logger"
 )
 
 // initPostgreSQL inicializa la conexión a PostgreSQL.
@@ -57,7 +59,7 @@ func initPostgreSQL(
 		resources.Logger.With(
 			"host", pgConfig.Host,
 			"port", pgConfig.Port,
-			"database", pgConfig.Database,
+			logger.FieldDatabase, pgConfig.Database,
 		).Info("PostgreSQL connection established")
 	}
 

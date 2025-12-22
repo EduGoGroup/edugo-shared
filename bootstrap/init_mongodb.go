@@ -3,6 +3,8 @@ package bootstrap
 import (
 	"context"
 	"fmt"
+
+	"github.com/EduGoGroup/edugo-shared/logger"
 )
 
 // initMongoDB inicializa la conexión a MongoDB.
@@ -56,7 +58,7 @@ func initMongoDB(
 	// Log éxito
 	if resources.Logger != nil {
 		resources.Logger.With(
-			"database", mongoConfig.Database,
+			logger.FieldDatabase, mongoConfig.Database,
 		).Info("MongoDB connection established")
 	}
 

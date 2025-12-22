@@ -3,6 +3,8 @@ package bootstrap
 import (
 	"context"
 	"fmt"
+
+	"github.com/EduGoGroup/edugo-shared/logger"
 )
 
 // initS3 inicializa el cliente de S3.
@@ -55,7 +57,7 @@ func initS3(
 	// Log éxito
 	if resources.Logger != nil {
 		resources.Logger.With(
-			"bucket", s3Config.Bucket,
+			logger.FieldBucket, s3Config.Bucket,
 			"region", s3Config.Region,
 		).Info("S3 client initialized")
 	}

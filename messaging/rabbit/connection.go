@@ -122,7 +122,7 @@ func (c *Connection) HealthCheck() error {
 	if err != nil {
 		return fmt.Errorf("health check failed: %w", err)
 	}
-	defer ch.Close()
+	defer func() { _ = ch.Close() }()
 
 	// Intentar declarar un exchange temporal para verificar conectividad
 	tempExchange := fmt.Sprintf("health_check_%d", time.Now().UnixNano())

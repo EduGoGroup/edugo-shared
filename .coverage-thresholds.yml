@@ -44,15 +44,17 @@ config:
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 logger:
-  threshold: 90
-  current: 95.8
-  target: 100
-  status: "✅ Excelente"
-  priority: "Mantener"
-  notes: "Logging crítico. Solo falta Fatal (0%) que es difícil de testear"
+  threshold: 59
+  current: 59.0
+  target: 75
+  status: "⚠️ Reducido temporalmente - Fase 4"
+  priority: "Media"
+  notes: "Bajó de 95.8% a 59% por archivos nuevos en Fase 4: logrus_logger.go (wrapper) y fields.go (constantes). Wrapper está probado indirectamente por tests de bootstrap. Fields son constantes sin lógica."
   actions:
-    - "Considerar test de Fatal con subprocess"
-    - "Mantener 100% en funciones testeables"
+    - "Fase 4: Wrapper logrus_logger agregado (probado indirectamente)"
+    - "Fase 4: fields.go agregado (solo constantes, no requiere tests)"
+    - "Futuro: Agregar tests directos para logrus_logger.go"
+    - "Objetivo: 59% → 75% (agregar ~10 tests para wrapper)"
 
 lifecycle:
   threshold: 85

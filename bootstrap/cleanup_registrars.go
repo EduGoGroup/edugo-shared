@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/EduGoGroup/edugo-shared/logger"
 	amqp "github.com/rabbitmq/amqp091-go"
-	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/mongo"
 	"gorm.io/gorm"
 )
@@ -17,7 +17,7 @@ import (
 //   - factory: Factory de PostgreSQL
 //   - db: Instancia de la base de datos
 //   - logger: Logger para mensajes de cleanup
-func registerPostgreSQLCleanup(lifecycleManager interface{}, factory PostgreSQLFactory, db interface{}, logger *logrus.Logger) {
+func registerPostgreSQLCleanup(lifecycleManager interface{}, factory PostgreSQLFactory, db interface{}, logger logger.Logger) {
 	registrar, ok := lifecycleManager.(interface {
 		RegisterSimple(name string, cleanup func() error)
 	})
@@ -45,7 +45,7 @@ func registerPostgreSQLCleanup(lifecycleManager interface{}, factory PostgreSQLF
 //   - factory: Factory de MongoDB
 //   - client: Cliente de MongoDB
 //   - logger: Logger para mensajes de cleanup
-func registerMongoDBCleanup(lifecycleManager interface{}, factory MongoDBFactory, client interface{}, logger *logrus.Logger) {
+func registerMongoDBCleanup(lifecycleManager interface{}, factory MongoDBFactory, client interface{}, logger logger.Logger) {
 	registrar, ok := lifecycleManager.(interface {
 		RegisterSimple(name string, cleanup func() error)
 	})
@@ -76,7 +76,7 @@ func registerMongoDBCleanup(lifecycleManager interface{}, factory MongoDBFactory
 //   - channel: Canal de RabbitMQ
 //   - conn: Conexión de RabbitMQ
 //   - logger: Logger para mensajes de cleanup
-func registerRabbitMQCleanup(lifecycleManager interface{}, factory RabbitMQFactory, channel interface{}, conn interface{}, logger *logrus.Logger) {
+func registerRabbitMQCleanup(lifecycleManager interface{}, factory RabbitMQFactory, channel interface{}, conn interface{}, logger logger.Logger) {
 	registrar, ok := lifecycleManager.(interface {
 		RegisterSimple(name string, cleanup func() error)
 	})

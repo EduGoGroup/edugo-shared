@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/sirupsen/logrus"
+	"github.com/EduGoGroup/edugo-shared/logger"
 )
 
 // initMongoDB inicializa la conexión a MongoDB.
@@ -57,9 +57,9 @@ func initMongoDB(
 
 	// Log éxito
 	if resources.Logger != nil {
-		resources.Logger.WithFields(logrus.Fields{
-			"database": mongoConfig.Database,
-		}).Info("MongoDB connection established")
+		resources.Logger.With(
+			logger.FieldDatabase, mongoConfig.Database,
+		).Info("MongoDB connection established")
 	}
 
 	return nil

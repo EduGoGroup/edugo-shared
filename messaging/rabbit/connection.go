@@ -110,14 +110,23 @@ func (c *Connection) SetPrefetchCount(count int) error {
 }
 
 // HealthCheck verifica si la conexión está activa
+// Crea un canal temporal para evitar race conditions cuando se llama concurrentemente
 func (c *Connection) HealthCheck() error {
 	if c.IsClosed() {
 		return fmt.Errorf("connection is closed")
 	}
 
+	// Crear un canal temporal para este health check
+	// Esto evita race conditions cuando múltiples goroutines llaman HealthCheck concurrentemente
+	ch, err := c.conn.Channel()
+	if err != nil {
+		return fmt.Errorf("health check failed: %w", err)
+	}
+	defer func() { _ = ch.Close() }()
+
 	// Intentar declarar un exchange temporal para verificar conectividad
-	tempExchange := fmt.Sprintf("health_check_%d", time.Now().Unix())
-	err := c.channel.ExchangeDeclare(
+	tempExchange := fmt.Sprintf("health_check_%d", time.Now().UnixNano())
+	err = ch.ExchangeDeclare(
 		tempExchange,
 		"fanout",
 		false, // durable
@@ -131,5 +140,5 @@ func (c *Connection) HealthCheck() error {
 	}
 
 	// Eliminar el exchange temporal
-	return c.channel.ExchangeDelete(tempExchange, false, false)
+	return ch.ExchangeDelete(tempExchange, false, false)
 }

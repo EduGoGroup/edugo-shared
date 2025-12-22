@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/sirupsen/logrus"
+	"github.com/EduGoGroup/edugo-shared/logger"
 )
 
 // initPostgreSQL inicializa la conexión a PostgreSQL.
@@ -56,11 +56,11 @@ func initPostgreSQL(
 
 	// Log éxito
 	if resources.Logger != nil {
-		resources.Logger.WithFields(logrus.Fields{
-			"host":     pgConfig.Host,
-			"port":     pgConfig.Port,
-			"database": pgConfig.Database,
-		}).Info("PostgreSQL connection established")
+		resources.Logger.With(
+			logger.FieldHost, pgConfig.Host,
+			logger.FieldPort, pgConfig.Port,
+			logger.FieldDatabase, pgConfig.Database,
+		).Info("PostgreSQL connection established")
 	}
 
 	return nil

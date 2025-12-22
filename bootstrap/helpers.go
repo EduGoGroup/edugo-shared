@@ -1,7 +1,7 @@
 package bootstrap
 
 import (
-	"github.com/sirupsen/logrus"
+	logger "github.com/EduGoGroup/edugo-shared/logger"
 )
 
 // mergeFactories combina las factories base con las factories mock.
@@ -55,11 +55,11 @@ func isRequired(resource string, opts *BootstrapOptions) bool {
 // logWarning registra un mensaje de advertencia si el logger está disponible.
 //
 // Parámetros:
-//   - logger: Logger a usar
+//   - log: Logger a usar
 //   - msg: Mensaje de advertencia
 //   - err: Error asociado
-func logWarning(logger *logrus.Logger, msg string, err error) {
-	if logger != nil {
-		logger.WithError(err).Warn(msg)
+func logWarning(log logger.Logger, msg string, err error) {
+	if log != nil {
+		log.With(logger.FieldError, err).Warn(msg)
 	}
 }

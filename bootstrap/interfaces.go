@@ -4,9 +4,9 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/EduGoGroup/edugo-shared/logger"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	amqp "github.com/rabbitmq/amqp091-go"
-	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/mongo"
 	"gorm.io/gorm"
 )
@@ -51,7 +51,7 @@ type S3Config struct {
 // LoggerFactory crea y configura instancias de logger
 type LoggerFactory interface {
 	// CreateLogger crea un logger con la configuración especificada
-	CreateLogger(ctx context.Context, env string, version string) (*logrus.Logger, error)
+	CreateLogger(ctx context.Context, env string, version string) (logger.Logger, error)
 }
 
 // PostgreSQLFactory crea y gestiona conexiones a PostgreSQL

@@ -3,16 +3,15 @@ version: "2"
 
 run:
   timeout: 5m
-  modules-download-mode: readonly
   tests: true
 
 linters:
   enable:
-    # Defectos (habilitados por defecto, pero los explicitamos)
+    # Defectos (habilitados por defecto)
     - errcheck
     - govet
     - ineffassign
-    - staticcheck # Incluye gosimple
+    - staticcheck
     - unused
 
     # Estilo
@@ -40,63 +39,41 @@ linters:
     - nilerr
     - nilnil
 
+  settings:
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+      exclude-functions:
+        # Permitir ignorar errores en tests para setup/teardown
+        - (io.Closer).Close
+
+    gocyclo:
+      min-complexity: 15
+
+    revive:
+      rules:
+        - name: exported
+          severity: warning
+        - name: blank-imports
+          severity: warning
+        - name: context-as-argument
+          severity: warning
+        - name: error-return
+          severity: warning
+        - name: error-strings
+          severity: warning
+        - name: error-naming
+          severity: warning
+
 formatters:
   enable:
-    # Formato
     - gofmt
     - goimports
 
-linters-settings:
-  errcheck:
-    check-type-assertions: true
-    check-blank: true
-
-  govet:
-    check-shadowing: true
-
-  gocyclo:
-    min-complexity: 15
-
-  revive:
-    rules:
-      - name: exported
-        severity: warning
-        arguments:
-          - checkPublicInterface
-          - disableStutteringCheck
-      - name: blank-imports
-        severity: warning
-      - name: context-as-argument
-        severity: warning
-      - name: error-return
-        severity: warning
-      - name: error-strings
-        severity: warning
-      - name: error-naming
-        severity: warning
-
-  gosec:
-    excludes:
-      - G104 # Audit errors not checked
-
 issues:
-  exclude-rules:
-    # Tests pueden tener más libertad
-    - path: _test\.go
-      linters:
-        - errcheck
-        - gosec
-        - gocritic
-
-    # Ejemplos son más relajados
-    - path: _example_test\.go
-      linters:
-        - errcheck
-
-    # Código generado
-    - path: \.pb\.go
-      linters:
-        - all
-
+  exclude-dirs:
+    - vendor
+  exclude-files:
+    - ".*\\.pb\\.go$"
   max-issues-per-linter: 50
   max-same-issues: 10

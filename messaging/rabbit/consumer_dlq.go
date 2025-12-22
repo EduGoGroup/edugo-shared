@@ -8,8 +8,17 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-// ConsumeWithDLQ consume mensajes con soporte para Dead Letter Queue
+// ConsumeWithDLQ consume mensajes con soporte para Dead Letter Queue.
+// Implementa el mismo control de ciclo de vida que Consume.
 func (c *RabbitMQConsumer) ConsumeWithDLQ(ctx context.Context, queueName string, handler MessageHandler) error {
+	c.mu.Lock()
+	if c.running {
+		c.mu.Unlock()
+		return fmt.Errorf("consumer already running")
+	}
+	c.running = true
+	c.mu.Unlock()
+
 	// Configurar prefetch si está configurado
 	ch := c.conn.GetChannel()
 	prefetchCount := c.config.PrefetchCount
@@ -21,12 +30,18 @@ func (c *RabbitMQConsumer) ConsumeWithDLQ(ctx context.Context, queueName string,
 		0,
 		false,
 	); err != nil {
+		c.mu.Lock()
+		c.running = false
+		c.mu.Unlock()
 		return fmt.Errorf("failed to set QoS: %w", err)
 	}
 
 	// Declarar DLX y DLQ si está habilitado
 	if c.config.DLQ.Enabled {
 		if err := c.setupDLQ(ch); err != nil {
+			c.mu.Lock()
+			c.running = false
+			c.mu.Unlock()
 			return fmt.Errorf("failed to setup DLQ: %w", err)
 		}
 	}
@@ -42,6 +57,9 @@ func (c *RabbitMQConsumer) ConsumeWithDLQ(ctx context.Context, queueName string,
 		nil,   // args
 	)
 	if err != nil {
+		c.mu.Lock()
+		c.running = false
+		c.mu.Unlock()
 		return fmt.Errorf("failed to start consuming: %w", err)
 	}
 
@@ -51,14 +69,29 @@ func (c *RabbitMQConsumer) ConsumeWithDLQ(ctx context.Context, queueName string,
 	}
 	semaphore := make(chan struct{}, workerLimit)
 
-	// Procesar mensajes en un loop
+	// Registrar goroutine principal en WaitGroup
+	c.wg.Add(1)
 	go func() {
+		defer c.wg.Done()
+		defer func() {
+			c.mu.Lock()
+			c.running = false
+			c.mu.Unlock()
+		}()
+
 		for {
 			select {
 			case <-ctx.Done():
 				return
+			case <-c.stopCh:
+				return
 			case msg, ok := <-msgs:
 				if !ok {
+					// Canal cerrado inesperadamente
+					select {
+					case c.errChan <- fmt.Errorf("message channel closed unexpectedly"):
+					default:
+					}
 					return
 				}
 

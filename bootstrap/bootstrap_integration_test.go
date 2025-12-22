@@ -316,7 +316,7 @@ func TestBootstrap_WithHealthCheck(t *testing.T) {
 		PostgreSQL: NewDefaultPostgreSQLFactory(nil),
 	}
 
-	type AppConfig struct{
+	type AppConfig struct {
 		Environment string
 		Version     string
 		PostgreSQL  PostgreSQLConfig

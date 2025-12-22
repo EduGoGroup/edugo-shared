@@ -7,13 +7,13 @@ import (
 
 // BaseConfig contiene configuración común a todos los servicios
 type BaseConfig struct {
-	Environment string              `mapstructure:"environment" validate:"required,oneof=local dev qa prod"`
-	ServiceName string              `mapstructure:"service_name" validate:"required"`
-	Server      ServerConfig        `mapstructure:"server" validate:"required"`
-	Database    DatabaseConfig      `mapstructure:"database" validate:"required"`
-	MongoDB     MongoDBConfig       `mapstructure:"mongodb" validate:"required"`
-	Logger      LoggerConfig        `mapstructure:"logger" validate:"required"`
-	Bootstrap   BootstrapConfig     `mapstructure:"bootstrap"`
+	Environment string          `mapstructure:"environment" validate:"required,oneof=local dev qa prod"`
+	ServiceName string          `mapstructure:"service_name" validate:"required"`
+	Server      ServerConfig    `mapstructure:"server" validate:"required"`
+	Database    DatabaseConfig  `mapstructure:"database" validate:"required"`
+	MongoDB     MongoDBConfig   `mapstructure:"mongodb" validate:"required"`
+	Logger      LoggerConfig    `mapstructure:"logger" validate:"required"`
+	Bootstrap   BootstrapConfig `mapstructure:"bootstrap"`
 }
 
 // ServerConfig configuración del servidor HTTP

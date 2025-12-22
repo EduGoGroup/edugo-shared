@@ -5,140 +5,93 @@ import (
 	"reflect"
 )
 
-// extractPostgreSQLConfig extrae configuración de PostgreSQL usando reflection.
+// extractConfigField es un helper genérico para extraer configuración de un struct.
+//
+// Parámetros:
+//   - config: Struct de configuración (valor o puntero)
+//   - fieldName: Nombre del campo a extraer
+//
+// Retorna el valor del campo del tipo T o error si no se encuentra.
+func extractConfigField[T any](config interface{}, fieldName string) (T, error) {
+	var zero T
+
+	// Intentar type assertion directo primero
+	if typedConfig, ok := config.(T); ok {
+		return typedConfig, nil
+	}
+
+	// Usar reflection para extraer el campo
+	v := reflect.ValueOf(config)
+	if v.Kind() == reflect.Ptr {
+		if v.IsNil() {
+			return zero, fmt.Errorf("config is nil")
+		}
+		v = v.Elem()
+	}
+
+	if v.Kind() != reflect.Struct {
+		return zero, fmt.Errorf("config must be a struct, got %T", config)
+	}
+
+	field := v.FieldByName(fieldName)
+	if !field.IsValid() {
+		return zero, fmt.Errorf("%s field not found in config", fieldName)
+	}
+
+	// Intentar convertir el campo al tipo deseado
+	fieldInterface := field.Interface()
+	if typedField, ok := fieldInterface.(T); ok {
+		return typedField, nil
+	}
+
+	// Si el campo es un puntero, intentar desreferenciarlo
+	if field.Kind() == reflect.Ptr && !field.IsNil() {
+		if typedField, ok := field.Elem().Interface().(T); ok {
+			return typedField, nil
+		}
+	}
+
+	return zero, fmt.Errorf("%s field is not of expected type, got %T", fieldName, fieldInterface)
+}
+
+// extractPostgreSQLConfig extrae configuración de PostgreSQL usando el helper genérico.
 //
 // Parámetros:
 //   - config: Configuración de la aplicación (puede ser struct o puntero)
 //
 // Retorna la configuración de PostgreSQL o error si no se encuentra.
 func extractPostgreSQLConfig(config interface{}) (PostgreSQLConfig, error) {
-	// Intentar type assertion directo primero
-	if pgConfig, ok := config.(PostgreSQLConfig); ok {
-		return pgConfig, nil
-	}
-
-	// Usar reflection para extraer campo PostgreSQL
-	v := reflect.ValueOf(config)
-	if v.Kind() == reflect.Ptr {
-		v = v.Elem()
-	}
-
-	if v.Kind() != reflect.Struct {
-		return PostgreSQLConfig{}, fmt.Errorf("config must be a struct, got %T", config)
-	}
-
-	pgField := v.FieldByName("PostgreSQL")
-	if !pgField.IsValid() {
-		return PostgreSQLConfig{}, fmt.Errorf("PostgreSQL field not found in config")
-	}
-
-	if pgConfig, ok := pgField.Interface().(PostgreSQLConfig); ok {
-		return pgConfig, nil
-	}
-
-	return PostgreSQLConfig{}, fmt.Errorf("PostgreSQL field is not of type PostgreSQLConfig")
+	return extractConfigField[PostgreSQLConfig](config, "PostgreSQL")
 }
 
-// extractMongoDBConfig extrae configuración de MongoDB usando reflection.
+// extractMongoDBConfig extrae configuración de MongoDB usando el helper genérico.
 //
 // Parámetros:
 //   - config: Configuración de la aplicación (puede ser struct o puntero)
 //
 // Retorna la configuración de MongoDB o error si no se encuentra.
 func extractMongoDBConfig(config interface{}) (MongoDBConfig, error) {
-	// Intentar type assertion directo
-	if mongoConfig, ok := config.(MongoDBConfig); ok {
-		return mongoConfig, nil
-	}
-
-	// Usar reflection
-	v := reflect.ValueOf(config)
-	if v.Kind() == reflect.Ptr {
-		v = v.Elem()
-	}
-
-	if v.Kind() != reflect.Struct {
-		return MongoDBConfig{}, fmt.Errorf("config must be a struct, got %T", config)
-	}
-
-	mongoField := v.FieldByName("MongoDB")
-	if !mongoField.IsValid() {
-		return MongoDBConfig{}, fmt.Errorf("MongoDB field not found in config")
-	}
-
-	if mongoConfig, ok := mongoField.Interface().(MongoDBConfig); ok {
-		return mongoConfig, nil
-	}
-
-	return MongoDBConfig{}, fmt.Errorf("MongoDB field is not of type MongoDBConfig")
+	return extractConfigField[MongoDBConfig](config, "MongoDB")
 }
 
-// extractRabbitMQConfig extrae configuración de RabbitMQ usando reflection.
+// extractRabbitMQConfig extrae configuración de RabbitMQ usando el helper genérico.
 //
 // Parámetros:
 //   - config: Configuración de la aplicación (puede ser struct o puntero)
 //
 // Retorna la configuración de RabbitMQ o error si no se encuentra.
 func extractRabbitMQConfig(config interface{}) (RabbitMQConfig, error) {
-	// Intentar type assertion directo
-	if rabbitConfig, ok := config.(RabbitMQConfig); ok {
-		return rabbitConfig, nil
-	}
-
-	// Usar reflection
-	v := reflect.ValueOf(config)
-	if v.Kind() == reflect.Ptr {
-		v = v.Elem()
-	}
-
-	if v.Kind() != reflect.Struct {
-		return RabbitMQConfig{}, fmt.Errorf("config must be a struct, got %T", config)
-	}
-
-	rabbitField := v.FieldByName("RabbitMQ")
-	if !rabbitField.IsValid() {
-		return RabbitMQConfig{}, fmt.Errorf("RabbitMQ field not found in config")
-	}
-
-	if rabbitConfig, ok := rabbitField.Interface().(RabbitMQConfig); ok {
-		return rabbitConfig, nil
-	}
-
-	return RabbitMQConfig{}, fmt.Errorf("RabbitMQ field is not of type RabbitMQConfig")
+	return extractConfigField[RabbitMQConfig](config, "RabbitMQ")
 }
 
-// extractS3Config extrae configuración de S3 usando reflection.
+// extractS3Config extrae configuración de S3 usando el helper genérico.
 //
 // Parámetros:
 //   - config: Configuración de la aplicación (puede ser struct o puntero)
 //
 // Retorna la configuración de S3 o error si no se encuentra.
 func extractS3Config(config interface{}) (S3Config, error) {
-	// Intentar type assertion directo
-	if s3Config, ok := config.(S3Config); ok {
-		return s3Config, nil
-	}
-
-	// Usar reflection
-	v := reflect.ValueOf(config)
-	if v.Kind() == reflect.Ptr {
-		v = v.Elem()
-	}
-
-	if v.Kind() != reflect.Struct {
-		return S3Config{}, fmt.Errorf("config must be a struct, got %T", config)
-	}
-
-	s3Field := v.FieldByName("S3")
-	if !s3Field.IsValid() {
-		return S3Config{}, fmt.Errorf("S3 field not found in config")
-	}
-
-	if s3Config, ok := s3Field.Interface().(S3Config); ok {
-		return s3Config, nil
-	}
-
-	return S3Config{}, fmt.Errorf("S3 field is not of type S3Config")
+	return extractConfigField[S3Config](config, "S3")
 }
 
 // extractEnvAndVersion extrae los campos Environment y Version de una configuración.

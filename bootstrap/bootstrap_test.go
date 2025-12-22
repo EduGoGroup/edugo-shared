@@ -123,8 +123,11 @@ func (m *mockS3Factory) CreateClient(ctx context.Context, config S3Config) (*s3.
 	return nil, nil
 }
 
-func (m *mockS3Factory) CreatePresignClient(client *s3.Client) interface{} {
-	return nil
+func (m *mockS3Factory) CreatePresignClient(client *s3.Client) *s3.PresignClient {
+	if client == nil {
+		return nil
+	}
+	return s3.NewPresignClient(client)
 }
 
 func (m *mockS3Factory) ValidateBucket(ctx context.Context, client *s3.Client, bucket string) error {

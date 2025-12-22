@@ -22,11 +22,15 @@ type Consumer interface {
 }
 
 // RabbitMQConsumer implementación de Consumer para RabbitMQ con control de goroutines.
+//
+// Nota sobre errChan: El canal de errores tiene buffer de tamaño 1 y solo reporta
+// el primer error asíncrono que ocurra. Errores adicionales se descartan silenciosamente.
+// Esto es adecuado para el caso de uso actual donde un error fatal detiene el consumer.
 type RabbitMQConsumer struct {
 	conn     *Connection
 	config   ConsumerConfig
 	wg       sync.WaitGroup
-	errChan  chan error
+	errChan  chan error // Buffer de 1: solo el primer error asíncrono se reporta
 	stopCh   chan struct{}
 	stopOnce sync.Once
 	mu       sync.Mutex
@@ -132,7 +136,7 @@ func (c *RabbitMQConsumer) processBasicMessage(ctx context.Context, queueName st
 	}
 }
 
-// amqpDelivery es una interfaz interna para trabajar con mensajes AMQP
+// amqpDelivery es un struct interno para abstraer mensajes AMQP
 type amqpDelivery struct {
 	Body        []byte
 	DeliveryTag uint64
@@ -140,14 +144,27 @@ type amqpDelivery struct {
 	Nack        func(multiple bool, requeue bool) error
 }
 
-// Wait bloquea hasta que el consumer se detenga.
+// Wait bloquea hasta que el consumer se detenga y retorna cualquier error asíncrono.
 func (c *RabbitMQConsumer) Wait() error {
-	c.wg.Wait()
+	done := make(chan struct{})
+
+	go func() {
+		c.wg.Wait()
+		close(done)
+	}()
+
 	select {
 	case err := <-c.errChan:
+		<-done // Asegurar que WaitGroup completó
 		return err
-	default:
-		return nil
+	case <-done:
+		// Intentar leer error después de que goroutines terminaron
+		select {
+		case err := <-c.errChan:
+			return err
+		default:
+			return nil
+		}
 	}
 }
 

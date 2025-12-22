@@ -6,6 +6,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/EduGoGroup/edugo-shared/logger"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/sirupsen/logrus"
@@ -20,17 +21,17 @@ import (
 // mockLoggerFactory es un mock de LoggerFactory
 type mockLoggerFactory struct {
 	shouldFail bool
-	logger     *logrus.Logger
+	logger     logger.Logger
 }
 
-func (m *mockLoggerFactory) CreateLogger(ctx context.Context, env string, version string) (*logrus.Logger, error) {
+func (m *mockLoggerFactory) CreateLogger(ctx context.Context, env string, version string) (logger.Logger, error) {
 	if m.shouldFail {
 		return nil, errors.New("mock logger creation failed")
 	}
 	if m.logger != nil {
 		return m.logger, nil
 	}
-	return logrus.New(), nil
+	return logger.NewLogrusLogger(logrus.New()), nil
 }
 
 // mockPostgreSQLFactory es un mock de PostgreSQLFactory
@@ -366,7 +367,7 @@ func TestResources_HasMethods(t *testing.T) {
 	}
 
 	// Test: Logger inicializado
-	resources.Logger = logrus.New()
+	resources.Logger = logger.NewLogrusLogger(logrus.New())
 	if !resources.HasLogger() {
 		t.Error("Expected HasLogger to return true after initialization")
 	}
@@ -377,7 +378,7 @@ func TestResources_HasMethods(t *testing.T) {
 // =============================================================================
 
 func TestPerformHealthChecks_AllPass(t *testing.T) {
-	logger := logrus.New()
+	logger := logger.NewLogrusLogger(logrus.New())
 
 	resources := &Resources{
 		Logger: logger,
@@ -404,7 +405,7 @@ func TestPerformHealthChecks_WithoutLogger(t *testing.T) {
 }
 
 func TestPerformHealthChecks_ContextTimeout(t *testing.T) {
-	logger := logrus.New()
+	logger := logger.NewLogrusLogger(logrus.New())
 	resources := &Resources{Logger: logger}
 	opts := DefaultBootstrapOptions()
 

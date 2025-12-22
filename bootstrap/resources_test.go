@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/EduGoGroup/edugo-shared/logger"
 	"github.com/EduGoGroup/edugo-shared/testing/containers"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -29,7 +30,7 @@ func TestResources_HasLogger(t *testing.T) {
 	assert.False(t, resources.HasLogger())
 
 	// Con logger
-	resources.Logger = logrus.New()
+	resources.Logger = logger.NewLogrusLogger(logrus.New())
 	assert.True(t, resources.HasLogger())
 }
 
@@ -200,7 +201,7 @@ func TestResources_AllResourcesPresent(t *testing.T) {
 
 	// Crear resources con todo
 	resources := &Resources{
-		Logger:           logrus.New(),
+		Logger:           logger.NewLogrusLogger(logrus.New()),
 		PostgreSQL:       pgDB,
 		MongoDB:          mongoClient,
 		MongoDatabase:    mongoDB,
@@ -219,7 +220,7 @@ func TestResources_AllResourcesPresent(t *testing.T) {
 func TestResources_PartialInitialization(t *testing.T) {
 	// Solo logger y PostgreSQL
 	resources := &Resources{
-		Logger: logrus.New(),
+		Logger: logger.NewLogrusLogger(logrus.New()),
 		// PostgreSQL se inicializaría en un test real
 	}
 

@@ -3,8 +3,6 @@ package bootstrap
 import (
 	"context"
 	"fmt"
-
-	"github.com/sirupsen/logrus"
 )
 
 // initS3 inicializa el cliente de S3.
@@ -56,10 +54,10 @@ func initS3(
 
 	// Log éxito
 	if resources.Logger != nil {
-		resources.Logger.WithFields(logrus.Fields{
-			"bucket": s3Config.Bucket,
-			"region": s3Config.Region,
-		}).Info("S3 client initialized")
+		resources.Logger.With(
+			"bucket", s3Config.Bucket,
+			"region", s3Config.Region,
+		).Info("S3 client initialized")
 	}
 
 	return nil

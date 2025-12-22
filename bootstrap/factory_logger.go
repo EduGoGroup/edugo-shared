@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 
+	"github.com/EduGoGroup/edugo-shared/logger"
 	"github.com/sirupsen/logrus"
 )
 
@@ -20,15 +21,15 @@ func NewDefaultLoggerFactory() *DefaultLoggerFactory {
 }
 
 // CreateLogger crea un logger configurado según el entorno
-func (f *DefaultLoggerFactory) CreateLogger(ctx context.Context, env string, version string) (*logrus.Logger, error) {
-	logger := logrus.New()
+func (f *DefaultLoggerFactory) CreateLogger(ctx context.Context, env string, version string) (logger.Logger, error) {
+	logrusLogger := logrus.New()
 
 	// Configurar output
-	logger.SetOutput(os.Stdout)
+	logrusLogger.SetOutput(os.Stdout)
 
 	// Configurar formato según entorno
 	if env == "production" || env == "prod" {
-		logger.SetFormatter(&logrus.JSONFormatter{
+		logrusLogger.SetFormatter(&logrus.JSONFormatter{
 			TimestampFormat: "2006-01-02T15:04:05.000Z07:00",
 			FieldMap: logrus.FieldMap{
 				logrus.FieldKeyTime:  "timestamp",
@@ -37,7 +38,7 @@ func (f *DefaultLoggerFactory) CreateLogger(ctx context.Context, env string, ver
 			},
 		})
 	} else {
-		logger.SetFormatter(&logrus.TextFormatter{
+		logrusLogger.SetFormatter(&logrus.TextFormatter{
 			FullTimestamp:   true,
 			TimestampFormat: "2006-01-02 15:04:05",
 			ForceColors:     true,
@@ -47,24 +48,24 @@ func (f *DefaultLoggerFactory) CreateLogger(ctx context.Context, env string, ver
 	// Configurar nivel de log según entorno
 	switch env {
 	case "production", "prod":
-		logger.SetLevel(logrus.InfoLevel)
+		logrusLogger.SetLevel(logrus.InfoLevel)
 	case "qa", "staging":
-		logger.SetLevel(logrus.InfoLevel)
+		logrusLogger.SetLevel(logrus.InfoLevel)
 	case "development", "dev":
-		logger.SetLevel(logrus.DebugLevel)
+		logrusLogger.SetLevel(logrus.DebugLevel)
 	case "local":
-		logger.SetLevel(logrus.TraceLevel)
+		logrusLogger.SetLevel(logrus.TraceLevel)
 	default:
-		logger.SetLevel(logrus.InfoLevel)
+		logrusLogger.SetLevel(logrus.InfoLevel)
 	}
 
-	// Agregar fields globales
-	logger.WithFields(logrus.Fields{
-		"version": version,
-		"env":     env,
-	})
+	// Crear wrapper con fields globales
+	wrappedLogger := logger.NewLogrusLogger(logrusLogger).With(
+		"version", version,
+		"env", env,
+	)
 
-	return logger, nil
+	return wrappedLogger, nil
 }
 
 // Verificar que DefaultLoggerFactory implementa LoggerFactory

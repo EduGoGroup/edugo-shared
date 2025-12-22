@@ -1,7 +1,7 @@
 package bootstrap
 
 import (
-	"github.com/sirupsen/logrus"
+	"github.com/EduGoGroup/edugo-shared/logger"
 	"go.mongodb.org/mongo-driver/mongo"
 	"gorm.io/gorm"
 )
@@ -13,7 +13,7 @@ import (
 // Resources contiene todos los recursos inicializados de la aplicación
 type Resources struct {
 	// Logger es el logger configurado de la aplicación
-	Logger *logrus.Logger
+	Logger logger.Logger
 
 	// PostgreSQL es la conexión a la base de datos PostgreSQL
 	PostgreSQL *gorm.DB

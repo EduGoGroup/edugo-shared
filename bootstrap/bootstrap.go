@@ -3,8 +3,6 @@ package bootstrap
 import (
 	"context"
 	"fmt"
-
-	"github.com/sirupsen/logrus"
 )
 
 // Bootstrap inicializa todos los recursos de infraestructura de la aplicación.
@@ -52,10 +50,10 @@ func Bootstrap(
 	// Log inicio del bootstrap
 	if resources.Logger != nil {
 		resources.Logger.Info("Starting application bootstrap...")
-		resources.Logger.WithFields(logrus.Fields{
-			"required_resources": opts.RequiredResources,
-			"optional_resources": opts.OptionalResources,
-		}).Debug("Bootstrap configuration")
+		resources.Logger.With(
+			"required_resources", opts.RequiredResources,
+			"optional_resources", opts.OptionalResources,
+		).Debug("Bootstrap configuration")
 	}
 
 	// Inicializar PostgreSQL

@@ -3,8 +3,6 @@ package bootstrap
 import (
 	"context"
 	"fmt"
-
-	"github.com/sirupsen/logrus"
 )
 
 // initPostgreSQL inicializa la conexión a PostgreSQL.
@@ -56,11 +54,11 @@ func initPostgreSQL(
 
 	// Log éxito
 	if resources.Logger != nil {
-		resources.Logger.WithFields(logrus.Fields{
-			"host":     pgConfig.Host,
-			"port":     pgConfig.Port,
-			"database": pgConfig.Database,
-		}).Info("PostgreSQL connection established")
+		resources.Logger.With(
+			"host", pgConfig.Host,
+			"port", pgConfig.Port,
+			"database", pgConfig.Database,
+		).Info("PostgreSQL connection established")
 	}
 
 	return nil

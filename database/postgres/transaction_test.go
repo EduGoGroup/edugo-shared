@@ -90,7 +90,7 @@ func TestWithTransaction_Integration(t *testing.T) {
 			t.Fatal("Esperaba error de la transacción")
 		}
 
-		if err != expectedErr {
+		if !errors.Is(err, expectedErr) {
 			t.Errorf("Esperaba error %v, obtenido %v", expectedErr, err)
 		}
 	})
@@ -103,6 +103,7 @@ func TestWithTransaction_Integration(t *testing.T) {
 			}
 		}()
 
+		//nolint:errcheck // Intencionalmente ignoramos el error, estamos probando el panic
 		_ = postgres.WithTransaction(ctx, db, func(tx *sql.Tx) error {
 			// Provocar panic para probar rollback
 			panic("panic intencional")
@@ -167,7 +168,7 @@ func TestWithTransactionIsolation_Integration(t *testing.T) {
 			return expectedErr
 		})
 
-		if err != expectedErr {
+		if !errors.Is(err, expectedErr) {
 			t.Errorf("Esperaba error %v, obtenido %v", expectedErr, err)
 		}
 	})
@@ -180,6 +181,7 @@ func TestWithTransactionIsolation_Integration(t *testing.T) {
 			}
 		}()
 
+		//nolint:errcheck // Intencionalmente ignoramos el error, estamos probando el panic
 		_ = postgres.WithTransactionIsolation(ctx, db, sql.LevelSerializable, func(tx *sql.Tx) error {
 			panic("panic en transacción")
 		})

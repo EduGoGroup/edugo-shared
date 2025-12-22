@@ -44,7 +44,7 @@ func Connect(cfg *Config) (*sql.DB, error) {
 	defer cancel()
 
 	if err := db.PingContext(ctx); err != nil {
-		_ = db.Close() // Ignore error on cleanup
+		_ = db.Close() //nolint:errcheck // Ignorar error en cleanup, el error principal es el de ping
 		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}
 

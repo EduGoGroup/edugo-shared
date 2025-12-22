@@ -23,7 +23,7 @@ func Connect(url string) (*Connection, error) {
 
 	channel, err := conn.Channel()
 	if err != nil {
-		_ = conn.Close() // Ignore error on cleanup
+		_ = conn.Close() //nolint:errcheck // Ignorar error en cleanup, el error principal es el de channel
 		return nil, fmt.Errorf("failed to open channel: %w", err)
 	}
 
@@ -122,7 +122,7 @@ func (c *Connection) HealthCheck() error {
 	if err != nil {
 		return fmt.Errorf("health check failed: %w", err)
 	}
-	defer func() { _ = ch.Close() }()
+	defer func() { _ = ch.Close() }() //nolint:errcheck // Health check cleanup
 
 	// Intentar declarar un exchange temporal para verificar conectividad
 	tempExchange := fmt.Sprintf("health_check_%d", time.Now().UnixNano())

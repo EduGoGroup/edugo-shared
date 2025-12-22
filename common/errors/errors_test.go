@@ -1,6 +1,7 @@
 package errors_test
 
 import (
+	stderrors "errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -30,7 +31,7 @@ func TestWrap(t *testing.T) {
 	if err.Code != errors.ErrorCodeInternal {
 		t.Errorf("Expected code %s, got %s", errors.ErrorCodeInternal, err.Code)
 	}
-	if err.Internal != originalErr {
+	if !stderrors.Is(err.Internal, originalErr) {
 		t.Error("Internal error not set correctly")
 	}
 }
@@ -79,7 +80,7 @@ func TestAppError_WithInternal(t *testing.T) {
 	err := errors.New(errors.ErrorCodeDatabaseError, "database error")
 	err = err.WithInternal(internal)
 
-	if err.Internal != internal {
+	if !stderrors.Is(err.Internal, internal) {
 		t.Error("Internal error not set")
 	}
 }
@@ -306,7 +307,7 @@ func TestAppError_Unwrap(t *testing.T) {
 	err := errors.Wrap(internal, errors.ErrorCodeInternal, "wrapped")
 
 	unwrapped := err.Unwrap()
-	if unwrapped != internal {
+	if !stderrors.Is(unwrapped, internal) {
 		t.Error("Unwrap should return internal error")
 	}
 

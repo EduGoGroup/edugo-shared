@@ -1,3 +1,4 @@
+//nolint:errcheck // Tests: errores de Close()/Wait() en cleanup se ignoran intencionalmente
 package rabbit
 
 import (

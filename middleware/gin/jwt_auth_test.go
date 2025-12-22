@@ -8,6 +8,7 @@ import (
 
 	"github.com/EduGoGroup/edugo-shared/auth"
 	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/require"
 )
 
 func TestJWTAuthMiddleware_ValidToken(t *testing.T) {
@@ -26,9 +27,15 @@ func TestJWTAuthMiddleware_ValidToken(t *testing.T) {
 	router := gin.New()
 	router.Use(JWTAuthMiddleware(jwtManager))
 	router.GET("/test", func(c *gin.Context) {
-		userID, _ := GetUserID(c)
-		email, _ := GetEmail(c)
-		role, _ := GetRole(c)
+		userID, errUserID := GetUserID(c)
+		email, errEmail := GetEmail(c)
+		role, errRole := GetRole(c)
+
+		// En test real estos errores no deberían ocurrir con token válido
+		if errUserID != nil || errEmail != nil || errRole != nil {
+			c.JSON(500, gin.H{"error": "failed to get claims"})
+			return
+		}
 
 		c.JSON(200, gin.H{
 			"user_id": userID,
@@ -38,7 +45,8 @@ func TestJWTAuthMiddleware_ValidToken(t *testing.T) {
 	})
 
 	// Request con token válido
-	req, _ := http.NewRequest("GET", "/test", nil)
+	req, err := http.NewRequest("GET", "/test", nil)
+	require.NoError(t, err)
 	req.Header.Set("Authorization", "Bearer "+token)
 
 	w := httptest.NewRecorder()
@@ -73,7 +81,8 @@ func TestJWTAuthMiddleware_MissingHeader(t *testing.T) {
 		c.JSON(200, gin.H{"ok": true})
 	})
 
-	req, _ := http.NewRequest("GET", "/test", nil)
+	req, err := http.NewRequest("GET", "/test", nil)
+	require.NoError(t, err)
 	// No agregar header Authorization
 
 	w := httptest.NewRecorder()
@@ -113,7 +122,8 @@ func TestJWTAuthMiddleware_InvalidFormat(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			req, _ := http.NewRequest("GET", "/test", nil)
+			req, err := http.NewRequest("GET", "/test", nil)
+			require.NoError(t, err)
 			req.Header.Set("Authorization", tc.header)
 
 			w := httptest.NewRecorder()
@@ -147,7 +157,8 @@ func TestJWTAuthMiddleware_ExpiredToken(t *testing.T) {
 		c.JSON(200, gin.H{"ok": true})
 	})
 
-	req, _ := http.NewRequest("GET", "/test", nil)
+	req, err := http.NewRequest("GET", "/test", nil)
+	require.NoError(t, err)
 	req.Header.Set("Authorization", "Bearer "+token)
 
 	w := httptest.NewRecorder()
@@ -185,7 +196,8 @@ func TestJWTAuthMiddleware_InvalidToken(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			req, _ := http.NewRequest("GET", "/test", nil)
+			req, err := http.NewRequest("GET", "/test", nil)
+			require.NoError(t, err)
 			req.Header.Set("Authorization", "Bearer "+tc.token)
 
 			w := httptest.NewRecorder()
@@ -203,7 +215,8 @@ func TestJWTAuthMiddleware_WrongSecret(t *testing.T) {
 
 	// Crear token con un secret
 	jwtManager1 := auth.NewJWTManager("secret-1", "issuer")
-	token, _ := jwtManager1.GenerateToken("user123", "test@test.com", "student", time.Hour)
+	token, err := jwtManager1.GenerateToken("user123", "test@test.com", "student", time.Hour)
+	require.NoError(t, err)
 
 	// Intentar validar con otro secret
 	jwtManager2 := auth.NewJWTManager("secret-2", "issuer")
@@ -214,7 +227,8 @@ func TestJWTAuthMiddleware_WrongSecret(t *testing.T) {
 		c.JSON(200, gin.H{"ok": true})
 	})
 
-	req, _ := http.NewRequest("GET", "/test", nil)
+	req, err := http.NewRequest("GET", "/test", nil)
+	require.NoError(t, err)
 	req.Header.Set("Authorization", "Bearer "+token)
 
 	w := httptest.NewRecorder()
@@ -241,7 +255,8 @@ func TestJWTAuthMiddleware_AbortChain(t *testing.T) {
 	})
 
 	// Request sin token
-	req, _ := http.NewRequest("GET", "/test", nil)
+	req, err := http.NewRequest("GET", "/test", nil)
+	require.NoError(t, err)
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 

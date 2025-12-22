@@ -17,6 +17,8 @@ type Publisher interface {
 }
 
 // RabbitMQPublisher implementación de Publisher para RabbitMQ
+//
+//nolint:revive // Nombre mantenido por compatibilidad de API
 type RabbitMQPublisher struct {
 	conn *Connection
 }
@@ -34,6 +36,8 @@ func (p *RabbitMQPublisher) Publish(ctx context.Context, exchange, routingKey st
 }
 
 // PublishWithPriority publica un mensaje con prioridad específica
+//
+//nolint:contextcheck // ctx puede ser nil y se reemplaza con Background, es comportamiento intencional
 func (p *RabbitMQPublisher) PublishWithPriority(ctx context.Context, exchange, routingKey string, body interface{}, priority uint8) error {
 	if ctx == nil {
 		ctx = context.Background()

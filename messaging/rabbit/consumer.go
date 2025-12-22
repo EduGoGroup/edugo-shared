@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	// amqp "github.com/rabbitmq/amqp091-go" // No usado actualmente
+	"log"
 )
 
 // MessageHandler es la función que procesa un mensaje
@@ -63,11 +63,17 @@ func (c *RabbitMQConsumer) Consume(ctx context.Context, queueName string, handle
 				// Manejar acknowledgment si no es auto-ack
 				if !c.config.AutoAck {
 					if err != nil {
-						// Nack con requeue si hubo error
-						_ = msg.Nack(false, true) // Ignore nack errors
+						// Nack con requeue si hubo error en el handler
+						if nackErr := msg.Nack(false, true); nackErr != nil {
+							log.Printf("[ERROR] failed to nack message (delivery_tag=%d, queue=%s): %v (original error: %v)",
+								msg.DeliveryTag, queueName, nackErr, err)
+						}
 					} else {
-						// Ack si fue exitoso
-						_ = msg.Ack(false) // Ignore ack errors
+						// Ack si el procesamiento fue exitoso
+						if ackErr := msg.Ack(false); ackErr != nil {
+							log.Printf("[ERROR] failed to ack message (delivery_tag=%d, queue=%s): %v",
+								msg.DeliveryTag, queueName, ackErr)
+						}
 					}
 				}
 			}

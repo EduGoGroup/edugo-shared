@@ -21,7 +21,7 @@ func TestRabbitMQFactory_CreateConnection_Success(t *testing.T) {
 
 	// Setup container
 	config := containers.NewConfig().
-		WithRabbitMQ(&containers.RabbitMQConfig{
+		WithRabbitMQ(&containers.RabbitConfig{
 			Image: "rabbitmq:3.12-alpine",
 		}).
 		Build()
@@ -127,7 +127,7 @@ func TestRabbitMQFactory_CreateChannel_Success(t *testing.T) {
 	ctx := context.Background()
 
 	config := containers.NewConfig().
-		WithRabbitMQ(&containers.RabbitMQConfig{
+		WithRabbitMQ(&containers.RabbitConfig{
 			Image: "rabbitmq:3.12-alpine",
 		}).
 		Build()
@@ -168,7 +168,7 @@ func TestRabbitMQFactory_CreateChannel_QoSConfigured(t *testing.T) {
 	ctx := context.Background()
 
 	config := containers.NewConfig().
-		WithRabbitMQ(&containers.RabbitMQConfig{
+		WithRabbitMQ(&containers.RabbitConfig{
 			Image: "rabbitmq:3.12-alpine",
 		}).
 		Build()
@@ -218,7 +218,7 @@ func TestRabbitMQFactory_DeclareQueue_Success(t *testing.T) {
 	ctx := context.Background()
 
 	config := containers.NewConfig().
-		WithRabbitMQ(&containers.RabbitMQConfig{
+		WithRabbitMQ(&containers.RabbitConfig{
 			Image: "rabbitmq:3.12-alpine",
 		}).
 		Build()
@@ -262,7 +262,7 @@ func TestRabbitMQFactory_DeclareQueue_WithConfiguration(t *testing.T) {
 	ctx := context.Background()
 
 	config := containers.NewConfig().
-		WithRabbitMQ(&containers.RabbitMQConfig{
+		WithRabbitMQ(&containers.RabbitConfig{
 			Image: "rabbitmq:3.12-alpine",
 		}).
 		Build()
@@ -311,7 +311,7 @@ func TestRabbitMQFactory_Close_Success(t *testing.T) {
 	ctx := context.Background()
 
 	config := containers.NewConfig().
-		WithRabbitMQ(&containers.RabbitMQConfig{
+		WithRabbitMQ(&containers.RabbitConfig{
 			Image: "rabbitmq:3.12-alpine",
 		}).
 		Build()
@@ -349,7 +349,7 @@ func TestRabbitMQFactory_Close_WithNilChannel(t *testing.T) {
 	ctx := context.Background()
 
 	config := containers.NewConfig().
-		WithRabbitMQ(&containers.RabbitMQConfig{
+		WithRabbitMQ(&containers.RabbitConfig{
 			Image: "rabbitmq:3.12-alpine",
 		}).
 		Build()
@@ -384,7 +384,7 @@ func TestRabbitMQFactory_Close_AlreadyClosed(t *testing.T) {
 	ctx := context.Background()
 
 	config := containers.NewConfig().
-		WithRabbitMQ(&containers.RabbitMQConfig{
+		WithRabbitMQ(&containers.RabbitConfig{
 			Image: "rabbitmq:3.12-alpine",
 		}).
 		Build()
@@ -427,7 +427,7 @@ func TestRabbitMQFactory_MultipleChannels(t *testing.T) {
 	ctx := context.Background()
 
 	config := containers.NewConfig().
-		WithRabbitMQ(&containers.RabbitMQConfig{
+		WithRabbitMQ(&containers.RabbitConfig{
 			Image: "rabbitmq:3.12-alpine",
 		}).
 		Build()
@@ -477,7 +477,7 @@ func TestRabbitMQFactory_PublishConsume(t *testing.T) {
 	ctx := context.Background()
 
 	config := containers.NewConfig().
-		WithRabbitMQ(&containers.RabbitMQConfig{
+		WithRabbitMQ(&containers.RabbitConfig{
 			Image: "rabbitmq:3.12-alpine",
 		}).
 		Build()

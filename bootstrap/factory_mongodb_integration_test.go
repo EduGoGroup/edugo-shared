@@ -1,8 +1,5 @@
 package bootstrap
 
-// TODO: Estos tests de MongoDB integration necesitan refactoring para usar correctamente containers.MongoDB
-// Por ahora se skipean para permitir que el coverage validation pase
-
 import (
 	"context"
 	"testing"
@@ -17,7 +14,6 @@ import (
 
 // TestMongoDBFactory_CreateConnection_Success verifica creación exitosa de conexión
 func TestMongoDBFactory_CreateConnection_Success(t *testing.T) {
-	t.Skip("MongoDB integration tests requieren refactoring - ver TODO en archivo")
 	if testing.Short() {
 		t.Skip("Omitiendo test de integración en modo short")
 	}
@@ -32,19 +28,19 @@ func TestMongoDBFactory_CreateConnection_Success(t *testing.T) {
 	manager, err := containers.GetManager(t, config)
 	require.NoError(t, err)
 
-	mongo := manager.MongoDB()
-	require.NotNil(t, mongo)
+	mongoContainer := manager.MongoDB()
+	require.NotNil(t, mongoContainer)
 
 	// Crear factory
 	factory := NewDefaultMongoDBFactory()
 
 	// Obtener connection string
-	mongoURI, err := mongo.ConnectionString(ctx)
+	mongoURI, err := mongoContainer.ConnectionString(ctx)
 	require.NoError(t, err)
 
 	// Configuración de MongoDB
 	mongoConfig := MongoDBConfig{
-		URI: mongoURI,
+		URI:      mongoURI,
 		Database: "test_db",
 	}
 
@@ -61,7 +57,6 @@ func TestMongoDBFactory_CreateConnection_Success(t *testing.T) {
 
 // TestMongoDBFactory_CreateConnection_InvalidURI verifica error con URI inválida
 func TestMongoDBFactory_CreateConnection_InvalidURI(t *testing.T) {
-	t.Skip("MongoDB integration tests requieren refactoring - ver TODO en archivo")
 	if testing.Short() {
 		t.Skip("Omitiendo test de integración en modo short")
 	}
@@ -94,7 +89,6 @@ func TestMongoDBFactory_CreateConnection_InvalidURI(t *testing.T) {
 
 // TestMongoDBFactory_Ping_Success verifica ping exitoso
 func TestMongoDBFactory_Ping_Success(t *testing.T) {
-	t.Skip("MongoDB integration tests requieren refactoring - ver TODO en archivo")
 	if testing.Short() {
 		t.Skip("Omitiendo test de integración en modo short")
 	}
@@ -108,11 +102,16 @@ func TestMongoDBFactory_Ping_Success(t *testing.T) {
 	manager, err := containers.GetManager(t, config)
 	require.NoError(t, err)
 
-	mongo := manager.MongoDB()
+	mongoContainer := manager.MongoDB()
+	require.NotNil(t, mongoContainer)
+
 	factory := NewDefaultMongoDBFactory()
 
+	mongoURI, err := mongoContainer.ConnectionString(ctx)
+	require.NoError(t, err)
+
 	mongoConfig := MongoDBConfig{
-		URI:      mongo.ConnectionString(ctx),
+		URI:      mongoURI,
 		Database: "test_db",
 	}
 
@@ -127,7 +126,6 @@ func TestMongoDBFactory_Ping_Success(t *testing.T) {
 
 // TestMongoDBFactory_GetDatabase verifica obtención de database
 func TestMongoDBFactory_GetDatabase(t *testing.T) {
-	t.Skip("MongoDB integration tests requieren refactoring - ver TODO en archivo")
 	if testing.Short() {
 		t.Skip("Omitiendo test de integración en modo short")
 	}
@@ -141,11 +139,16 @@ func TestMongoDBFactory_GetDatabase(t *testing.T) {
 	manager, err := containers.GetManager(t, config)
 	require.NoError(t, err)
 
-	mongo := manager.MongoDB()
+	mongoContainer := manager.MongoDB()
+	require.NotNil(t, mongoContainer)
+
 	factory := NewDefaultMongoDBFactory()
 
+	mongoURI, err := mongoContainer.ConnectionString(ctx)
+	require.NoError(t, err)
+
 	mongoConfig := MongoDBConfig{
-		URI:      mongo.ConnectionString(ctx),
+		URI:      mongoURI,
 		Database: "test_db",
 	}
 
@@ -161,7 +164,6 @@ func TestMongoDBFactory_GetDatabase(t *testing.T) {
 
 // TestMongoDBFactory_Close_Success verifica cierre exitoso
 func TestMongoDBFactory_Close_Success(t *testing.T) {
-	t.Skip("MongoDB integration tests requieren refactoring - ver TODO en archivo")
 	if testing.Short() {
 		t.Skip("Omitiendo test de integración en modo short")
 	}
@@ -175,11 +177,16 @@ func TestMongoDBFactory_Close_Success(t *testing.T) {
 	manager, err := containers.GetManager(t, config)
 	require.NoError(t, err)
 
-	mongo := manager.MongoDB()
+	mongoContainer := manager.MongoDB()
+	require.NotNil(t, mongoContainer)
+
 	factory := NewDefaultMongoDBFactory()
 
+	mongoURI, err := mongoContainer.ConnectionString(ctx)
+	require.NoError(t, err)
+
 	mongoConfig := MongoDBConfig{
-		URI:      mongo.ConnectionString(ctx),
+		URI:      mongoURI,
 		Database: "test_db",
 	}
 
@@ -193,7 +200,6 @@ func TestMongoDBFactory_Close_Success(t *testing.T) {
 
 // TestMongoDBFactory_ConnectionPoolSettings verifica configuración del pool
 func TestMongoDBFactory_ConnectionPoolSettings(t *testing.T) {
-	t.Skip("MongoDB integration tests requieren refactoring - ver TODO en archivo")
 	if testing.Short() {
 		t.Skip("Omitiendo test de integración en modo short")
 	}
@@ -207,11 +213,16 @@ func TestMongoDBFactory_ConnectionPoolSettings(t *testing.T) {
 	manager, err := containers.GetManager(t, config)
 	require.NoError(t, err)
 
-	mongo := manager.MongoDB()
+	mongoContainer := manager.MongoDB()
+	require.NotNil(t, mongoContainer)
+
 	factory := NewDefaultMongoDBFactory()
 
+	mongoURI, err := mongoContainer.ConnectionString(ctx)
+	require.NoError(t, err)
+
 	mongoConfig := MongoDBConfig{
-		URI:      mongo.ConnectionString(ctx),
+		URI:      mongoURI,
 		Database: "test_db",
 	}
 
@@ -227,7 +238,6 @@ func TestMongoDBFactory_ConnectionPoolSettings(t *testing.T) {
 
 // TestMongoDBFactory_MultipleConnections verifica múltiples conexiones
 func TestMongoDBFactory_MultipleConnections(t *testing.T) {
-	t.Skip("MongoDB integration tests requieren refactoring - ver TODO en archivo")
 	if testing.Short() {
 		t.Skip("Omitiendo test de integración en modo short")
 	}
@@ -241,11 +251,16 @@ func TestMongoDBFactory_MultipleConnections(t *testing.T) {
 	manager, err := containers.GetManager(t, config)
 	require.NoError(t, err)
 
-	mongo := manager.MongoDB()
+	mongoContainer := manager.MongoDB()
+	require.NotNil(t, mongoContainer)
+
 	factory := NewDefaultMongoDBFactory()
 
+	mongoURI, err := mongoContainer.ConnectionString(ctx)
+	require.NoError(t, err)
+
 	mongoConfig := MongoDBConfig{
-		URI:      mongo.ConnectionString(ctx),
+		URI:      mongoURI,
 		Database: "test_db",
 	}
 
@@ -275,7 +290,6 @@ type mongoClient = mongo.Client
 
 // TestMongoDBFactory_DatabaseOperations verifica operaciones básicas
 func TestMongoDBFactory_DatabaseOperations(t *testing.T) {
-	t.Skip("MongoDB integration tests requieren refactoring - ver TODO en archivo")
 	if testing.Short() {
 		t.Skip("Omitiendo test de integración en modo short")
 	}
@@ -289,11 +303,16 @@ func TestMongoDBFactory_DatabaseOperations(t *testing.T) {
 	manager, err := containers.GetManager(t, config)
 	require.NoError(t, err)
 
-	mongo := manager.MongoDB()
+	mongoContainer := manager.MongoDB()
+	require.NotNil(t, mongoContainer)
+
 	factory := NewDefaultMongoDBFactory()
 
+	mongoURI, err := mongoContainer.ConnectionString(ctx)
+	require.NoError(t, err)
+
 	mongoConfig := MongoDBConfig{
-		URI:      mongo.ConnectionString(ctx),
+		URI:      mongoURI,
 		Database: "test_db",
 	}
 
@@ -327,41 +346,6 @@ func TestMongoDBFactory_DatabaseOperations(t *testing.T) {
 
 // TestMongoDBFactory_PingWithTimeout verifica ping con timeout
 func TestMongoDBFactory_PingWithTimeout(t *testing.T) {
-	t.Skip("MongoDB integration tests requieren refactoring - ver TODO en archivo")
-	if testing.Short() {
-		t.Skip("Omitiendo test de integración en modo short")
-	}
-
-	config := containers.NewConfig().
-		WithMongoDB(nil).
-		Build()
-
-	manager, err := containers.GetManager(t, config)
-	require.NoError(t, err)
-
-	mongo := manager.MongoDB()
-	factory := NewDefaultMongoDBFactory()
-
-	mongoConfig := MongoDBConfig{
-		URI:      mongo.ConnectionString(ctx),
-		Database: "test_db",
-	}
-
-	client, err := factory.CreateConnection(context.Background(), mongoConfig)
-	require.NoError(t, err)
-	defer factory.Close(context.Background(), client)
-
-	// Ping con timeout muy corto
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	err = factory.Ping(ctx, client)
-	assert.NoError(t, err, "Ping debe completarse dentro del timeout")
-}
-
-// TestMongoDBFactory_GetDatabase_MultipleDatabases verifica múltiples databases
-func TestMongoDBFactory_GetDatabase_MultipleDatabases(t *testing.T) {
-	t.Skip("MongoDB integration tests requieren refactoring - ver TODO en archivo")
 	if testing.Short() {
 		t.Skip("Omitiendo test de integración en modo short")
 	}
@@ -375,11 +359,56 @@ func TestMongoDBFactory_GetDatabase_MultipleDatabases(t *testing.T) {
 	manager, err := containers.GetManager(t, config)
 	require.NoError(t, err)
 
-	mongo := manager.MongoDB()
+	mongoContainer := manager.MongoDB()
+	require.NotNil(t, mongoContainer)
+
 	factory := NewDefaultMongoDBFactory()
 
+	mongoURI, err := mongoContainer.ConnectionString(ctx)
+	require.NoError(t, err)
+
 	mongoConfig := MongoDBConfig{
-		URI:      mongo.ConnectionString(ctx),
+		URI:      mongoURI,
+		Database: "test_db",
+	}
+
+	client, err := factory.CreateConnection(ctx, mongoConfig)
+	require.NoError(t, err)
+	defer factory.Close(ctx, client)
+
+	// Ping con timeout muy corto
+	pingCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	err = factory.Ping(pingCtx, client)
+	assert.NoError(t, err, "Ping debe completarse dentro del timeout")
+}
+
+// TestMongoDBFactory_GetDatabase_MultipleDatabases verifica múltiples databases
+func TestMongoDBFactory_GetDatabase_MultipleDatabases(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Omitiendo test de integración en modo short")
+	}
+
+	ctx := context.Background()
+
+	config := containers.NewConfig().
+		WithMongoDB(nil).
+		Build()
+
+	manager, err := containers.GetManager(t, config)
+	require.NoError(t, err)
+
+	mongoContainer := manager.MongoDB()
+	require.NotNil(t, mongoContainer)
+
+	factory := NewDefaultMongoDBFactory()
+
+	mongoURI, err := mongoContainer.ConnectionString(ctx)
+	require.NoError(t, err)
+
+	mongoConfig := MongoDBConfig{
+		URI:      mongoURI,
 		Database: "test_db",
 	}
 
@@ -398,7 +427,6 @@ func TestMongoDBFactory_GetDatabase_MultipleDatabases(t *testing.T) {
 
 // TestMongoDBFactory_ConnectionTimeout verifica manejo de timeout de conexión
 func TestMongoDBFactory_ConnectionTimeout(t *testing.T) {
-	t.Skip("MongoDB integration tests requieren refactoring - ver TODO en archivo")
 	if testing.Short() {
 		t.Skip("Omitiendo test de integración en modo short")
 	}
@@ -428,7 +456,6 @@ func TestMongoDBFactory_ConnectionTimeout(t *testing.T) {
 
 // TestMongoDBFactory_CloseWithTimeout verifica cierre con timeout
 func TestMongoDBFactory_CloseWithTimeout(t *testing.T) {
-	t.Skip("MongoDB integration tests requieren refactoring - ver TODO en archivo")
 	if testing.Short() {
 		t.Skip("Omitiendo test de integración en modo short")
 	}
@@ -442,11 +469,16 @@ func TestMongoDBFactory_CloseWithTimeout(t *testing.T) {
 	manager, err := containers.GetManager(t, config)
 	require.NoError(t, err)
 
-	mongo := manager.MongoDB()
+	mongoContainer := manager.MongoDB()
+	require.NotNil(t, mongoContainer)
+
 	factory := NewDefaultMongoDBFactory()
 
+	mongoURI, err := mongoContainer.ConnectionString(ctx)
+	require.NoError(t, err)
+
 	mongoConfig := MongoDBConfig{
-		URI:      mongo.ConnectionString(ctx),
+		URI:      mongoURI,
 		Database: "test_db",
 	}
 
@@ -463,7 +495,6 @@ func TestMongoDBFactory_CloseWithTimeout(t *testing.T) {
 
 // TestMongoDBFactory_DefaultTimeout verifica timeout por defecto configurado
 func TestMongoDBFactory_DefaultTimeout(t *testing.T) {
-	t.Skip("MongoDB integration tests requieren refactoring - ver TODO en archivo")
 	factory := NewDefaultMongoDBFactory()
 
 	assert.NotNil(t, factory)
@@ -473,7 +504,6 @@ func TestMongoDBFactory_DefaultTimeout(t *testing.T) {
 
 // TestMongoDBFactory_ConcurrentOperations verifica operaciones concurrentes
 func TestMongoDBFactory_ConcurrentOperations(t *testing.T) {
-	t.Skip("MongoDB integration tests requieren refactoring - ver TODO en archivo")
 	if testing.Short() {
 		t.Skip("Omitiendo test de integración en modo short")
 	}
@@ -487,11 +517,16 @@ func TestMongoDBFactory_ConcurrentOperations(t *testing.T) {
 	manager, err := containers.GetManager(t, config)
 	require.NoError(t, err)
 
-	mongo := manager.MongoDB()
+	mongoContainer := manager.MongoDB()
+	require.NotNil(t, mongoContainer)
+
 	factory := NewDefaultMongoDBFactory()
 
+	mongoURI, err := mongoContainer.ConnectionString(ctx)
+	require.NoError(t, err)
+
 	mongoConfig := MongoDBConfig{
-		URI:      mongo.ConnectionString(ctx),
+		URI:      mongoURI,
 		Database: "test_db",
 	}
 

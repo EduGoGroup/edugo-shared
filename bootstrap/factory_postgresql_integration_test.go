@@ -8,6 +8,7 @@ import (
 	"github.com/EduGoGroup/edugo-shared/testing/containers"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
 
@@ -38,10 +39,16 @@ func TestPostgreSQLFactory_CreateConnection_Success(t *testing.T) {
 	// Crear factory
 	factory := NewDefaultPostgreSQLFactory(nil)
 
+	// Obtener datos de conexión
+	host, err := pg.Host(ctx)
+	require.NoError(t, err)
+	port, err := pg.MappedPort(ctx)
+	require.NoError(t, err)
+
 	// Configuración de PostgreSQL
 	pgConfig := PostgreSQLConfig{
-		Host:     pg.Host(),
-		Port:     pg.Port(),
+		Host:     host,
+		Port:     port,
 		User:     pg.Username(),
 		Password: pg.Password(),
 		Database: pg.Database(),
@@ -106,8 +113,14 @@ func TestPostgreSQLFactory_CreateConnection_WithSSLMode(t *testing.T) {
 	require.NoError(t, err)
 
 	pg := manager.PostgreSQL()
+	require.NotNil(t, pg)
 
 	factory := NewDefaultPostgreSQLFactory(nil)
+
+	host, err := pg.Host(ctx)
+	require.NoError(t, err)
+	port, err := pg.MappedPort(ctx)
+	require.NoError(t, err)
 
 	tests := []struct {
 		name    string
@@ -134,8 +147,8 @@ func TestPostgreSQLFactory_CreateConnection_WithSSLMode(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			pgConfig := PostgreSQLConfig{
-				Host:     pg.Host(),
-				Port:     pg.Port(),
+				Host:     host,
+				Port:     port,
 				User:     pg.Username(),
 				Password: pg.Password(),
 				Database: pg.Database(),
@@ -179,11 +192,18 @@ func TestPostgreSQLFactory_Ping_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	pg := manager.PostgreSQL()
+	require.NotNil(t, pg)
+
 	factory := NewDefaultPostgreSQLFactory(nil)
 
+	host, err := pg.Host(ctx)
+	require.NoError(t, err)
+	port, err := pg.MappedPort(ctx)
+	require.NoError(t, err)
+
 	pgConfig := PostgreSQLConfig{
-		Host:     pg.Host(),
-		Port:     pg.Port(),
+		Host:     host,
+		Port:     port,
 		User:     pg.Username(),
 		Password: pg.Password(),
 		Database: pg.Database(),
@@ -220,11 +240,18 @@ func TestPostgreSQLFactory_Close_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	pg := manager.PostgreSQL()
+	require.NotNil(t, pg)
+
 	factory := NewDefaultPostgreSQLFactory(nil)
 
+	host, err := pg.Host(ctx)
+	require.NoError(t, err)
+	port, err := pg.MappedPort(ctx)
+	require.NoError(t, err)
+
 	pgConfig := PostgreSQLConfig{
-		Host:     pg.Host(),
-		Port:     pg.Port(),
+		Host:     host,
+		Port:     port,
 		User:     pg.Username(),
 		Password: pg.Password(),
 		Database: pg.Database(),
@@ -260,11 +287,18 @@ func TestPostgreSQLFactory_CreateRawConnection_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	pg := manager.PostgreSQL()
+	require.NotNil(t, pg)
+
 	factory := NewDefaultPostgreSQLFactory(nil)
 
+	host, err := pg.Host(ctx)
+	require.NoError(t, err)
+	port, err := pg.MappedPort(ctx)
+	require.NoError(t, err)
+
 	pgConfig := PostgreSQLConfig{
-		Host:     pg.Host(),
-		Port:     pg.Port(),
+		Host:     host,
+		Port:     port,
 		User:     pg.Username(),
 		Password: pg.Password(),
 		Database: pg.Database(),
@@ -326,11 +360,18 @@ func TestPostgreSQLFactory_ConnectionPoolSettings(t *testing.T) {
 	require.NoError(t, err)
 
 	pg := manager.PostgreSQL()
+	require.NotNil(t, pg)
+
 	factory := NewDefaultPostgreSQLFactory(nil)
 
+	host, err := pg.Host(ctx)
+	require.NoError(t, err)
+	port, err := pg.MappedPort(ctx)
+	require.NoError(t, err)
+
 	pgConfig := PostgreSQLConfig{
-		Host:     pg.Host(),
-		Port:     pg.Port(),
+		Host:     host,
+		Port:     port,
 		User:     pg.Username(),
 		Password: pg.Password(),
 		Database: pg.Database(),
@@ -373,14 +414,20 @@ func TestPostgreSQLFactory_WithCustomLogger(t *testing.T) {
 	require.NoError(t, err)
 
 	pg := manager.PostgreSQL()
+	require.NotNil(t, pg)
 
 	// Crear factory con logger custom
 	customLogger := logger.Default.LogMode(logger.Silent)
 	factory := NewDefaultPostgreSQLFactory(customLogger)
 
+	host, err := pg.Host(ctx)
+	require.NoError(t, err)
+	port, err := pg.MappedPort(ctx)
+	require.NoError(t, err)
+
 	pgConfig := PostgreSQLConfig{
-		Host:     pg.Host(),
-		Port:     pg.Port(),
+		Host:     host,
+		Port:     port,
 		User:     pg.Username(),
 		Password: pg.Password(),
 		Database: pg.Database(),
@@ -414,11 +461,18 @@ func TestPostgreSQLFactory_MultipleConnections(t *testing.T) {
 	require.NoError(t, err)
 
 	pg := manager.PostgreSQL()
+	require.NotNil(t, pg)
+
 	factory := NewDefaultPostgreSQLFactory(nil)
 
+	host, err := pg.Host(ctx)
+	require.NoError(t, err)
+	port, err := pg.MappedPort(ctx)
+	require.NoError(t, err)
+
 	pgConfig := PostgreSQLConfig{
-		Host:     pg.Host(),
-		Port:     pg.Port(),
+		Host:     host,
+		Port:     port,
 		User:     pg.Username(),
 		Password: pg.Password(),
 		Database: pg.Database(),
@@ -525,11 +579,18 @@ func TestPostgreSQLFactory_QueryExecution(t *testing.T) {
 	require.NoError(t, err)
 
 	pg := manager.PostgreSQL()
+	require.NotNil(t, pg)
+
 	factory := NewDefaultPostgreSQLFactory(nil)
 
+	host, err := pg.Host(ctx)
+	require.NoError(t, err)
+	port, err := pg.MappedPort(ctx)
+	require.NoError(t, err)
+
 	pgConfig := PostgreSQLConfig{
-		Host:     pg.Host(),
-		Port:     pg.Port(),
+		Host:     host,
+		Port:     port,
 		User:     pg.Username(),
 		Password: pg.Password(),
 		Database: pg.Database(),

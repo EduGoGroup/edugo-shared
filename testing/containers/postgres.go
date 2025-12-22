@@ -130,6 +130,35 @@ func (pc *PostgresContainer) Truncate(ctx context.Context, tables ...string) err
 	return nil
 }
 
+// Host retorna el host del container
+func (pc *PostgresContainer) Host(ctx context.Context) (string, error) {
+	return pc.container.Host(ctx)
+}
+
+// MappedPort retorna el puerto mapeado del container
+func (pc *PostgresContainer) MappedPort(ctx context.Context) (int, error) {
+	port, err := pc.container.MappedPort(ctx, "5432/tcp")
+	if err != nil {
+		return 0, err
+	}
+	return port.Int(), nil
+}
+
+// Username retorna el nombre de usuario configurado
+func (pc *PostgresContainer) Username() string {
+	return pc.config.Username
+}
+
+// Password retorna la contraseña configurada
+func (pc *PostgresContainer) Password() string {
+	return pc.config.Password
+}
+
+// Database retorna el nombre de la base de datos configurada
+func (pc *PostgresContainer) Database() string {
+	return pc.config.Database
+}
+
 // Terminate termina el container y cierra las conexiones
 func (pc *PostgresContainer) Terminate(ctx context.Context) error {
 	if pc.db != nil {

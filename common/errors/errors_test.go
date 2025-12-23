@@ -1,6 +1,7 @@
 package errors_test
 
 import (
+	stderrors "errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -30,7 +31,7 @@ func TestWrap(t *testing.T) {
 	if err.Code != errors.ErrorCodeInternal {
 		t.Errorf("Expected code %s, got %s", errors.ErrorCodeInternal, err.Code)
 	}
-	if err.Internal != originalErr {
+	if !stderrors.Is(err.Internal, originalErr) {
 		t.Error("Internal error not set correctly")
 	}
 }
@@ -55,7 +56,7 @@ func TestAppError_Error(t *testing.T) {
 
 func TestAppError_WithDetails(t *testing.T) {
 	err := errors.New(errors.ErrorCodeValidation, "validation failed")
-	_ = err.WithDetails("field 'email' is invalid")
+	err = err.WithDetails("field 'email' is invalid")
 
 	if err.Details != "field 'email' is invalid" {
 		t.Errorf("Details not set correctly: %s", err.Details)
@@ -64,7 +65,7 @@ func TestAppError_WithDetails(t *testing.T) {
 
 func TestAppError_WithField(t *testing.T) {
 	err := errors.New(errors.ErrorCodeNotFound, "not found")
-	_ = err.WithField("resource", "user").WithField("id", 123)
+	err = err.WithField("resource", "user").WithField("id", 123)
 
 	if err.Fields["resource"] != "user" {
 		t.Error("Field 'resource' not set")
@@ -77,9 +78,9 @@ func TestAppError_WithField(t *testing.T) {
 func TestAppError_WithInternal(t *testing.T) {
 	internal := fmt.Errorf("db connection failed")
 	err := errors.New(errors.ErrorCodeDatabaseError, "database error")
-	_ = err.WithInternal(internal)
+	err = err.WithInternal(internal)
 
-	if err.Internal != internal {
+	if !stderrors.Is(err.Internal, internal) {
 		t.Error("Internal error not set")
 	}
 }
@@ -292,9 +293,12 @@ func TestGetAppError(t *testing.T) {
 		t.Error("Should convert to AppError")
 	}
 
-	_, ok = errors.GetAppError(stdErr)
+	got, ok = errors.GetAppError(stdErr)
 	if ok {
 		t.Error("Should not convert standard error")
+	}
+	if got != nil {
+		t.Error("Should return nil for standard error")
 	}
 }
 
@@ -303,7 +307,7 @@ func TestAppError_Unwrap(t *testing.T) {
 	err := errors.Wrap(internal, errors.ErrorCodeInternal, "wrapped")
 
 	unwrapped := err.Unwrap()
-	if unwrapped != internal {
+	if !stderrors.Is(unwrapped, internal) {
 		t.Error("Unwrap should return internal error")
 	}
 

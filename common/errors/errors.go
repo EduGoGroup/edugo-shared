@@ -3,6 +3,7 @@
 package errors
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 )
@@ -209,12 +210,13 @@ func getDefaultStatusCode(code ErrorCode) int {
 
 // IsAppError verifica si un error es un AppError
 func IsAppError(err error) bool {
-	_, ok := err.(*AppError)
-	return ok
+	var appErr *AppError
+	return errors.As(err, &appErr)
 }
 
 // GetAppError intenta convertir un error a AppError
 func GetAppError(err error) (*AppError, bool) {
-	appErr, ok := err.(*AppError)
+	var appErr *AppError
+	ok := errors.As(err, &appErr)
 	return appErr, ok
 }

@@ -3,11 +3,14 @@ package bootstrap
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -70,7 +73,7 @@ func (p *defaultMessagePublisher) Close() error {
 // defaultStorageClient es una implementación básica de StorageClient
 type defaultStorageClient struct {
 	client        *s3.Client
-	presignClient interface{}
+	presignClient *s3.PresignClient
 	bucket        string
 }
 
@@ -126,8 +129,25 @@ func (c *defaultStorageClient) Delete(ctx context.Context, key string) error {
 
 // GetPresignedURL genera una URL pre-firmada para acceso temporal
 func (c *defaultStorageClient) GetPresignedURL(ctx context.Context, key string, expirationMinutes int) (string, error) {
-	// TODO: Implementar con presign client
-	return "", fmt.Errorf("presigned URL not implemented yet")
+	if c.presignClient == nil {
+		return "", fmt.Errorf("presign client not initialized")
+	}
+
+	// Convertir minutos a duración
+	expiration := time.Duration(expirationMinutes) * time.Minute
+
+	// Crear solicitud de presign
+	request, err := c.presignClient.PresignGetObject(ctx, &s3.GetObjectInput{
+		Bucket: aws.String(c.bucket),
+		Key:    aws.String(key),
+	}, func(opts *s3.PresignOptions) {
+		opts.Expires = expiration
+	})
+	if err != nil {
+		return "", fmt.Errorf("failed to generate presigned URL: %w", err)
+	}
+
+	return request.URL, nil
 }
 
 // Exists verifica si un archivo existe
@@ -137,8 +157,20 @@ func (c *defaultStorageClient) Exists(ctx context.Context, key string) (bool, er
 		Key:    aws.String(key),
 	})
 	if err != nil {
-		// Si es error "not found", retornar false sin error
-		return false, nil
+		// Verificar si es un error "NotFound" (404)
+		var notFound *types.NotFound
+		if errors.As(err, &notFound) {
+			return false, nil
+		}
+
+		// Verificar si es un error "NoSuchKey"
+		var noSuchKey *types.NoSuchKey
+		if errors.As(err, &noSuchKey) {
+			return false, nil
+		}
+
+		// Cualquier otro error es un error real que debe propagarse
+		return false, fmt.Errorf("failed to check if object exists: %w", err)
 	}
 
 	return true, nil

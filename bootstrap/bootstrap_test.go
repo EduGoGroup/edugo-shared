@@ -6,6 +6,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/EduGoGroup/edugo-shared/logger"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/sirupsen/logrus"
@@ -20,17 +21,17 @@ import (
 // mockLoggerFactory es un mock de LoggerFactory
 type mockLoggerFactory struct {
 	shouldFail bool
-	logger     *logrus.Logger
+	logger     logger.Logger
 }
 
-func (m *mockLoggerFactory) CreateLogger(ctx context.Context, env string, version string) (*logrus.Logger, error) {
+func (m *mockLoggerFactory) CreateLogger(ctx context.Context, env string, version string) (logger.Logger, error) {
 	if m.shouldFail {
 		return nil, errors.New("mock logger creation failed")
 	}
 	if m.logger != nil {
 		return m.logger, nil
 	}
-	return logrus.New(), nil
+	return logger.NewLogrusLogger(logrus.New()), nil
 }
 
 // mockPostgreSQLFactory es un mock de PostgreSQLFactory
@@ -93,14 +94,14 @@ func (m *mockRabbitMQFactory) CreateConnection(ctx context.Context, config Rabbi
 	if m.shouldFail {
 		return nil, errors.New("mock rabbitmq connection failed")
 	}
-	return nil, nil // Retornamos nil porque no podemos crear una conexión real
+	return nil, nil //nolint:nilnil // Mock: no podemos crear una conexión real en tests
 }
 
 func (m *mockRabbitMQFactory) CreateChannel(conn *amqp.Connection) (*amqp.Channel, error) {
 	if m.shouldFail {
 		return nil, errors.New("mock rabbitmq channel failed")
 	}
-	return nil, nil
+	return nil, nil //nolint:nilnil // Mock: no podemos crear un canal real en tests
 }
 
 func (m *mockRabbitMQFactory) DeclareQueue(channel *amqp.Channel, queueName string) (amqp.Queue, error) {
@@ -120,11 +121,14 @@ func (m *mockS3Factory) CreateClient(ctx context.Context, config S3Config) (*s3.
 	if m.shouldFail {
 		return nil, errors.New("mock s3 client failed")
 	}
-	return nil, nil
+	return nil, nil //nolint:nilnil // Mock: no podemos crear un cliente S3 real en tests
 }
 
-func (m *mockS3Factory) CreatePresignClient(client *s3.Client) interface{} {
-	return nil
+func (m *mockS3Factory) CreatePresignClient(client *s3.Client) *s3.PresignClient {
+	if client == nil {
+		return nil
+	}
+	return s3.NewPresignClient(client)
 }
 
 func (m *mockS3Factory) ValidateBucket(ctx context.Context, client *s3.Client, bucket string) error {
@@ -363,7 +367,7 @@ func TestResources_HasMethods(t *testing.T) {
 	}
 
 	// Test: Logger inicializado
-	resources.Logger = logrus.New()
+	resources.Logger = logger.NewLogrusLogger(logrus.New())
 	if !resources.HasLogger() {
 		t.Error("Expected HasLogger to return true after initialization")
 	}
@@ -374,7 +378,7 @@ func TestResources_HasMethods(t *testing.T) {
 // =============================================================================
 
 func TestPerformHealthChecks_AllPass(t *testing.T) {
-	logger := logrus.New()
+	logger := logger.NewLogrusLogger(logrus.New())
 
 	resources := &Resources{
 		Logger: logger,
@@ -401,7 +405,7 @@ func TestPerformHealthChecks_WithoutLogger(t *testing.T) {
 }
 
 func TestPerformHealthChecks_ContextTimeout(t *testing.T) {
-	logger := logrus.New()
+	logger := logger.NewLogrusLogger(logrus.New())
 	resources := &Resources{Logger: logger}
 	opts := DefaultBootstrapOptions()
 
@@ -414,5 +418,104 @@ func TestPerformHealthChecks_ContextTimeout(t *testing.T) {
 	// No debería fallar porque no hay recursos que validar
 	if err != nil {
 		t.Errorf("Expected no error with cancelled context and no resources, got: %v", err)
+	}
+}
+
+func TestExtractEnvAndVersion(t *testing.T) {
+	tests := []struct {
+		name        string
+		config      interface{}
+		wantEnv     string
+		wantVersion string
+	}{
+		{
+			name:        "nil config returns defaults",
+			config:      nil,
+			wantEnv:     "unknown",
+			wantVersion: "0.0.0",
+		},
+		{
+			name: "struct with Environment and Version",
+			config: struct {
+				Environment string
+				Version     string
+			}{
+				Environment: "prod",
+				Version:     "1.2.3",
+			},
+			wantEnv:     "prod",
+			wantVersion: "1.2.3",
+		},
+		{
+			name: "struct with only Environment",
+			config: struct {
+				Environment string
+			}{
+				Environment: "dev",
+			},
+			wantEnv:     "dev",
+			wantVersion: "0.0.0",
+		},
+		{
+			name: "pointer to struct",
+			config: &struct {
+				Environment string
+				Version     string
+			}{
+				Environment: "qa",
+				Version:     "2.0.0",
+			},
+			wantEnv:     "qa",
+			wantVersion: "2.0.0",
+		},
+		{
+			name: "empty strings use defaults",
+			config: struct {
+				Environment string
+				Version     string
+			}{
+				Environment: "",
+				Version:     "",
+			},
+			wantEnv:     "unknown",
+			wantVersion: "0.0.0",
+		},
+		{
+			name: "struct without fields",
+			config: struct {
+				Other string
+			}{
+				Other: "value",
+			},
+			wantEnv:     "unknown",
+			wantVersion: "0.0.0",
+		},
+		{
+			name:        "non-struct config",
+			config:      "string",
+			wantEnv:     "unknown",
+			wantVersion: "0.0.0",
+		},
+		{
+			name: "nil pointer to struct",
+			config: (*struct {
+				Environment string
+				Version     string
+			})(nil),
+			wantEnv:     "unknown",
+			wantVersion: "0.0.0",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotEnv, gotVersion := extractEnvAndVersion(tt.config)
+			if gotEnv != tt.wantEnv {
+				t.Errorf("extractEnvAndVersion() env = %v, want %v", gotEnv, tt.wantEnv)
+			}
+			if gotVersion != tt.wantVersion {
+				t.Errorf("extractEnvAndVersion() version = %v, want %v", gotVersion, tt.wantVersion)
+			}
+		})
 	}
 }

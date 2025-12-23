@@ -199,13 +199,13 @@ func TestConfigBuilder_ChainedCalls(t *testing.T) {
 // TestConfigBuilder_SelectiveConfiguration verifica configuración selectiva
 func TestConfigBuilder_SelectiveConfiguration(t *testing.T) {
 	tests := []struct {
-		name              string
-		build             func(*ConfigBuilder) *Config
-		expectPostgres    bool
-		expectMongo       bool
-		expectRabbit      bool
-		expectPgConfig    bool
-		expectMongoConfig bool
+		name               string
+		build              func(*ConfigBuilder) *Config
+		expectPostgres     bool
+		expectMongo        bool
+		expectRabbit       bool
+		expectPgConfig     bool
+		expectMongoConfig  bool
 		expectRabbitConfig bool
 	}{
 		{
@@ -213,11 +213,11 @@ func TestConfigBuilder_SelectiveConfiguration(t *testing.T) {
 			build: func(b *ConfigBuilder) *Config {
 				return b.WithPostgreSQL(nil).Build()
 			},
-			expectPostgres:    true,
-			expectMongo:       false,
-			expectRabbit:      false,
-			expectPgConfig:    true,
-			expectMongoConfig: false,
+			expectPostgres:     true,
+			expectMongo:        false,
+			expectRabbit:       false,
+			expectPgConfig:     true,
+			expectMongoConfig:  false,
 			expectRabbitConfig: false,
 		},
 		{
@@ -225,11 +225,11 @@ func TestConfigBuilder_SelectiveConfiguration(t *testing.T) {
 			build: func(b *ConfigBuilder) *Config {
 				return b.WithMongoDB(nil).Build()
 			},
-			expectPostgres:    false,
-			expectMongo:       true,
-			expectRabbit:      false,
-			expectPgConfig:    false,
-			expectMongoConfig: true,
+			expectPostgres:     false,
+			expectMongo:        true,
+			expectRabbit:       false,
+			expectPgConfig:     false,
+			expectMongoConfig:  true,
 			expectRabbitConfig: false,
 		},
 		{
@@ -237,11 +237,11 @@ func TestConfigBuilder_SelectiveConfiguration(t *testing.T) {
 			build: func(b *ConfigBuilder) *Config {
 				return b.WithRabbitMQ(nil).Build()
 			},
-			expectPostgres:    false,
-			expectMongo:       false,
-			expectRabbit:      true,
-			expectPgConfig:    false,
-			expectMongoConfig: false,
+			expectPostgres:     false,
+			expectMongo:        false,
+			expectRabbit:       true,
+			expectPgConfig:     false,
+			expectMongoConfig:  false,
 			expectRabbitConfig: true,
 		},
 		{
@@ -249,11 +249,11 @@ func TestConfigBuilder_SelectiveConfiguration(t *testing.T) {
 			build: func(b *ConfigBuilder) *Config {
 				return b.WithPostgreSQL(nil).WithMongoDB(nil).Build()
 			},
-			expectPostgres:    true,
-			expectMongo:       true,
-			expectRabbit:      false,
-			expectPgConfig:    true,
-			expectMongoConfig: true,
+			expectPostgres:     true,
+			expectMongo:        true,
+			expectRabbit:       false,
+			expectPgConfig:     true,
+			expectMongoConfig:  true,
 			expectRabbitConfig: false,
 		},
 		{
@@ -261,11 +261,11 @@ func TestConfigBuilder_SelectiveConfiguration(t *testing.T) {
 			build: func(b *ConfigBuilder) *Config {
 				return b.WithMongoDB(nil).WithRabbitMQ(nil).Build()
 			},
-			expectPostgres:    false,
-			expectMongo:       true,
-			expectRabbit:      true,
-			expectPgConfig:    false,
-			expectMongoConfig: true,
+			expectPostgres:     false,
+			expectMongo:        true,
+			expectRabbit:       true,
+			expectPgConfig:     false,
+			expectMongoConfig:  true,
 			expectRabbitConfig: true,
 		},
 		{
@@ -273,11 +273,11 @@ func TestConfigBuilder_SelectiveConfiguration(t *testing.T) {
 			build: func(b *ConfigBuilder) *Config {
 				return b.WithPostgreSQL(nil).WithMongoDB(nil).WithRabbitMQ(nil).Build()
 			},
-			expectPostgres:    true,
-			expectMongo:       true,
-			expectRabbit:      true,
-			expectPgConfig:    true,
-			expectMongoConfig: true,
+			expectPostgres:     true,
+			expectMongo:        true,
+			expectRabbit:       true,
+			expectPgConfig:     true,
+			expectMongoConfig:  true,
 			expectRabbitConfig: true,
 		},
 	}

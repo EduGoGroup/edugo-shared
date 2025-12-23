@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/go-playground/validator/v10"
@@ -21,7 +22,8 @@ func NewValidator() *Validator {
 // Validate valida un struct de configuración
 func (v *Validator) Validate(cfg interface{}) error {
 	if err := v.validate.Struct(cfg); err != nil {
-		if validationErrors, ok := err.(validator.ValidationErrors); ok {
+		var validationErrors validator.ValidationErrors
+		if errors.As(err, &validationErrors) {
 			return NewValidationError(validationErrors)
 		}
 		return fmt.Errorf("config validation failed: %w", err)

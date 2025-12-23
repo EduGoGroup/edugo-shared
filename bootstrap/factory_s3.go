@@ -52,7 +52,7 @@ func (f *DefaultS3Factory) CreateClient(ctx context.Context, s3Config S3Config) 
 }
 
 // CreatePresignClient crea un cliente para URLs pre-firmadas
-func (f *DefaultS3Factory) CreatePresignClient(client *s3.Client) interface{} {
+func (f *DefaultS3Factory) CreatePresignClient(client *s3.Client) *s3.PresignClient {
 	return s3.NewPresignClient(client)
 }
 

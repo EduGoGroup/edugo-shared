@@ -2,6 +2,7 @@ package bootstrap
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -64,7 +65,12 @@ func (f *DefaultRabbitMQFactory) CreateChannel(conn *amqp.Connection) (*amqp.Cha
 		0,     // prefetch size
 		false, // global
 	); err != nil {
-		channel.Close()
+		if closeErr := channel.Close(); closeErr != nil {
+			return nil, errors.Join(
+				fmt.Errorf("failed to set QoS: %w", err),
+				fmt.Errorf("failed to close channel: %w", closeErr),
+			)
+		}
 		return nil, fmt.Errorf("failed to set QoS: %w", err)
 	}
 
@@ -99,13 +105,13 @@ func (f *DefaultRabbitMQFactory) Close(channel *amqp.Channel, conn *amqp.Connect
 	var errs []error
 
 	if channel != nil {
-		if err := channel.Close(); err != nil && err != amqp.ErrClosed {
+		if err := channel.Close(); err != nil && !errors.Is(err, amqp.ErrClosed) {
 			errs = append(errs, fmt.Errorf("failed to close channel: %w", err))
 		}
 	}
 
 	if conn != nil {
-		if err := conn.Close(); err != nil && err != amqp.ErrClosed {
+		if err := conn.Close(); err != nil && !errors.Is(err, amqp.ErrClosed) {
 			errs = append(errs, fmt.Errorf("failed to close connection: %w", err))
 		}
 	}

@@ -6,8 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/lib/pq"
-	_ "github.com/lib/pq" // Driver PostgreSQL
+	"github.com/lib/pq" // Driver PostgreSQL (también usado para QuoteIdentifier)
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
@@ -48,14 +47,14 @@ func createPostgres(ctx context.Context, cfg *PostgresConfig) (*PostgresContaine
 	// Obtener connection string
 	connStr, err := container.ConnectionString(ctx, "sslmode=disable")
 	if err != nil {
-		container.Terminate(ctx)
+		_ = container.Terminate(ctx) //nolint:errcheck // Cleanup en error, el error principal es el de connection string
 		return nil, fmt.Errorf("error obteniendo connection string: %w", err)
 	}
 
 	// Conectar con retry
 	db, err := connectWithRetry(connStr, 10, 2*time.Second)
 	if err != nil {
-		container.Terminate(ctx)
+		_ = container.Terminate(ctx) //nolint:errcheck // Cleanup en error, el error principal es el de conexión
 		return nil, fmt.Errorf("error conectando a PostgreSQL: %w", err)
 	}
 
@@ -69,7 +68,7 @@ func createPostgres(ctx context.Context, cfg *PostgresConfig) (*PostgresContaine
 	if len(cfg.InitScripts) > 0 {
 		for _, script := range cfg.InitScripts {
 			if err := pc.ExecScript(ctx, script); err != nil {
-				pc.Terminate(ctx)
+				_ = pc.Terminate(ctx) //nolint:errcheck // Cleanup en error, el error principal es el de script
 				return nil, fmt.Errorf("error ejecutando script %s: %w", script, err)
 			}
 		}
@@ -103,7 +102,7 @@ func (pc *PostgresContainer) Truncate(ctx context.Context, tables ...string) err
 	if err != nil {
 		return fmt.Errorf("error iniciando transacción: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }() //nolint:errcheck // Rollback en defer es best-effort después de Commit
 
 	// Deshabilitar foreign keys temporalmente
 	if _, err := tx.ExecContext(ctx, "SET session_replication_role = 'replica'"); err != nil {
@@ -130,10 +129,66 @@ func (pc *PostgresContainer) Truncate(ctx context.Context, tables ...string) err
 	return nil
 }
 
+// Host retorna el hostname del container PostgreSQL.
+//
+// Parámetros:
+//   - ctx: contexto para la operación
+//
+// Retorna el hostname del container o un error si no se puede obtener.
+// El hostname es típicamente "localhost" cuando el container está expuesto
+// en el host local.
+func (pc *PostgresContainer) Host(ctx context.Context) (string, error) {
+	return pc.container.Host(ctx)
+}
+
+// MappedPort retorna el puerto mapeado del container PostgreSQL.
+//
+// Parámetros:
+//   - ctx: contexto para la operación
+//
+// Retorna el número de puerto del host que está mapeado al puerto 5432
+// del container, o un error si no se puede obtener. Este puerto se asigna
+// dinámicamente cuando el container inicia y es necesario para establecer
+// conexiones desde el host.
+func (pc *PostgresContainer) MappedPort(ctx context.Context) (int, error) {
+	port, err := pc.container.MappedPort(ctx, "5432/tcp")
+	if err != nil {
+		return 0, err
+	}
+	return port.Int(), nil
+}
+
+// Username retorna el nombre de usuario configurado para PostgreSQL.
+//
+// Retorna el nombre de usuario que se utilizó al crear el container.
+// Este valor proviene de la configuración PostgresConfig y se usa
+// para autenticación en las conexiones a la base de datos.
+func (pc *PostgresContainer) Username() string {
+	return pc.config.Username
+}
+
+// Password retorna la contraseña configurada para PostgreSQL.
+//
+// Retorna la contraseña que se utilizó al crear el container.
+// Este valor proviene de la configuración PostgresConfig y se usa
+// para autenticación en las conexiones a la base de datos.
+func (pc *PostgresContainer) Password() string {
+	return pc.config.Password
+}
+
+// Database retorna el nombre de la base de datos configurada.
+//
+// Retorna el nombre de la base de datos que se creó automáticamente
+// al iniciar el container. Este valor proviene de la configuración
+// PostgresConfig y es la base de datos por defecto para las conexiones.
+func (pc *PostgresContainer) Database() string {
+	return pc.config.Database
+}
+
 // Terminate termina el container y cierra las conexiones
 func (pc *PostgresContainer) Terminate(ctx context.Context) error {
 	if pc.db != nil {
-		pc.db.Close()
+		_ = pc.db.Close() //nolint:errcheck // Close en cleanup, container será terminado de todos modos
 	}
 	if pc.container != nil {
 		return pc.container.Terminate(ctx)
@@ -154,7 +209,7 @@ func connectWithRetry(connStr string, maxRetries int, delay time.Duration) (*sql
 		}
 
 		if err = db.Ping(); err != nil {
-			db.Close()
+			_ = db.Close() //nolint:errcheck // Close en retry, el error principal es el de Ping
 			time.Sleep(delay)
 			continue
 		}

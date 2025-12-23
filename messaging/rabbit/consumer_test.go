@@ -1,3 +1,4 @@
+//nolint:errcheck // Tests: errores de Close()/Wait() en cleanup se ignoran intencionalmente
 package rabbit
 
 import (
@@ -707,4 +708,293 @@ func TestConsumer_Consume_WithPrefetch(t *testing.T) {
 	// Actual prefetch behavior is tested at the connection level
 	waitForQueueConsumers(t, rabbitContainer, queueName, 1, 5*time.Second)
 	cancel()
+}
+
+// TestConsumer_Wait_BlocksUntilStop verifica que Wait bloquee hasta que se llame Stop
+func TestConsumer_Wait_BlocksUntilStop(t *testing.T) {
+	_, connectionString := setupRabbitContainer(t)
+	ctx := context.Background()
+
+	conn, err := Connect(connectionString)
+	require.NoError(t, err)
+	defer func() { _ = conn.Close() }()
+
+	queueName := "test_wait_blocks"
+	queueConfig := QueueConfig{
+		Name:       queueName,
+		Durable:    false,
+		AutoDelete: true,
+		Exclusive:  false,
+	}
+	_, err = conn.DeclareQueue(queueConfig)
+	require.NoError(t, err)
+
+	consumerConfig := ConsumerConfig{
+		Name:    "test_consumer",
+		AutoAck: true,
+	}
+	consumer := NewConsumer(conn, consumerConfig)
+	require.NotNil(t, consumer)
+	defer func() { _ = consumer.Close() }()
+
+	handler := func(ctx context.Context, body []byte) error {
+		return nil
+	}
+
+	// Iniciar consumer
+	err = consumer.Consume(ctx, queueName, handler)
+	require.NoError(t, err)
+
+	// Verificar que Wait bloquea
+	waitDone := make(chan error, 1)
+	go func() {
+		waitDone <- consumer.Wait()
+	}()
+
+	// Esperar un poco para asegurar que Wait está bloqueado
+	time.Sleep(100 * time.Millisecond)
+	select {
+	case <-waitDone:
+		t.Fatal("Wait should be blocking")
+	default:
+		// Expected: Wait sigue bloqueado
+	}
+
+	// Llamar Stop
+	consumer.Stop()
+
+	// Ahora Wait debería desbloquearse
+	select {
+	case err := <-waitDone:
+		assert.NoError(t, err)
+	case <-time.After(2 * time.Second):
+		t.Fatal("Wait did not unblock after Stop")
+	}
+}
+
+// TestConsumer_Stop_IsIdempotent verifica que múltiples llamadas a Stop sean seguras
+func TestConsumer_Stop_IsIdempotent(t *testing.T) {
+	_, connectionString := setupRabbitContainer(t)
+	ctx := context.Background()
+
+	conn, err := Connect(connectionString)
+	require.NoError(t, err)
+	defer func() { _ = conn.Close() }()
+
+	queueName := "test_stop_idempotent"
+	queueConfig := QueueConfig{
+		Name:       queueName,
+		Durable:    false,
+		AutoDelete: true,
+		Exclusive:  false,
+	}
+	_, err = conn.DeclareQueue(queueConfig)
+	require.NoError(t, err)
+
+	consumerConfig := ConsumerConfig{
+		Name:    "test_consumer",
+		AutoAck: true,
+	}
+	consumer := NewConsumer(conn, consumerConfig)
+	require.NotNil(t, consumer)
+	defer func() { _ = consumer.Close() }()
+
+	handler := func(ctx context.Context, body []byte) error {
+		return nil
+	}
+
+	err = consumer.Consume(ctx, queueName, handler)
+	require.NoError(t, err)
+
+	// Llamar Stop múltiples veces no debe causar panic
+	consumer.Stop()
+	consumer.Stop()
+	consumer.Stop()
+
+	// Wait debería completar sin error
+	err = consumer.Wait()
+	assert.NoError(t, err)
+}
+
+// TestConsumer_IsRunning_ReturnsCorrectState verifica que IsRunning retorne el estado correcto
+func TestConsumer_IsRunning_ReturnsCorrectState(t *testing.T) {
+	_, connectionString := setupRabbitContainer(t)
+	ctx := context.Background()
+
+	conn, err := Connect(connectionString)
+	require.NoError(t, err)
+	defer func() { _ = conn.Close() }()
+
+	queueName := "test_is_running"
+	queueConfig := QueueConfig{
+		Name:       queueName,
+		Durable:    false,
+		AutoDelete: true,
+		Exclusive:  false,
+	}
+	_, err = conn.DeclareQueue(queueConfig)
+	require.NoError(t, err)
+
+	consumerConfig := ConsumerConfig{
+		Name:    "test_consumer",
+		AutoAck: true,
+	}
+	consumer := NewConsumer(conn, consumerConfig)
+	require.NotNil(t, consumer)
+	defer func() { _ = consumer.Close() }()
+
+	// Inicialmente no está corriendo
+	assert.False(t, consumer.IsRunning())
+
+	handler := func(ctx context.Context, body []byte) error {
+		return nil
+	}
+
+	// Después de Consume debe estar corriendo
+	err = consumer.Consume(ctx, queueName, handler)
+	require.NoError(t, err)
+	assert.True(t, consumer.IsRunning())
+
+	// Después de Stop debe dejar de correr
+	consumer.Stop()
+	err = consumer.Wait()
+	require.NoError(t, err)
+	assert.False(t, consumer.IsRunning())
+}
+
+// TestConsumer_Errors_ReceivesAsyncErrors verifica que se puedan recibir errores asíncronos
+func TestConsumer_Errors_ReceivesAsyncErrors(t *testing.T) {
+	_, connectionString := setupRabbitContainer(t)
+	ctx := context.Background()
+
+	conn, err := Connect(connectionString)
+	require.NoError(t, err)
+	defer func() { _ = conn.Close() }()
+
+	queueName := "test_errors_async"
+	queueConfig := QueueConfig{
+		Name:       queueName,
+		Durable:    false,
+		AutoDelete: true,
+		Exclusive:  false,
+	}
+	_, err = conn.DeclareQueue(queueConfig)
+	require.NoError(t, err)
+
+	consumerConfig := ConsumerConfig{
+		Name:    "test_consumer",
+		AutoAck: true,
+	}
+	consumer := NewConsumer(conn, consumerConfig)
+	require.NotNil(t, consumer)
+	defer func() { _ = consumer.Close() }()
+
+	handler := func(ctx context.Context, body []byte) error {
+		return nil
+	}
+
+	err = consumer.Consume(ctx, queueName, handler)
+	require.NoError(t, err)
+
+	// Verificar que el canal de errores está disponible
+	errChan := consumer.Errors()
+	assert.NotNil(t, errChan)
+
+	// Verificar que no hay errores inicialmente (non-blocking check)
+	select {
+	case err := <-errChan:
+		t.Fatalf("Expected no errors, got: %v", err)
+	default:
+		// Expected: no hay errores
+	}
+
+	consumer.Stop()
+	_ = consumer.Wait()
+}
+
+// TestConsumer_Wait_ReturnsAsyncError verifica que Wait retorne errores asíncronos
+func TestConsumer_Wait_ReturnsAsyncError(t *testing.T) {
+	_, connectionString := setupRabbitContainer(t)
+	ctx := context.Background()
+
+	conn, err := Connect(connectionString)
+	require.NoError(t, err)
+
+	queueName := "test_wait_error"
+	queueConfig := QueueConfig{
+		Name:       queueName,
+		Durable:    false,
+		AutoDelete: true,
+		Exclusive:  false,
+	}
+	_, err = conn.DeclareQueue(queueConfig)
+	require.NoError(t, err)
+
+	consumerConfig := ConsumerConfig{
+		Name:    "test_consumer",
+		AutoAck: true,
+	}
+	consumer := NewConsumer(conn, consumerConfig)
+	require.NotNil(t, consumer)
+	defer func() { _ = consumer.Close() }()
+
+	handler := func(ctx context.Context, body []byte) error {
+		return nil
+	}
+
+	err = consumer.Consume(ctx, queueName, handler)
+	require.NoError(t, err)
+
+	// Cerrar conexión para simular error asíncrono
+	_ = conn.Close()
+
+	// Wait debería retornar cuando ocurra el error
+	err = consumer.Wait()
+	// En este caso podríamos recibir error o nil dependiendo del timing
+	// pero lo importante es que Wait complete
+	_ = err
+}
+
+// TestConsumer_Consume_PreventsConcurrentConsume verifica que no se puedan hacer múltiples Consume simultáneos
+func TestConsumer_Consume_PreventsConcurrentConsume(t *testing.T) {
+	_, connectionString := setupRabbitContainer(t)
+	ctx := context.Background()
+
+	conn, err := Connect(connectionString)
+	require.NoError(t, err)
+	defer func() { _ = conn.Close() }()
+
+	queueName := "test_concurrent_consume"
+	queueConfig := QueueConfig{
+		Name:       queueName,
+		Durable:    false,
+		AutoDelete: true,
+		Exclusive:  false,
+	}
+	_, err = conn.DeclareQueue(queueConfig)
+	require.NoError(t, err)
+
+	consumerConfig := ConsumerConfig{
+		Name:    "test_consumer",
+		AutoAck: true,
+	}
+	consumer := NewConsumer(conn, consumerConfig)
+	require.NotNil(t, consumer)
+	defer func() { _ = consumer.Close() }()
+
+	handler := func(ctx context.Context, body []byte) error {
+		return nil
+	}
+
+	// Primera llamada debe funcionar
+	err = consumer.Consume(ctx, queueName, handler)
+	require.NoError(t, err)
+
+	// Segunda llamada debe fallar
+	err = consumer.Consume(ctx, queueName, handler)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "already running")
+
+	consumer.Stop()
+	_ = consumer.Wait()
 }

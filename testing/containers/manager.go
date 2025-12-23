@@ -26,7 +26,7 @@ type Manager struct {
 var (
 	globalManager *Manager
 	setupOnce     sync.Once
-	setupError    error
+	errSetup      error //nolint:errname // Variable interna, no error sentinel exportado
 )
 
 // GetManager obtiene o crea el manager global de containers.
@@ -45,7 +45,7 @@ func GetManager(t *testing.T, config *Config) (*Manager, error) {
 		if config.UsePostgreSQL {
 			pg, err := createPostgres(ctx, config.PostgresConfig)
 			if err != nil {
-				setupError = fmt.Errorf("error creando PostgreSQL: %w", err)
+				errSetup = fmt.Errorf("error creando PostgreSQL: %w", err)
 				return
 			}
 			m.postgres = pg
@@ -58,8 +58,8 @@ func GetManager(t *testing.T, config *Config) (*Manager, error) {
 		if config.UseMongoDB {
 			mongo, err := createMongoDB(ctx, config.MongoConfig)
 			if err != nil {
-				m.cleanup(ctx, t)
-				setupError = fmt.Errorf("error creando MongoDB: %w", err)
+				_ = m.cleanup(ctx, t) //nolint:errcheck // En error de setup, cleanup es best-effort
+				errSetup = fmt.Errorf("error creando MongoDB: %w", err)
 				return
 			}
 			m.mongodb = mongo
@@ -72,8 +72,8 @@ func GetManager(t *testing.T, config *Config) (*Manager, error) {
 		if config.UseRabbitMQ {
 			rabbit, err := createRabbitMQ(ctx, config.RabbitConfig)
 			if err != nil {
-				m.cleanup(ctx, t)
-				setupError = fmt.Errorf("error creando RabbitMQ: %w", err)
+				_ = m.cleanup(ctx, t) //nolint:errcheck // En error de setup, cleanup es best-effort
+				errSetup = fmt.Errorf("error creando RabbitMQ: %w", err)
 				return
 			}
 			m.rabbitmq = rabbit
@@ -88,8 +88,8 @@ func GetManager(t *testing.T, config *Config) (*Manager, error) {
 		}
 	})
 
-	if setupError != nil {
-		return nil, setupError
+	if errSetup != nil {
+		return nil, errSetup
 	}
 	if globalManager == nil {
 		return nil, fmt.Errorf("error: manager no fue inicializado correctamente")

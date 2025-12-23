@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"testing"
 	"time"
 )
@@ -58,7 +59,8 @@ func TestValidator_Validate_MissingRequired(t *testing.T) {
 		t.Error("Validate() error = nil, want error for missing ServiceName")
 	}
 
-	if validationErr, ok := err.(*ValidationError); ok {
+	var validationErr *ValidationError
+	if errors.As(err, &validationErr) {
 		if len(validationErr.Errors) == 0 {
 			t.Error("ValidationError.Errors is empty, expected errors")
 		}

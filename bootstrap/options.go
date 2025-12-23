@@ -5,6 +5,8 @@ package bootstrap
 // =============================================================================
 
 // BootstrapOptions define las opciones de configuración para el bootstrap
+//
+//nolint:revive // Mantener nombre para compatibilidad con API existente
 type BootstrapOptions struct {
 	// RequiredResources lista los recursos obligatorios que deben inicializarse
 	RequiredResources []string
@@ -36,6 +38,8 @@ type MockFactories struct {
 // =============================================================================
 
 // BootstrapOption es una función que modifica BootstrapOptions
+//
+//nolint:revive // Mantener nombre para compatibilidad con API existente
 type BootstrapOption func(*BootstrapOptions)
 
 // WithRequiredResources especifica los recursos obligatorios

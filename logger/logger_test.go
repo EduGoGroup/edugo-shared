@@ -13,13 +13,18 @@ import (
 // Helper to capture logger output - creates logger AFTER redirecting stdout
 func captureOutput(level, format string, f func(log logger.Logger)) string {
 	old := os.Stdout
-	r, w, _ := os.Pipe()
+	r, w, err := os.Pipe()
+	if err != nil {
+		panic(err)
+	}
 	os.Stdout = w
 
 	outCh := make(chan string)
 	go func() {
 		var buf bytes.Buffer
-		_, _ = io.Copy(&buf, r)
+		if _, err := io.Copy(&buf, r); err != nil {
+			panic(err)
+		}
 		outCh <- buf.String()
 	}()
 
@@ -27,7 +32,9 @@ func captureOutput(level, format string, f func(log logger.Logger)) string {
 	log := logger.NewZapLogger(level, format)
 	f(log)
 
-	_ = w.Close()
+	if err := w.Close(); err != nil {
+		panic(err)
+	}
 	os.Stdout = old
 	return <-outCh
 }
@@ -123,7 +130,10 @@ func TestZapLogger_WithChaining(t *testing.T) {
 func TestZapLogger_Sync(t *testing.T) {
 	log := logger.NewZapLogger("info", "json")
 	// Sync may return error on some systems for stdout, don't fail on error
-	_ = log.Sync()
+	// Just verify it doesn't panic
+	if err := log.Sync(); err != nil {
+		t.Logf("Sync returned error (expected on some systems): %v", err)
+	}
 }
 
 func TestZapLogger_JSONFormat(t *testing.T) {

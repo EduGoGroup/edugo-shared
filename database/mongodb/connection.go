@@ -38,7 +38,7 @@ func Connect(cfg Config) (*mongo.Client, error) {
 
 	// Verificar conectividad
 	if err := client.Ping(ctx, readpref.Primary()); err != nil {
-		_ = client.Disconnect(ctx) // Ignore error on cleanup
+		_ = client.Disconnect(ctx) //nolint:errcheck // Ignorar error en cleanup, el error principal es el de ping
 		return nil, fmt.Errorf("failed to ping mongodb: %w", err)
 	}
 

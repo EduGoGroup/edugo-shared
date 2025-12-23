@@ -59,7 +59,11 @@ func TestPostgreSQLFactory_CreateConnection_Success(t *testing.T) {
 	db, err := factory.CreateConnection(ctx, pgConfig)
 	require.NoError(t, err)
 	require.NotNil(t, db)
-	defer factory.Close(db)
+	defer func() {
+		if err := factory.Close(db); err != nil {
+			t.Logf("Failed to close PostgreSQL connection: %v", err)
+		}
+	}()
 
 	// Verificar que la conexión funciona
 	sqlDB, err := db.DB()
@@ -164,7 +168,9 @@ func TestPostgreSQLFactory_CreateConnection_WithSSLMode(t *testing.T) {
 				assert.NoError(t, err)
 				assert.NotNil(t, db)
 				if db != nil {
-					_ = factory.Close(db)
+					if closeErr := factory.Close(db); closeErr != nil {
+						t.Logf("Failed to close PostgreSQL connection: %v", closeErr)
+					}
 				}
 			}
 		})
@@ -212,7 +218,11 @@ func TestPostgreSQLFactory_Ping_Success(t *testing.T) {
 
 	db, err := factory.CreateConnection(ctx, pgConfig)
 	require.NoError(t, err)
-	defer factory.Close(db)
+	defer func() {
+		if err := factory.Close(db); err != nil {
+			t.Logf("Failed to close PostgreSQL connection: %v", err)
+		}
+	}()
 
 	// Ping debe ser exitoso
 	err = factory.Ping(ctx, db)
@@ -309,7 +319,11 @@ func TestPostgreSQLFactory_CreateRawConnection_Success(t *testing.T) {
 	db, err := factory.CreateRawConnection(ctx, pgConfig)
 	require.NoError(t, err)
 	require.NotNil(t, db)
-	defer db.Close()
+	defer func() {
+		if err := db.Close(); err != nil {
+			t.Logf("Failed to close raw PostgreSQL connection: %v", err)
+		}
+	}()
 
 	// Verificar que funciona
 	err = db.PingContext(ctx)
@@ -380,7 +394,11 @@ func TestPostgreSQLFactory_ConnectionPoolSettings(t *testing.T) {
 
 	db, err := factory.CreateConnection(ctx, pgConfig)
 	require.NoError(t, err)
-	defer factory.Close(db)
+	defer func() {
+		if err := factory.Close(db); err != nil {
+			t.Logf("Failed to close PostgreSQL connection: %v", err)
+		}
+	}()
 
 	// Obtener stats del pool
 	sqlDB, err := db.DB()
@@ -437,7 +455,11 @@ func TestPostgreSQLFactory_WithCustomLogger(t *testing.T) {
 	db, err := factory.CreateConnection(ctx, pgConfig)
 	require.NoError(t, err)
 	assert.NotNil(t, db)
-	defer factory.Close(db)
+	defer func() {
+		if err := factory.Close(db); err != nil {
+			t.Logf("Failed to close PostgreSQL connection: %v", err)
+		}
+	}()
 }
 
 // TestPostgreSQLFactory_MultipleConnections verifica múltiples conexiones
@@ -599,7 +621,11 @@ func TestPostgreSQLFactory_QueryExecution(t *testing.T) {
 
 	db, err := factory.CreateConnection(ctx, pgConfig)
 	require.NoError(t, err)
-	defer factory.Close(db)
+	defer func() {
+		if err := factory.Close(db); err != nil {
+			t.Logf("Failed to close PostgreSQL connection: %v", err)
+		}
+	}()
 
 	// Ejecutar query simple
 	var result int

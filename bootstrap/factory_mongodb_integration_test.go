@@ -48,7 +48,11 @@ func TestMongoDBFactory_CreateConnection_Success(t *testing.T) {
 	client, err := factory.CreateConnection(ctx, mongoConfig)
 	require.NoError(t, err)
 	require.NotNil(t, client)
-	defer factory.Close(ctx, client)
+	defer func() {
+		if err := factory.Close(ctx, client); err != nil {
+			t.Logf("Failed to close MongoDB connection: %v", err)
+		}
+	}()
 
 	// Verificar que la conexión funciona
 	err = factory.Ping(ctx, client)
@@ -79,7 +83,9 @@ func TestMongoDBFactory_CreateConnection_InvalidURI(t *testing.T) {
 		err = factory.Ping(ctx, client)
 		assert.Error(t, err, "Ping debe fallar con URI inválida")
 		if client != nil {
-			_ = factory.Close(ctx, client)
+			if closeErr := factory.Close(ctx, client); closeErr != nil {
+				t.Logf("Failed to close MongoDB connection: %v", closeErr)
+			}
 		}
 	} else {
 		assert.Error(t, err)
@@ -117,7 +123,11 @@ func TestMongoDBFactory_Ping_Success(t *testing.T) {
 
 	client, err := factory.CreateConnection(ctx, mongoConfig)
 	require.NoError(t, err)
-	defer factory.Close(ctx, client)
+	defer func() {
+		if err := factory.Close(ctx, client); err != nil {
+			t.Logf("Failed to close MongoDB connection: %v", err)
+		}
+	}()
 
 	// Ping debe ser exitoso
 	err = factory.Ping(ctx, client)
@@ -154,7 +164,11 @@ func TestMongoDBFactory_GetDatabase(t *testing.T) {
 
 	client, err := factory.CreateConnection(ctx, mongoConfig)
 	require.NoError(t, err)
-	defer factory.Close(ctx, client)
+	defer func() {
+		if err := factory.Close(ctx, client); err != nil {
+			t.Logf("Failed to close MongoDB connection: %v", err)
+		}
+	}()
 
 	// Obtener database
 	db := factory.GetDatabase(client, "test_db")
@@ -228,7 +242,11 @@ func TestMongoDBFactory_ConnectionPoolSettings(t *testing.T) {
 
 	client, err := factory.CreateConnection(ctx, mongoConfig)
 	require.NoError(t, err)
-	defer factory.Close(ctx, client)
+	defer func() {
+		if err := factory.Close(ctx, client); err != nil {
+			t.Logf("Failed to close MongoDB connection: %v", err)
+		}
+	}()
 
 	// Verificar que la conexión tiene configuración de pool
 	// (La factory configura MaxPoolSize=100, MinPoolSize=10)
@@ -318,7 +336,11 @@ func TestMongoDBFactory_DatabaseOperations(t *testing.T) {
 
 	client, err := factory.CreateConnection(ctx, mongoConfig)
 	require.NoError(t, err)
-	defer factory.Close(ctx, client)
+	defer func() {
+		if err := factory.Close(ctx, client); err != nil {
+			t.Logf("Failed to close MongoDB connection: %v", err)
+		}
+	}()
 
 	// Obtener database
 	db := factory.GetDatabase(client, "test_db")
@@ -374,7 +396,11 @@ func TestMongoDBFactory_PingWithTimeout(t *testing.T) {
 
 	client, err := factory.CreateConnection(ctx, mongoConfig)
 	require.NoError(t, err)
-	defer factory.Close(ctx, client)
+	defer func() {
+		if err := factory.Close(ctx, client); err != nil {
+			t.Logf("Failed to close MongoDB connection: %v", err)
+		}
+	}()
 
 	// Ping con timeout muy corto
 	pingCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
@@ -414,7 +440,11 @@ func TestMongoDBFactory_GetDatabase_MultipleDatabases(t *testing.T) {
 
 	client, err := factory.CreateConnection(ctx, mongoConfig)
 	require.NoError(t, err)
-	defer factory.Close(ctx, client)
+	defer func() {
+		if err := factory.Close(ctx, client); err != nil {
+			t.Logf("Failed to close MongoDB connection: %v", err)
+		}
+	}()
 
 	// Obtener diferentes databases
 	databases := []string{"db1", "db2", "db3"}
@@ -450,7 +480,9 @@ func TestMongoDBFactory_ConnectionTimeout(t *testing.T) {
 	if err == nil && client != nil {
 		err = factory.Ping(ctx, client)
 		assert.Error(t, err, "Ping debe fallar con timeout")
-		_ = factory.Close(context.Background(), client)
+		if closeErr := factory.Close(context.Background(), client); closeErr != nil {
+			t.Logf("Failed to close MongoDB client: %v", closeErr)
+		}
 	}
 }
 
@@ -532,7 +564,11 @@ func TestMongoDBFactory_ConcurrentOperations(t *testing.T) {
 
 	client, err := factory.CreateConnection(ctx, mongoConfig)
 	require.NoError(t, err)
-	defer factory.Close(ctx, client)
+	defer func() {
+		if err := factory.Close(ctx, client); err != nil {
+			t.Logf("Failed to close MongoDB connection: %v", err)
+		}
+	}()
 
 	db := factory.GetDatabase(client, "test_db")
 	collection := db.Collection("concurrent_test")

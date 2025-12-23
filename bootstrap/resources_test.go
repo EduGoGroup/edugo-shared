@@ -64,7 +64,11 @@ func TestResources_HasPostgreSQL(t *testing.T) {
 
 	db, err := factory.CreateConnection(ctx, pgConfig)
 	require.NoError(t, err)
-	defer factory.Close(db)
+	defer func() {
+		if err := factory.Close(db); err != nil {
+			t.Logf("Failed to close PostgreSQL connection: %v", err)
+		}
+	}()
 
 	resources := &Resources{}
 
@@ -105,7 +109,11 @@ func TestResources_HasMongoDB(t *testing.T) {
 
 	client, err := factory.CreateConnection(ctx, mongoConfig)
 	require.NoError(t, err)
-	defer factory.Close(ctx, client)
+	defer func() {
+		if err := factory.Close(ctx, client); err != nil {
+			t.Logf("Failed to close MongoDB connection: %v", err)
+		}
+	}()
 
 	db := factory.GetDatabase(client, "test_db")
 
@@ -181,7 +189,11 @@ func TestResources_AllResourcesPresent(t *testing.T) {
 
 	pgDB, err := pgFactory.CreateConnection(ctx, pgConfig)
 	require.NoError(t, err)
-	defer pgFactory.Close(pgDB)
+	defer func() {
+		if err := pgFactory.Close(pgDB); err != nil {
+			t.Logf("Failed to close PostgreSQL connection: %v", err)
+		}
+	}()
 
 	// Setup MongoDB
 	mongo := manager.MongoDB()
@@ -196,7 +208,11 @@ func TestResources_AllResourcesPresent(t *testing.T) {
 	}
 	mongoClient, err := mongoFactory.CreateConnection(ctx, mongoConfig)
 	require.NoError(t, err)
-	defer mongoFactory.Close(ctx, mongoClient)
+	defer func() {
+		if err := mongoFactory.Close(ctx, mongoClient); err != nil {
+			t.Logf("Failed to close MongoDB connection: %v", err)
+		}
+	}()
 	mongoDB := mongoFactory.GetDatabase(mongoClient, "test_db")
 
 	// Crear resources con todo

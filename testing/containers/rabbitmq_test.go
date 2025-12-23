@@ -1,3 +1,4 @@
+//nolint:errcheck,staticcheck // Tests: errores de Close/Terminate en cleanup se ignoran; QueueInspect deprecado pero funcional
 package containers
 
 import (
@@ -7,6 +8,7 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
+//nolint:gocyclo // Test de integración con múltiples subtests requiere alta complejidad
 func TestRabbitMQContainer_Integration(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Omitiendo test de integración en modo short")

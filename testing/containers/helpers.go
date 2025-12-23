@@ -19,7 +19,7 @@ import (
 // Retorna un error si el archivo no puede leerse o si la ejecución del SQL falla.
 func ExecSQLFile(ctx context.Context, db *sql.DB, filePath string) error {
 	// Leer archivo
-	content, err := os.ReadFile(filePath)
+	content, err := os.ReadFile(filePath) //nolint:gosec // G304: filePath es proporcionado por el llamador, típicamente scripts de test
 	if err != nil {
 		return fmt.Errorf("error leyendo archivo SQL %s: %w", filePath, err)
 	}

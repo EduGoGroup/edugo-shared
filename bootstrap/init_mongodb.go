@@ -52,6 +52,7 @@ func initMongoDB(
 
 	// Registrar cleanup en lifecycle manager si está disponible
 	if lifecycleManager != nil {
+		//nolint:contextcheck // El cleanup crea su propio contexto al ejecutarse
 		registerMongoDBCleanup(lifecycleManager, factories.MongoDB, client, resources.Logger)
 	}
 

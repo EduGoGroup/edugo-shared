@@ -194,7 +194,7 @@ func (c *RabbitMQConsumer) processMessage(
 		return
 	}
 
-	_ = msg.Ack(false)
+	_ = msg.Ack(false) //nolint:errcheck // Error de Ack en procesamiento exitoso se ignora
 }
 
 func (c *RabbitMQConsumer) handleProcessingError(
@@ -209,9 +209,9 @@ func (c *RabbitMQConsumer) handleProcessingError(
 	if c.config.DLQ.Enabled {
 		if nextRetry > c.config.DLQ.MaxRetries {
 			if err := c.sendToDLQ(ch, msg); err != nil {
-				_ = msg.Nack(false, true)
+				_ = msg.Nack(false, true) //nolint:errcheck // Error de Nack en fallback se ignora
 			} else {
-				_ = msg.Ack(false)
+				_ = msg.Ack(false) //nolint:errcheck // Error de Ack en DLQ exitoso se ignora
 			}
 			return
 		}
@@ -222,7 +222,7 @@ func (c *RabbitMQConsumer) handleProcessingError(
 
 		select {
 		case <-ctx.Done():
-			_ = msg.Nack(false, true)
+			_ = msg.Nack(false, true) //nolint:errcheck // Error de Nack en cancelación se ignora
 			return
 		case <-timer.C:
 		}
@@ -245,15 +245,15 @@ func (c *RabbitMQConsumer) handleProcessingError(
 			},
 		)
 		if publishErr != nil {
-			_ = msg.Nack(false, true)
+			_ = msg.Nack(false, true) //nolint:errcheck // Error de Nack en fallo de publish se ignora
 			return
 		}
 
-		_ = msg.Ack(false)
+		_ = msg.Ack(false) //nolint:errcheck // Error de Ack en retry exitoso se ignora
 		return
 	}
 
-	_ = msg.Nack(false, true)
+	_ = msg.Nack(false, true) //nolint:errcheck // Error de Nack sin DLQ se ignora
 }
 
 // getRetryCount extrae el número de reintentos del header

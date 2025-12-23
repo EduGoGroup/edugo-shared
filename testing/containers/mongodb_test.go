@@ -1,3 +1,4 @@
+//nolint:errcheck // Tests: errores de Terminate() en cleanup se ignoran intencionalmente
 package containers
 
 import (
@@ -7,6 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
+//nolint:gocyclo // Test de integración con múltiples subtests requiere alta complejidad
 func TestMongoDBContainer_Integration(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Omitiendo test de integración en modo short")

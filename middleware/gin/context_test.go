@@ -1,6 +1,7 @@
 package gin
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/EduGoGroup/edugo-shared/auth"
@@ -16,7 +17,7 @@ func TestGetUserID(t *testing.T) {
 	if err == nil {
 		t.Error("Debe retornar error cuando user_id no existe")
 	}
-	if err != ErrUserIDNotFound {
+	if !errors.Is(err, ErrUserIDNotFound) {
 		t.Errorf("Error debe ser ErrUserIDNotFound, got: %v", err)
 	}
 
@@ -36,7 +37,7 @@ func TestGetUserID(t *testing.T) {
 	if err == nil {
 		t.Error("Debe retornar error cuando el tipo es incorrecto")
 	}
-	if err != ErrInvalidType {
+	if !errors.Is(err, ErrInvalidType) {
 		t.Errorf("Error debe ser ErrInvalidType, got: %v", err)
 	}
 }
@@ -74,7 +75,7 @@ func TestGetEmail(t *testing.T) {
 
 	// Test: Key no existe
 	_, err := GetEmail(c)
-	if err != ErrEmailNotFound {
+	if !errors.Is(err, ErrEmailNotFound) {
 		t.Errorf("Error debe ser ErrEmailNotFound, got: %v", err)
 	}
 
@@ -91,7 +92,7 @@ func TestGetEmail(t *testing.T) {
 	// Test: Tipo incorrecto
 	c.Set(ContextKeyEmail, 999)
 	_, err = GetEmail(c)
-	if err != ErrInvalidType {
+	if !errors.Is(err, ErrInvalidType) {
 		t.Errorf("Error debe ser ErrInvalidType, got: %v", err)
 	}
 }
@@ -102,7 +103,7 @@ func TestGetRole(t *testing.T) {
 
 	// Test: Key no existe
 	_, err := GetRole(c)
-	if err != ErrRoleNotFound {
+	if !errors.Is(err, ErrRoleNotFound) {
 		t.Errorf("Error debe ser ErrRoleNotFound, got: %v", err)
 	}
 
@@ -126,7 +127,7 @@ func TestGetClaims(t *testing.T) {
 
 	// Test: Key no existe
 	_, err := GetClaims(c)
-	if err != ErrClaimsNotFound {
+	if !errors.Is(err, ErrClaimsNotFound) {
 		t.Errorf("Error debe ser ErrClaimsNotFound, got: %v", err)
 	}
 
@@ -156,7 +157,7 @@ func TestGetClaims(t *testing.T) {
 	// Test: Tipo incorrecto
 	c.Set(ContextKeyClaims, "not-claims-object")
 	_, err = GetClaims(c)
-	if err != ErrInvalidType {
+	if !errors.Is(err, ErrInvalidType) {
 		t.Errorf("Error debe ser ErrInvalidType, got: %v", err)
 	}
 }

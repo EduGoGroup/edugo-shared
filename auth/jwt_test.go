@@ -202,7 +202,8 @@ func TestValidateToken(t *testing.T) {
 
 		// Crear token con algoritmo None (inseguro)
 		token := jwt.NewWithClaims(jwt.SigningMethodNone, claims)
-		tokenString, _ := token.SignedString(jwt.UnsafeAllowNoneSignatureType)
+		tokenString, err := token.SignedString(jwt.UnsafeAllowNoneSignatureType)
+		require.NoError(t, err)
 
 		validatedClaims, err := manager.ValidateToken(tokenString)
 
@@ -237,7 +238,8 @@ func TestRefreshToken(t *testing.T) {
 		assert.Equal(t, role, newClaims.Role)
 
 		// Verificar que la nueva expiración es mayor
-		originalClaims, _ := manager.ValidateToken(originalToken)
+		originalClaims, err := manager.ValidateToken(originalToken)
+		require.NoError(t, err)
 		assert.True(t, newClaims.ExpiresAt.After(originalClaims.ExpiresAt.Time),
 			"Nuevo token debe tener expiración mayor")
 	})
@@ -273,8 +275,10 @@ func TestRefreshToken(t *testing.T) {
 		refreshedToken, err := manager.RefreshToken(originalToken, 24*time.Hour)
 		require.NoError(t, err)
 
-		originalClaims, _ := manager.ValidateToken(originalToken)
-		refreshedClaims, _ := manager.ValidateToken(refreshedToken)
+		originalClaims, err := manager.ValidateToken(originalToken)
+		require.NoError(t, err)
+		refreshedClaims, err := manager.ValidateToken(refreshedToken)
+		require.NoError(t, err)
 
 		// Verificar que los datos del usuario se mantienen
 		assert.Equal(t, originalClaims.UserID, refreshedClaims.UserID)

@@ -44,7 +44,7 @@ func createRabbitMQ(ctx context.Context, cfg *RabbitConfig) (*RabbitMQContainer,
 	// Obtener connection string
 	connStr, err := container.AmqpURL(ctx)
 	if err != nil {
-		container.Terminate(ctx)
+		_ = container.Terminate(ctx) //nolint:errcheck // Cleanup en error, el error principal es el de AMQP URL
 		return nil, fmt.Errorf("error obteniendo AMQP URL: %w", err)
 	}
 
@@ -60,7 +60,7 @@ func createRabbitMQ(ctx context.Context, cfg *RabbitConfig) (*RabbitMQContainer,
 	}
 
 	if err != nil {
-		container.Terminate(ctx)
+		_ = container.Terminate(ctx) //nolint:errcheck // Cleanup en error, el error principal es el de conexión
 		return nil, fmt.Errorf("error conectando a RabbitMQ después de %d intentos: %w", maxRetries, err)
 	}
 
@@ -93,7 +93,7 @@ func (rc *RabbitMQContainer) PurgeAll(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("error creando canal: %w", err)
 	}
-	defer ch.Close()
+	defer func() { _ = ch.Close() }() //nolint:errcheck // Close en defer es best-effort
 
 	// Nota: La API de AMQP no proporciona un método directo para listar todas las colas
 	// En un entorno de testing, típicamente se conocen los nombres de las colas
@@ -109,7 +109,7 @@ func (rc *RabbitMQContainer) PurgeQueue(queueName string) error {
 	if err != nil {
 		return fmt.Errorf("error creando canal: %w", err)
 	}
-	defer ch.Close()
+	defer func() { _ = ch.Close() }() //nolint:errcheck // Close en defer es best-effort
 
 	_, err = ch.QueuePurge(queueName, false)
 	if err != nil {
@@ -125,7 +125,7 @@ func (rc *RabbitMQContainer) DeleteQueue(queueName string) error {
 	if err != nil {
 		return fmt.Errorf("error creando canal: %w", err)
 	}
-	defer ch.Close()
+	defer func() { _ = ch.Close() }() //nolint:errcheck // Close en defer es best-effort
 
 	_, err = ch.QueueDelete(queueName, false, false, false)
 	if err != nil {
@@ -138,9 +138,8 @@ func (rc *RabbitMQContainer) DeleteQueue(queueName string) error {
 // Terminate termina el container y cierra las conexiones
 func (rc *RabbitMQContainer) Terminate(ctx context.Context) error {
 	if rc.connection != nil {
-		if err := rc.connection.Close(); err != nil {
-			// Log error pero continuar con termination
-		}
+		// Ignorar error de close, el container será terminado de todos modos
+		_ = rc.connection.Close() //nolint:errcheck // Cleanup, container será terminado
 	}
 	if rc.container != nil {
 		return rc.container.Terminate(ctx)

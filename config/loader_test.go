@@ -107,7 +107,7 @@ logger:
   format: json
 `
 
-	if err := os.WriteFile(configFile, []byte(yamlContent), 0644); err != nil {
+	if err := os.WriteFile(configFile, []byte(yamlContent), 0600); err != nil {
 		t.Fatalf("Failed to create test config file: %v", err)
 	}
 
@@ -184,16 +184,24 @@ logger:
   format: json
 `
 
-	if err := os.WriteFile(configFile, []byte(yamlContent), 0644); err != nil {
+	if err := os.WriteFile(configFile, []byte(yamlContent), 0600); err != nil {
 		t.Fatalf("Failed to create test config file: %v", err)
 	}
 
 	// Set environment variables
-	os.Setenv("APP_ENVIRONMENT", "prod")
-	os.Setenv("APP_SERVER_PORT", "9090")
+	if err := os.Setenv("APP_ENVIRONMENT", "prod"); err != nil {
+		t.Fatalf("Failed to set APP_ENVIRONMENT: %v", err)
+	}
+	if err := os.Setenv("APP_SERVER_PORT", "9090"); err != nil {
+		t.Fatalf("Failed to set APP_SERVER_PORT: %v", err)
+	}
 	defer func() {
-		os.Unsetenv("APP_ENVIRONMENT")
-		os.Unsetenv("APP_SERVER_PORT")
+		if err := os.Unsetenv("APP_ENVIRONMENT"); err != nil {
+			t.Logf("Failed to unset APP_ENVIRONMENT: %v", err)
+		}
+		if err := os.Unsetenv("APP_SERVER_PORT"); err != nil {
+			t.Logf("Failed to unset APP_SERVER_PORT: %v", err)
+		}
 		viper.Reset()
 	}()
 
@@ -229,11 +237,19 @@ func TestLoader_Load_FileNotFoundContinuesWithEnv(t *testing.T) {
 	viper.Reset()
 
 	// Set environment variables - Viper usa mayúsculas para todo el key
-	os.Setenv("APP_ENVIRONMENT", "qa")
-	os.Setenv("APP_SERVICE_NAME", "env-service")
+	if err := os.Setenv("APP_ENVIRONMENT", "qa"); err != nil {
+		t.Fatalf("Failed to set APP_ENVIRONMENT: %v", err)
+	}
+	if err := os.Setenv("APP_SERVICE_NAME", "env-service"); err != nil {
+		t.Fatalf("Failed to set APP_SERVICE_NAME: %v", err)
+	}
 	defer func() {
-		os.Unsetenv("APP_ENVIRONMENT")
-		os.Unsetenv("APP_SERVICE_NAME")
+		if err := os.Unsetenv("APP_ENVIRONMENT"); err != nil {
+			t.Logf("Failed to unset APP_ENVIRONMENT: %v", err)
+		}
+		if err := os.Unsetenv("APP_SERVICE_NAME"); err != nil {
+			t.Logf("Failed to unset APP_SERVICE_NAME: %v", err)
+		}
 		viper.Reset()
 	}()
 
@@ -250,8 +266,12 @@ func TestLoader_Load_FileNotFoundContinuesWithEnv(t *testing.T) {
 	}
 
 	// Bind env vars before loading (needed for viper to recognize them)
-	viper.BindEnv("environment", "APP_ENVIRONMENT")
-	viper.BindEnv("service_name", "APP_SERVICE_NAME")
+	if err := viper.BindEnv("environment", "APP_ENVIRONMENT"); err != nil {
+		t.Fatalf("Failed to bind environment: %v", err)
+	}
+	if err := viper.BindEnv("service_name", "APP_SERVICE_NAME"); err != nil {
+		t.Fatalf("Failed to bind service_name: %v", err)
+	}
 
 	err := loader.Load(&cfg)
 

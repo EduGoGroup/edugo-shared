@@ -47,7 +47,11 @@ func TestRabbitMQFactory_CreateConnection_Success(t *testing.T) {
 	conn, err := factory.CreateConnection(ctx, rabbitConfig)
 	require.NoError(t, err)
 	require.NotNil(t, conn)
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			t.Logf("Failed to close RabbitMQ connection: %v", err)
+		}
+	}()
 
 	// Verificar que la conexión funciona
 	assert.False(t, conn.IsClosed())
@@ -147,13 +151,21 @@ func TestRabbitMQFactory_CreateChannel_Success(t *testing.T) {
 
 	conn, err := factory.CreateConnection(ctx, rabbitConfig)
 	require.NoError(t, err)
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			t.Logf("Failed to close RabbitMQ connection: %v", err)
+		}
+	}()
 
 	// Crear canal
 	channel, err := factory.CreateChannel(conn)
 	require.NoError(t, err)
 	require.NotNil(t, channel)
-	defer channel.Close()
+	defer func() {
+		if err := channel.Close(); err != nil {
+			t.Logf("Failed to close RabbitMQ channel: %v", err)
+		}
+	}()
 
 	// Verificar que el canal funciona
 	assert.NotNil(t, channel)
@@ -188,12 +200,20 @@ func TestRabbitMQFactory_CreateChannel_QoSConfigured(t *testing.T) {
 
 	conn, err := factory.CreateConnection(ctx, rabbitConfig)
 	require.NoError(t, err)
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			t.Logf("Failed to close RabbitMQ connection: %v", err)
+		}
+	}()
 
 	// Crear canal (internamente configura QoS)
 	channel, err := factory.CreateChannel(conn)
 	require.NoError(t, err)
-	defer channel.Close()
+	defer func() {
+		if err := channel.Close(); err != nil {
+			t.Logf("Failed to close RabbitMQ channel: %v", err)
+		}
+	}()
 
 	// Verificar que podemos usar el canal sin errores
 	// (QoS ya debería estar configurado)
@@ -238,11 +258,19 @@ func TestRabbitMQFactory_DeclareQueue_Success(t *testing.T) {
 
 	conn, err := factory.CreateConnection(ctx, rabbitConfig)
 	require.NoError(t, err)
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			t.Logf("Failed to close RabbitMQ connection: %v", err)
+		}
+	}()
 
 	channel, err := factory.CreateChannel(conn)
 	require.NoError(t, err)
-	defer channel.Close()
+	defer func() {
+		if err := channel.Close(); err != nil {
+			t.Logf("Failed to close RabbitMQ channel: %v", err)
+		}
+	}()
 
 	// Declarar cola
 	queueName := "test_queue_factory"
@@ -282,11 +310,19 @@ func TestRabbitMQFactory_DeclareQueue_WithConfiguration(t *testing.T) {
 
 	conn, err := factory.CreateConnection(ctx, rabbitConfig)
 	require.NoError(t, err)
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			t.Logf("Failed to close RabbitMQ connection: %v", err)
+		}
+	}()
 
 	channel, err := factory.CreateChannel(conn)
 	require.NoError(t, err)
-	defer channel.Close()
+	defer func() {
+		if err := channel.Close(); err != nil {
+			t.Logf("Failed to close RabbitMQ channel: %v", err)
+		}
+	}()
 
 	// Declarar cola (la factory configura TTL, priority, etc.)
 	queueName := "test_queue_configured"
@@ -296,8 +332,15 @@ func TestRabbitMQFactory_DeclareQueue_WithConfiguration(t *testing.T) {
 	// Verificar que la cola fue creada
 	assert.Equal(t, queueName, queue.Name)
 
-	// Inspeccionar cola para verificar argumentos
-	inspected, err := channel.QueueInspect(queueName)
+	// Inspeccionar cola para verificar argumentos usando QueueDeclarePassive
+	inspected, err := channel.QueueDeclarePassive(
+		queueName, // name
+		true,      // durable
+		false,     // delete when unused
+		false,     // exclusive
+		false,     // no-wait
+		nil,       // arguments
+	)
 	require.NoError(t, err)
 	assert.Equal(t, queueName, inspected.Name)
 }
@@ -447,7 +490,11 @@ func TestRabbitMQFactory_MultipleChannels(t *testing.T) {
 
 	conn, err := factory.CreateConnection(ctx, rabbitConfig)
 	require.NoError(t, err)
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			t.Logf("Failed to close RabbitMQ connection: %v", err)
+		}
+	}()
 
 	// Crear múltiples canales
 	channels := make([]*amqp.Channel, 5)
@@ -464,7 +511,9 @@ func TestRabbitMQFactory_MultipleChannels(t *testing.T) {
 
 	// Cerrar todos los canales
 	for _, ch := range channels {
-		_ = ch.Close()
+		if err := ch.Close(); err != nil {
+			t.Logf("Failed to close RabbitMQ channel: %v", err)
+		}
 	}
 }
 
@@ -497,11 +546,19 @@ func TestRabbitMQFactory_PublishConsume(t *testing.T) {
 
 	conn, err := factory.CreateConnection(ctx, rabbitConfig)
 	require.NoError(t, err)
-	defer factory.Close(nil, conn)
+	defer func() {
+		if err := factory.Close(nil, conn); err != nil {
+			t.Logf("Failed to close RabbitMQ connection: %v", err)
+		}
+	}()
 
 	channel, err := factory.CreateChannel(conn)
 	require.NoError(t, err)
-	defer channel.Close()
+	defer func() {
+		if err := channel.Close(); err != nil {
+			t.Logf("Failed to close RabbitMQ channel: %v", err)
+		}
+	}()
 
 	// Declarar cola
 	queueName := "test_queue_pubsub"

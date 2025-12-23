@@ -32,5 +32,12 @@ func (c *DLQConfig) CalculateBackoff(attempt int) time.Duration {
 		return c.RetryDelay
 	}
 	// Exponential: 5s, 10s, 20s, 40s...
-	return c.RetryDelay * time.Duration(1<<uint(attempt))
+	// Limitar attempt para evitar overflow (max 30 = ~5.7 años con base 5s)
+	if attempt < 0 {
+		attempt = 0
+	}
+	if attempt > 30 {
+		attempt = 30
+	}
+	return c.RetryDelay * time.Duration(1<<uint(attempt)) //nolint:gosec // attempt está validado arriba
 }

@@ -26,6 +26,8 @@ type Consumer interface {
 // Nota sobre errChan: El canal de errores tiene buffer de tamaño 1 y solo reporta
 // el primer error asíncrono que ocurra. Errores adicionales se descartan silenciosamente.
 // Esto es adecuado para el caso de uso actual donde un error fatal detiene el consumer.
+//
+//nolint:revive // Nombre mantenido por compatibilidad de API
 type RabbitMQConsumer struct {
 	conn     *Connection
 	config   ConsumerConfig

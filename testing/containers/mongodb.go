@@ -53,7 +53,7 @@ func createMongoDB(ctx context.Context, cfg *MongoConfig) (*MongoDBContainer, er
 	// Obtener connection string
 	connStr, err := container.ConnectionString(ctx)
 	if err != nil {
-		container.Terminate(ctx)
+		_ = container.Terminate(ctx) //nolint:errcheck // Cleanup en error, el error principal es el de connection string
 		return nil, fmt.Errorf("error obteniendo connection string: %w", err)
 	}
 
@@ -65,14 +65,14 @@ func createMongoDB(ctx context.Context, cfg *MongoConfig) (*MongoDBContainer, er
 
 	client, err := mongo.Connect(ctx, clientOpts)
 	if err != nil {
-		container.Terminate(ctx)
+		_ = container.Terminate(ctx) //nolint:errcheck // Cleanup en error, el error principal es el de conexión
 		return nil, fmt.Errorf("error conectando a MongoDB: %w", err)
 	}
 
 	// Verificar conexión
 	if err := client.Ping(ctx, nil); err != nil {
-		client.Disconnect(ctx)
-		container.Terminate(ctx)
+		_ = client.Disconnect(ctx)   //nolint:errcheck // Cleanup en error, el error principal es el de ping
+		_ = container.Terminate(ctx) //nolint:errcheck // Cleanup en error
 		return nil, fmt.Errorf("error haciendo ping a MongoDB: %w", err)
 	}
 
@@ -134,9 +134,8 @@ func (mc *MongoDBContainer) DropCollections(ctx context.Context, collections ...
 // Terminate termina el container y cierra las conexiones
 func (mc *MongoDBContainer) Terminate(ctx context.Context) error {
 	if mc.client != nil {
-		if err := mc.client.Disconnect(ctx); err != nil {
-			// Log error pero continuar con termination
-		}
+		// Ignorar error de disconnect, el container será terminado de todos modos
+		_ = mc.client.Disconnect(ctx) //nolint:errcheck // Cleanup, container será terminado
 	}
 	if mc.container != nil {
 		return mc.container.Terminate(ctx)

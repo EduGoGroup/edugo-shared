@@ -155,17 +155,26 @@ func BenchmarkHashPassword(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, _ = HashPassword(password)
+		_, err := HashPassword(password)
+		if err != nil {
+			b.Fatal(err)
+		}
 	}
 }
 
 // Benchmark para medir performance de verificación
 func BenchmarkVerifyPassword(b *testing.B) {
 	password := "benchmarkPassword123"
-	hash, _ := HashPassword(password)
+	hash, err := HashPassword(password)
+	if err != nil {
+		b.Fatal(err)
+	}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_ = VerifyPassword(hash, password)
+		err := VerifyPassword(hash, password)
+		if err != nil {
+			b.Fatal(err)
+		}
 	}
 }

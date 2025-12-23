@@ -18,7 +18,8 @@ import (
 type Claims struct {
 	UserID string          `json:"user_id"`
 	Email  string          `json:"email"`
-	Role   enum.SystemRole `json:"role"`
+	Role     enum.SystemRole `json:"role"`
+	SchoolID string          `json:"school_id,omitempty"` // ID de la escuela activa del usuario
 	jwt.RegisteredClaims
 }
 
@@ -36,15 +37,21 @@ func NewJWTManager(secretKey, issuer string) *JWTManager {
 	}
 }
 
-// GenerateToken genera un nuevo JWT token
+// GenerateToken genera un nuevo JWT token (sin school_id para retrocompatibilidad)
 func (m *JWTManager) GenerateToken(userID, email string, role enum.SystemRole, expiresIn time.Duration) (string, error) {
+	return m.GenerateTokenWithSchool(userID, email, role, "", expiresIn)
+}
+
+// GenerateTokenWithSchool genera un nuevo JWT token incluyendo el school_id
+func (m *JWTManager) GenerateTokenWithSchool(userID, email string, role enum.SystemRole, schoolID string, expiresIn time.Duration) (string, error) {
 	now := time.Now()
 	expiresAt := now.Add(expiresIn)
 
 	claims := Claims{
-		UserID: userID,
-		Email:  email,
-		Role:   role,
+		UserID:   userID,
+		Email:    email,
+		Role:     role,
+		SchoolID: schoolID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expiresAt),
 			IssuedAt:  jwt.NewNumericDate(now),
@@ -109,7 +116,7 @@ func (m *JWTManager) RefreshToken(tokenString string, expiresIn time.Duration) (
 		return "", err
 	}
 
-	return m.GenerateToken(claims.UserID, claims.Email, claims.Role, expiresIn)
+	return m.GenerateTokenWithSchool(claims.UserID, claims.Email, claims.Role, claims.SchoolID, expiresIn)
 }
 
 // ExtractUserID extrae el user ID de un token sin validar completamente
@@ -142,4 +149,20 @@ func ExtractRole(tokenString string) (enum.SystemRole, error) {
 	}
 
 	return claims.Role, nil
+}
+
+// ExtractSchoolID extrae el school ID de un token sin validar completamente
+// Útil solo para logging o debugging, NO para autenticación
+func ExtractSchoolID(tokenString string) (string, error) {
+	token, _, err := new(jwt.Parser).ParseUnverified(tokenString, &Claims{})
+	if err != nil {
+		return "", err
+	}
+
+	claims, ok := token.Claims.(*Claims)
+	if !ok {
+		return "", fmt.Errorf("invalid claims")
+	}
+
+	return claims.SchoolID, nil
 }

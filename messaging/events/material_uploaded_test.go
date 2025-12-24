@@ -31,17 +31,17 @@ func TestMaterialUploadedEvent_Serialization(t *testing.T) {
 		},
 	}
 
-	// Serialize to JSON
+	// Serializar a JSON
 	data, err := json.Marshal(event)
 	require.NoError(t, err)
 	assert.NotEmpty(t, data)
 
-	// Deserialize from JSON
+	// Deserializar desde JSON
 	var decoded MaterialUploadedEvent
 	err = json.Unmarshal(data, &decoded)
 	require.NoError(t, err)
 
-	// Verify all fields
+	// Verificar todos los campos
 	assert.Equal(t, event.EventID, decoded.EventID)
 	assert.Equal(t, event.EventType, decoded.EventType)
 	assert.Equal(t, event.EventVersion, decoded.EventVersion)

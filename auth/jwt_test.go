@@ -406,6 +406,76 @@ func TestExtractRole(t *testing.T) {
 	})
 }
 
+func TestExtractSchoolID(t *testing.T) {
+	manager := NewJWTManager(testSecretKey, testIssuer)
+	userID := uuid.New().String()
+	email := testEmail
+	role := enum.SystemRoleTeacher
+	schoolID := uuid.New().String()
+
+	t.Run("extrae schoolID de token con escuela", func(t *testing.T) {
+		token, err := manager.GenerateTokenWithSchool(userID, email, role, schoolID, 24*time.Hour)
+		require.NoError(t, err)
+
+		extractedSchoolID, err := ExtractSchoolID(token)
+
+		require.NoError(t, err)
+		assert.Equal(t, schoolID, extractedSchoolID)
+	})
+
+	t.Run("retorna vacío cuando token no tiene schoolID", func(t *testing.T) {
+		token, err := manager.GenerateToken(userID, email, role, 24*time.Hour)
+		require.NoError(t, err)
+
+		extractedSchoolID, err := ExtractSchoolID(token)
+
+		require.NoError(t, err)
+		assert.Empty(t, extractedSchoolID,
+			"ExtractSchoolID debe retornar vacío cuando el token no tiene schoolID")
+	})
+
+	t.Run("extrae schoolID de token expirado (sin validar)", func(t *testing.T) {
+		// Esta función NO valida expiración, solo extrae el claim
+		expiredToken, err := manager.GenerateTokenWithSchool(userID, email, role, schoolID, -1*time.Hour)
+		require.NoError(t, err)
+
+		extractedSchoolID, err := ExtractSchoolID(expiredToken)
+
+		require.NoError(t, err)
+		assert.Equal(t, schoolID, extractedSchoolID,
+			"ExtractSchoolID debe funcionar incluso con tokens expirados")
+	})
+
+	t.Run("extrae schoolID de token con firma incorrecta (sin validar)", func(t *testing.T) {
+		// Esta función NO valida firma, solo extrae el claim
+		wrongManager := NewJWTManager("wrong-secret", testIssuer)
+		token, err := wrongManager.GenerateTokenWithSchool(userID, email, role, schoolID, 24*time.Hour)
+		require.NoError(t, err)
+
+		extractedSchoolID, err := ExtractSchoolID(token)
+
+		require.NoError(t, err)
+		assert.Equal(t, schoolID, extractedSchoolID,
+			"ExtractSchoolID debe funcionar incluso con firma incorrecta")
+	})
+
+	t.Run("falla con token malformado", func(t *testing.T) {
+		invalidToken := notValidToken
+
+		extractedSchoolID, err := ExtractSchoolID(invalidToken)
+
+		assert.Error(t, err)
+		assert.Empty(t, extractedSchoolID)
+	})
+
+	t.Run("falla con token vacío", func(t *testing.T) {
+		extractedSchoolID, err := ExtractSchoolID("")
+
+		assert.Error(t, err)
+		assert.Empty(t, extractedSchoolID)
+	})
+}
+
 func TestConcurrentTokenGeneration(t *testing.T) {
 	t.Run("genera tokens concurrentemente sin errores", func(t *testing.T) {
 		manager := NewJWTManager(testSecretKey, testIssuer)

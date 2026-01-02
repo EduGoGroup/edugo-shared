@@ -16,8 +16,8 @@ import (
 
 // Claims representa los claims personalizados del JWT
 type Claims struct {
-	UserID string          `json:"user_id"`
-	Email  string          `json:"email"`
+	UserID   string          `json:"user_id"`
+	Email    string          `json:"email"`
 	Role     enum.SystemRole `json:"role"`
 	SchoolID string          `json:"school_id,omitempty"` // ID de la escuela activa del usuario
 	jwt.RegisteredClaims

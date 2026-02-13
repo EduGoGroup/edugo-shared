@@ -192,6 +192,9 @@ func TestAllPermissions_MapIntegrity(t *testing.T) {
 			PermissionStatsGlobal,
 			PermissionStatsSchool,
 			PermissionStatsUnit,
+			// Gestión de permisos
+			PermissionPermissionsMgmtRead,
+			PermissionPermissionsMgmtUpdate,
 		}
 
 		// Verificar que cada constante está en AllPermissions

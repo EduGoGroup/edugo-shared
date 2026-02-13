@@ -66,10 +66,15 @@ const (
 	PermissionStatsUnit   Permission = "stats:unit"
 )
 
-// Permisos de gestion de recursos/permisos
+// Gestión de permisos
 const (
-	PermissionResourcesRead   Permission = "permissions_mgmt:read"
-	PermissionResourcesUpdate Permission = "permissions_mgmt:update"
+	PermissionPermissionsMgmtRead   Permission = "permissions_mgmt:read"
+	PermissionPermissionsMgmtUpdate Permission = "permissions_mgmt:update"
+
+	// Deprecated: usar PermissionPermissionsMgmtRead
+	PermissionResourcesRead = PermissionPermissionsMgmtRead
+	// Deprecated: usar PermissionPermissionsMgmtUpdate
+	PermissionResourcesUpdate = PermissionPermissionsMgmtUpdate
 )
 
 // String retorna la representación en string del permiso
@@ -126,9 +131,9 @@ var AllPermissions = map[Permission]bool{
 	PermissionStatsGlobal: true,
 	PermissionStatsSchool: true,
 	PermissionStatsUnit:   true,
-	// Gestion de recursos/permisos
-	PermissionResourcesRead:   true,
-	PermissionResourcesUpdate: true,
+	// Gestión de permisos
+	PermissionPermissionsMgmtRead:   true,
+	PermissionPermissionsMgmtUpdate: true,
 }
 
 // AllPermissionsSlice retorna todos los permisos como slice

@@ -66,6 +66,12 @@ const (
 	PermissionStatsUnit   Permission = "stats:unit"
 )
 
+// Permisos de gestion de recursos/permisos
+const (
+	PermissionResourcesRead   Permission = "permissions_mgmt:read"
+	PermissionResourcesUpdate Permission = "permissions_mgmt:update"
+)
+
 // String retorna la representación en string del permiso
 func (p Permission) String() string {
 	return string(p)
@@ -120,6 +126,9 @@ var AllPermissions = map[Permission]bool{
 	PermissionStatsGlobal: true,
 	PermissionStatsSchool: true,
 	PermissionStatsUnit:   true,
+	// Gestion de recursos/permisos
+	PermissionResourcesRead:   true,
+	PermissionResourcesUpdate: true,
 }
 
 // AllPermissionsSlice retorna todos los permisos como slice

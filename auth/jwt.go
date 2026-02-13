@@ -29,8 +29,8 @@ type UserContext struct {
 type Claims struct {
 	UserID        string          `json:"user_id"`
 	Email         string          `json:"email"`
-	ActiveContext *UserContext     `json:"active_context,omitempty"`
-	Role          enum.SystemRole `json:"role,omitempty"`     // Deprecated: usar ActiveContext
+	ActiveContext *UserContext    `json:"active_context,omitempty"`
+	Role          enum.SystemRole `json:"role,omitempty"`      // Deprecated: usar ActiveContext
 	SchoolID      string          `json:"school_id,omitempty"` // Deprecated: usar ActiveContext
 	jwt.RegisteredClaims
 }
@@ -49,12 +49,14 @@ func NewJWTManager(secretKey, issuer string) *JWTManager {
 	}
 }
 
-// Deprecated: Usar GenerateTokenWithContext en su lugar
+// GenerateToken genera un token JWT sin contexto de escuela.
+// Deprecated: Usar GenerateTokenWithContext en su lugar.
 func (m *JWTManager) GenerateToken(userID, email string, role enum.SystemRole, expiresIn time.Duration) (string, error) {
 	return m.GenerateTokenWithSchool(userID, email, role, "", expiresIn)
 }
 
-// Deprecated: Usar GenerateTokenWithContext en su lugar
+// GenerateTokenWithSchool genera un token JWT con contexto de escuela.
+// Deprecated: Usar GenerateTokenWithContext en su lugar.
 func (m *JWTManager) GenerateTokenWithSchool(userID, email string, role enum.SystemRole, schoolID string, expiresIn time.Duration) (string, error) {
 	now := time.Now()
 	expiresAt := now.Add(expiresIn)

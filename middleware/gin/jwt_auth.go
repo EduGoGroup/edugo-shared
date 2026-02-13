@@ -59,7 +59,7 @@ func JWTAuthMiddleware(jwtManager *auth.JWTManager) gin.HandlerFunc {
 		// 4. Guardar claims en contexto para uso en handlers
 		c.Set(ContextKeyUserID, claims.UserID)
 		c.Set(ContextKeyEmail, claims.Email)
-		c.Set(ContextKeyRole, claims.Role.String()) // Convertir enum a string
+		c.Set(ContextKeyRole, claims.ActiveContext.RoleName)
 		c.Set(ContextKeyClaims, claims)
 
 		c.Next()

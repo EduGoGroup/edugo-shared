@@ -8,6 +8,7 @@ import (
 
 	"github.com/EduGoGroup/edugo-shared/auth"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/require"
 )
 
@@ -17,8 +18,13 @@ func TestJWTAuthMiddleware_ValidToken(t *testing.T) {
 	// Crear JWTManager para tests
 	jwtManager := auth.NewJWTManager("test-secret-key", "test-issuer")
 
-	// Generar token válido
-	token, err := jwtManager.GenerateToken("user-123", "test@edugo.com", "student", time.Hour)
+	// Generar token válido con contexto
+	activeContext := &auth.UserContext{
+		RoleID:      "role-student",
+		RoleName:    "Student",
+		Permissions: []string{"materials:read"},
+	}
+	token, _, err := jwtManager.GenerateTokenWithContext("user-123", "test@edugo.com", activeContext, time.Hour)
 	if err != nil {
 		t.Fatalf("Error al generar token: %v", err)
 	}
@@ -65,7 +71,7 @@ func TestJWTAuthMiddleware_ValidToken(t *testing.T) {
 	if !containsString(body, "test@edugo.com") {
 		t.Error("Response debe contener email")
 	}
-	if !containsString(body, "student") {
+	if !containsString(body, "Student") {
 		t.Error("Response debe contener role")
 	}
 }
@@ -145,8 +151,28 @@ func TestJWTAuthMiddleware_ExpiredToken(t *testing.T) {
 
 	jwtManager := auth.NewJWTManager("test-secret", "test-issuer")
 
-	// Generar token expirado (TTL negativo)
-	token, err := jwtManager.GenerateToken("user123", "test@test.com", "student", -time.Hour)
+	// Crear un token manualmente que ya esté expirado
+	now := time.Now()
+	activeContext := &auth.UserContext{
+		RoleID:      "role-student",
+		RoleName:    "Student",
+		Permissions: []string{},
+	}
+	expiredClaims := auth.Claims{
+		UserID:        "user123",
+		Email:         "test@test.com",
+		ActiveContext: activeContext,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ID:        "test-id",
+			Issuer:    "test-issuer",
+			Subject:   "user123",
+			IssuedAt:  jwt.NewNumericDate(now.Add(-2 * time.Hour)),
+			ExpiresAt: jwt.NewNumericDate(now.Add(-1 * time.Hour)),
+			NotBefore: jwt.NewNumericDate(now.Add(-2 * time.Hour)),
+		},
+	}
+	expiredToken := jwt.NewWithClaims(jwt.SigningMethodHS256, expiredClaims)
+	token, err := expiredToken.SignedString([]byte("test-secret"))
 	if err != nil {
 		t.Fatalf("Error al generar token: %v", err)
 	}
@@ -215,7 +241,12 @@ func TestJWTAuthMiddleware_WrongSecret(t *testing.T) {
 
 	// Crear token con un secret
 	jwtManager1 := auth.NewJWTManager("secret-1", "issuer")
-	token, err := jwtManager1.GenerateToken("user123", "test@test.com", "student", time.Hour)
+	activeContext := &auth.UserContext{
+		RoleID:      "role-student",
+		RoleName:    "Student",
+		Permissions: []string{},
+	}
+	token, _, err := jwtManager1.GenerateTokenWithContext("user123", "test@test.com", activeContext, time.Hour)
 	require.NoError(t, err)
 
 	// Intentar validar con otro secret

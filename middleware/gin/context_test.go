@@ -135,7 +135,11 @@ func TestGetClaims(t *testing.T) {
 	expectedClaims := &auth.Claims{
 		UserID: "user-789",
 		Email:  "claims@test.com",
-		Role:   "teacher",
+		ActiveContext: &auth.UserContext{
+			RoleID:      "role-teacher",
+			RoleName:    "Teacher",
+			Permissions: []string{"users:read"},
+		},
 	}
 
 	c.Set(ContextKeyClaims, expectedClaims)
@@ -150,8 +154,8 @@ func TestGetClaims(t *testing.T) {
 	if claims.Email != expectedClaims.Email {
 		t.Errorf("Email: expected '%s', got '%s'", expectedClaims.Email, claims.Email)
 	}
-	if claims.Role != expectedClaims.Role {
-		t.Errorf("Role: expected '%s', got '%s'", expectedClaims.Role, claims.Role)
+	if claims.ActiveContext.RoleName != expectedClaims.ActiveContext.RoleName {
+		t.Errorf("RoleName: expected '%s', got '%s'", expectedClaims.ActiveContext.RoleName, claims.ActiveContext.RoleName)
 	}
 
 	// Test: Tipo incorrecto
@@ -197,11 +201,15 @@ func TestMustGetters_Success(t *testing.T) {
 	// Setup contexto con valores
 	c.Set(ContextKeyUserID, "user-999")
 	c.Set(ContextKeyEmail, "success@test.com")
-	c.Set(ContextKeyRole, "admin")
+	c.Set(ContextKeyRole, "Admin")
 	c.Set(ContextKeyClaims, &auth.Claims{
 		UserID: "user-999",
 		Email:  "success@test.com",
-		Role:   "admin",
+		ActiveContext: &auth.UserContext{
+			RoleID:      "role-admin",
+			RoleName:    "Admin",
+			Permissions: []string{"users:read"},
+		},
 	})
 
 	// Test: MustGetUserID
@@ -218,8 +226,8 @@ func TestMustGetters_Success(t *testing.T) {
 
 	// Test: MustGetRole
 	role := MustGetRole(c)
-	if role != "admin" {
-		t.Errorf("Expected 'admin', got '%s'", role)
+	if role != "Admin" {
+		t.Errorf("Expected 'Admin', got '%s'", role)
 	}
 
 	// Test: MustGetClaims

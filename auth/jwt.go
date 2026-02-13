@@ -14,12 +14,30 @@ import (
 	"github.com/EduGoGroup/edugo-shared/common/types/enum"
 )
 
+// UserContext representa el contexto activo del usuario en el JWT.
+// Encapsula el rol actual, la escuela y unidad académica asociadas, y los permisos
+// específicos del usuario en ese contexto.
+//
+// Campos opcionales (omitempty):
+//   - SchoolID, SchoolName: Solo para usuarios con contexto de escuela
+//   - AcademicUnitID, AcademicUnitName: Solo para usuarios con contexto de unidad académica
+type UserContext struct {
+	RoleID           string   `json:"role_id"`
+	RoleName         string   `json:"role_name"`
+	SchoolID         string   `json:"school_id,omitempty"`
+	SchoolName       string   `json:"school_name,omitempty"`
+	AcademicUnitID   string   `json:"academic_unit_id,omitempty"`
+	AcademicUnitName string   `json:"academic_unit_name,omitempty"`
+	Permissions      []string `json:"permissions"`
+}
+
 // Claims representa los claims personalizados del JWT
 type Claims struct {
-	UserID   string          `json:"user_id"`
-	Email    string          `json:"email"`
-	Role     enum.SystemRole `json:"role"`
-	SchoolID string          `json:"school_id,omitempty"` // ID de la escuela activa del usuario
+	UserID        string          `json:"user_id"`
+	Email         string          `json:"email"`
+	ActiveContext *UserContext    `json:"active_context,omitempty"`
+	Role          enum.SystemRole `json:"role,omitempty"`      // Deprecated: usar ActiveContext
+	SchoolID      string          `json:"school_id,omitempty"` // Deprecated: usar ActiveContext
 	jwt.RegisteredClaims
 }
 
@@ -37,12 +55,14 @@ func NewJWTManager(secretKey, issuer string) *JWTManager {
 	}
 }
 
-// GenerateToken genera un nuevo JWT token (sin school_id para retrocompatibilidad)
+// GenerateToken genera un token JWT sin contexto de escuela.
+// Deprecated: Usar GenerateTokenWithContext en su lugar.
 func (m *JWTManager) GenerateToken(userID, email string, role enum.SystemRole, expiresIn time.Duration) (string, error) {
 	return m.GenerateTokenWithSchool(userID, email, role, "", expiresIn)
 }
 
-// GenerateTokenWithSchool genera un nuevo JWT token incluyendo el school_id
+// GenerateTokenWithSchool genera un token JWT con contexto de escuela.
+// Deprecated: Usar GenerateTokenWithContext en su lugar.
 func (m *JWTManager) GenerateTokenWithSchool(userID, email string, role enum.SystemRole, schoolID string, expiresIn time.Duration) (string, error) {
 	now := time.Now()
 	expiresAt := now.Add(expiresIn)
@@ -70,6 +90,63 @@ func (m *JWTManager) GenerateTokenWithSchool(userID, email string, role enum.Sys
 	}
 
 	return tokenString, nil
+}
+
+// GenerateTokenWithContext genera un JWT con contexto RBAC.
+//
+// Parámetros:
+//   - userID: ID del usuario (requerido, no puede estar vacío)
+//   - email: Email del usuario (requerido, no puede estar vacío)
+//   - activeContext: Contexto activo del usuario con rol, escuela y permisos (requerido)
+//   - expiresIn: Duración hasta la expiración del token (mínimo 1 minuto)
+//
+// Retorna:
+//   - string: Token JWT firmado
+//   - time.Time: Fecha y hora de expiración del token
+//   - error: Error de validación si los parámetros son inválidos, o error interno si falla la firma
+func (m *JWTManager) GenerateTokenWithContext(
+	userID, email string,
+	activeContext *UserContext,
+	expiresIn time.Duration,
+) (string, time.Time, error) {
+	// Validar entradas
+	if userID == "" {
+		return "", time.Time{}, errors.NewValidationError("userID no puede estar vacío")
+	}
+	if email == "" {
+		return "", time.Time{}, errors.NewValidationError("email no puede estar vacío")
+	}
+	if activeContext == nil {
+		return "", time.Time{}, errors.NewValidationError("activeContext no puede ser nil")
+	}
+	if expiresIn < time.Minute {
+		return "", time.Time{}, errors.NewValidationError("expiresIn debe ser mayor a 1 minuto")
+	}
+
+	now := time.Now()
+	expiresAt := now.Add(expiresIn)
+
+	claims := Claims{
+		UserID:        userID,
+		Email:         email,
+		ActiveContext: activeContext,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ID:        uuid.New().String(),
+			Issuer:    m.issuer,
+			Subject:   userID,
+			IssuedAt:  jwt.NewNumericDate(now),
+			ExpiresAt: jwt.NewNumericDate(expiresAt),
+			NotBefore: jwt.NewNumericDate(now),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	signedToken, err := token.SignedString(m.secretKey)
+	if err != nil {
+		return "", time.Time{}, errors.NewInternalError("no se pudo firmar el token JWT", err)
+	}
+
+	return signedToken, expiresAt, nil
 }
 
 // ValidateToken valida un JWT token y retorna los claims
@@ -102,7 +179,9 @@ func (m *JWTManager) ValidateToken(tokenString string) (*Claims, error) {
 		return nil, errors.NewUnauthorizedError("invalid token issuer")
 	}
 
-	if !claims.Role.IsValid() {
+	// Validar role solo si está presente (tokens legacy)
+	// Tokens RBAC nuevos usan ActiveContext en su lugar
+	if claims.Role != "" && !claims.Role.IsValid() {
 		return nil, errors.NewUnauthorizedError("invalid role in token")
 	}
 

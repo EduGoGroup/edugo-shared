@@ -570,3 +570,197 @@ func splitToken(token string) []string {
 	}
 	return parts
 }
+
+func TestGenerateTokenWithContext(t *testing.T) {
+	manager := NewJWTManager(testSecretKey, testIssuer)
+	userID := uuid.New().String()
+	email := testEmail
+	expiresIn := 24 * time.Hour
+
+	activeContext := &UserContext{
+		RoleID:      "role-123",
+		RoleName:    "Teacher",
+		SchoolID:    "school-456",
+		SchoolName:  "Test School",
+		Permissions: []string{"users:read", "materials:create", "assessments:grade"},
+	}
+
+	t.Run("genera token con contexto válido exitosamente", func(t *testing.T) {
+		token, expiresAt, err := manager.GenerateTokenWithContext(userID, email, activeContext, expiresIn)
+
+		require.NoError(t, err)
+		assert.NotEmpty(t, token)
+		assert.False(t, expiresAt.IsZero())
+		assert.True(t, expiresAt.After(time.Now()))
+	})
+
+	t.Run("token contiene claims con ActiveContext correctos", func(t *testing.T) {
+		token, _, err := manager.GenerateTokenWithContext(userID, email, activeContext, expiresIn)
+		require.NoError(t, err)
+
+		claims, err := manager.ValidateToken(token)
+		require.NoError(t, err)
+
+		assert.Equal(t, userID, claims.UserID)
+		assert.Equal(t, email, claims.Email)
+		assert.NotNil(t, claims.ActiveContext)
+		assert.Equal(t, activeContext.RoleID, claims.ActiveContext.RoleID)
+		assert.Equal(t, activeContext.RoleName, claims.ActiveContext.RoleName)
+		assert.Equal(t, activeContext.SchoolID, claims.ActiveContext.SchoolID)
+		assert.Equal(t, activeContext.SchoolName, claims.ActiveContext.SchoolName)
+		assert.Equal(t, activeContext.Permissions, claims.ActiveContext.Permissions)
+	})
+
+	t.Run("rechaza userID vacío", func(t *testing.T) {
+		_, _, err := manager.GenerateTokenWithContext("", email, activeContext, expiresIn)
+
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "userID no puede estar vacío")
+	})
+
+	t.Run("rechaza email vacío", func(t *testing.T) {
+		_, _, err := manager.GenerateTokenWithContext(userID, "", activeContext, expiresIn)
+
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "email no puede estar vacío")
+	})
+
+	t.Run("rechaza activeContext nil", func(t *testing.T) {
+		_, _, err := manager.GenerateTokenWithContext(userID, email, nil, expiresIn)
+
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "activeContext no puede ser nil")
+	})
+
+	t.Run("rechaza expiresIn menor a 1 minuto", func(t *testing.T) {
+		_, _, err := manager.GenerateTokenWithContext(userID, email, activeContext, 30*time.Second)
+
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "expiresIn debe ser mayor a 1 minuto")
+	})
+
+	t.Run("acepta expiresIn de exactamente 1 minuto", func(t *testing.T) {
+		token, _, err := manager.GenerateTokenWithContext(userID, email, activeContext, time.Minute)
+
+		require.NoError(t, err)
+		assert.NotEmpty(t, token)
+	})
+
+	t.Run("genera tokens únicos con mismo contexto", func(t *testing.T) {
+		token1, _, err1 := manager.GenerateTokenWithContext(userID, email, activeContext, expiresIn)
+		time.Sleep(10 * time.Millisecond)
+		token2, _, err2 := manager.GenerateTokenWithContext(userID, email, activeContext, expiresIn)
+
+		require.NoError(t, err1)
+		require.NoError(t, err2)
+		assert.NotEqual(t, token1, token2, "Los tokens deben ser únicos debido al timestamp y JTI")
+	})
+
+	t.Run("token sin SchoolID (context mínimo)", func(t *testing.T) {
+		minimalContext := &UserContext{
+			RoleID:      "role-789",
+			RoleName:    "Admin",
+			Permissions: []string{"users:create", "schools:manage"},
+		}
+
+		token, _, err := manager.GenerateTokenWithContext(userID, email, minimalContext, expiresIn)
+		require.NoError(t, err)
+
+		claims, err := manager.ValidateToken(token)
+		require.NoError(t, err)
+
+		assert.Equal(t, minimalContext.RoleID, claims.ActiveContext.RoleID)
+		assert.Equal(t, minimalContext.RoleName, claims.ActiveContext.RoleName)
+		assert.Empty(t, claims.ActiveContext.SchoolID)
+		assert.Empty(t, claims.ActiveContext.SchoolName)
+		assert.Equal(t, minimalContext.Permissions, claims.ActiveContext.Permissions)
+	})
+
+	t.Run("token con unidad académica", func(t *testing.T) {
+		contextWithUnit := &UserContext{
+			RoleID:           "role-abc",
+			RoleName:         "Unit Coordinator",
+			SchoolID:         "school-def",
+			SchoolName:       "Test School",
+			AcademicUnitID:   "unit-ghi",
+			AcademicUnitName: "Computer Science",
+			Permissions:      []string{"units:manage", "materials:create"},
+		}
+
+		token, _, err := manager.GenerateTokenWithContext(userID, email, contextWithUnit, expiresIn)
+		require.NoError(t, err)
+
+		claims, err := manager.ValidateToken(token)
+		require.NoError(t, err)
+
+		assert.Equal(t, contextWithUnit.AcademicUnitID, claims.ActiveContext.AcademicUnitID)
+		assert.Equal(t, contextWithUnit.AcademicUnitName, claims.ActiveContext.AcademicUnitName)
+	})
+
+	t.Run("tiempo de expiración es correcto", func(t *testing.T) {
+		expiresIn := 2 * time.Hour
+		_, expiresAt, err := manager.GenerateTokenWithContext(userID, email, activeContext, expiresIn)
+
+		require.NoError(t, err)
+
+		expectedExpiration := time.Now().Add(expiresIn)
+		// Tolerancia de 5 segundos
+		assert.WithinDuration(t, expectedExpiration, expiresAt, 5*time.Second)
+	})
+
+	t.Run("token con lista vacía de permisos", func(t *testing.T) {
+		contextNoPerms := &UserContext{
+			RoleID:      "role-no-perms",
+			RoleName:    "Guest",
+			Permissions: []string{},
+		}
+
+		token, _, err := manager.GenerateTokenWithContext(userID, email, contextNoPerms, expiresIn)
+		require.NoError(t, err)
+
+		claims, err := manager.ValidateToken(token)
+		require.NoError(t, err)
+
+		assert.NotNil(t, claims.ActiveContext.Permissions)
+		assert.Empty(t, claims.ActiveContext.Permissions)
+	})
+}
+
+func TestUserContext(t *testing.T) {
+	t.Run("UserContext con todos los campos", func(t *testing.T) {
+		ctx := &UserContext{
+			RoleID:           "role-123",
+			RoleName:         "Teacher",
+			SchoolID:         "school-456",
+			SchoolName:       "Test School",
+			AcademicUnitID:   "unit-789",
+			AcademicUnitName: "Mathematics",
+			Permissions:      []string{"users:read", "materials:create"},
+		}
+
+		assert.NotNil(t, ctx)
+		assert.Equal(t, "role-123", ctx.RoleID)
+		assert.Equal(t, "Teacher", ctx.RoleName)
+		assert.Equal(t, "school-456", ctx.SchoolID)
+		assert.Equal(t, "Test School", ctx.SchoolName)
+		assert.Equal(t, "unit-789", ctx.AcademicUnitID)
+		assert.Equal(t, "Mathematics", ctx.AcademicUnitName)
+		assert.Len(t, ctx.Permissions, 2)
+	})
+
+	t.Run("UserContext solo con campos requeridos", func(t *testing.T) {
+		ctx := &UserContext{
+			RoleID:      "role-abc",
+			RoleName:    "Admin",
+			Permissions: []string{"users:create"},
+		}
+
+		assert.Equal(t, "role-abc", ctx.RoleID)
+		assert.Equal(t, "Admin", ctx.RoleName)
+		assert.Empty(t, ctx.SchoolID)
+		assert.Empty(t, ctx.SchoolName)
+		assert.Empty(t, ctx.AcademicUnitID)
+		assert.Empty(t, ctx.AcademicUnitName)
+		assert.Len(t, ctx.Permissions, 1)
+	})
+}

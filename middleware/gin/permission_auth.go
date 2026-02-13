@@ -8,36 +8,43 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// getValidatedClaims es una función helper que extrae y valida los claims del contexto.
+// Retorna los claims validados o nil si hay algún error, y envía la respuesta HTTP correspondiente.
+func getValidatedClaims(c *gin.Context) *auth.Claims {
+	claims, exists := c.Get(ContextKeyClaims)
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "unauthorized",
+			"code":  "NO_CLAIMS",
+		})
+		return nil
+	}
+
+	userClaims, ok := claims.(*auth.Claims)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "invalid claims type",
+			"code":  "INVALID_CLAIMS_TYPE",
+		})
+		return nil
+	}
+
+	if userClaims.ActiveContext == nil {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "no active context",
+			"code":  "NO_ACTIVE_CONTEXT",
+		})
+		return nil
+	}
+
+	return userClaims
+}
+
 // RequirePermission valida que el usuario tenga un permiso específico
 func RequirePermission(permission enum.Permission) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Obtener claims del contexto (inyectados por JWTAuthMiddleware)
-		claims, exists := c.Get(ContextKeyClaims)
-		if !exists {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "unauthorized",
-				"code":  "NO_CLAIMS",
-			})
-			c.Abort()
-			return
-		}
-
-		userClaims, ok := claims.(*auth.Claims)
-		if !ok {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "invalid claims type",
-				"code":  "INVALID_CLAIMS_TYPE",
-			})
-			c.Abort()
-			return
-		}
-
-		// Verificar si el contexto activo tiene el permiso
-		if userClaims.ActiveContext == nil {
-			c.JSON(http.StatusForbidden, gin.H{
-				"error": "no active context",
-				"code":  "NO_ACTIVE_CONTEXT",
-			})
+		userClaims := getValidatedClaims(c)
+		if userClaims == nil {
 			c.Abort()
 			return
 		}
@@ -67,16 +74,8 @@ func RequirePermission(permission enum.Permission) gin.HandlerFunc {
 // RequireAnyPermission valida que el usuario tenga AL MENOS uno de los permisos
 func RequireAnyPermission(permissions ...enum.Permission) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		claims, exists := c.Get(ContextKeyClaims)
-		if !exists {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
-			c.Abort()
-			return
-		}
-
-		userClaims, ok := claims.(*auth.Claims)
-		if !ok || userClaims.ActiveContext == nil {
-			c.JSON(http.StatusForbidden, gin.H{"error": "no active context"})
+		userClaims := getValidatedClaims(c)
+		if userClaims == nil {
 			c.Abort()
 			return
 		}
@@ -104,16 +103,8 @@ func RequireAnyPermission(permissions ...enum.Permission) gin.HandlerFunc {
 // RequireAllPermissions valida que el usuario tenga TODOS los permisos
 func RequireAllPermissions(permissions ...enum.Permission) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		claims, exists := c.Get(ContextKeyClaims)
-		if !exists {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
-			c.Abort()
-			return
-		}
-
-		userClaims, ok := claims.(*auth.Claims)
-		if !ok || userClaims.ActiveContext == nil {
-			c.JSON(http.StatusForbidden, gin.H{"error": "no active context"})
+		userClaims := getValidatedClaims(c)
+		if userClaims == nil {
 			c.Abort()
 			return
 		}

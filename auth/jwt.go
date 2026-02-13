@@ -11,7 +11,6 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/EduGoGroup/edugo-shared/common/errors"
-	"github.com/EduGoGroup/edugo-shared/common/types/enum"
 )
 
 // UserContext representa el contexto activo del usuario en el JWT.
@@ -33,11 +32,9 @@ type UserContext struct {
 
 // Claims representa los claims personalizados del JWT
 type Claims struct {
-	UserID        string          `json:"user_id"`
-	Email         string          `json:"email"`
-	ActiveContext *UserContext    `json:"active_context,omitempty"`
-	Role          enum.SystemRole `json:"role,omitempty"`      // Deprecated: usar ActiveContext
-	SchoolID      string          `json:"school_id,omitempty"` // Deprecated: usar ActiveContext
+	UserID        string       `json:"user_id"`
+	Email         string       `json:"email"`
+	ActiveContext *UserContext `json:"active_context"`
 	jwt.RegisteredClaims
 }
 
@@ -53,43 +50,6 @@ func NewJWTManager(secretKey, issuer string) *JWTManager {
 		secretKey: []byte(secretKey),
 		issuer:    issuer,
 	}
-}
-
-// GenerateToken genera un token JWT sin contexto de escuela.
-// Deprecated: Usar GenerateTokenWithContext en su lugar.
-func (m *JWTManager) GenerateToken(userID, email string, role enum.SystemRole, expiresIn time.Duration) (string, error) {
-	return m.GenerateTokenWithSchool(userID, email, role, "", expiresIn)
-}
-
-// GenerateTokenWithSchool genera un token JWT con contexto de escuela.
-// Deprecated: Usar GenerateTokenWithContext en su lugar.
-func (m *JWTManager) GenerateTokenWithSchool(userID, email string, role enum.SystemRole, schoolID string, expiresIn time.Duration) (string, error) {
-	now := time.Now()
-	expiresAt := now.Add(expiresIn)
-
-	claims := Claims{
-		UserID:   userID,
-		Email:    email,
-		Role:     role,
-		SchoolID: schoolID,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(expiresAt),
-			IssuedAt:  jwt.NewNumericDate(now),
-			NotBefore: jwt.NewNumericDate(now),
-			Issuer:    m.issuer,
-			Subject:   userID,
-			ID:        uuid.New().String(),
-		},
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	tokenString, err := token.SignedString(m.secretKey)
-	if err != nil {
-		return "", fmt.Errorf("failed to sign token: %w", err)
-	}
-
-	return tokenString, nil
 }
 
 // GenerateTokenWithContext genera un JWT con contexto RBAC.
@@ -179,23 +139,12 @@ func (m *JWTManager) ValidateToken(tokenString string) (*Claims, error) {
 		return nil, errors.NewUnauthorizedError("invalid token issuer")
 	}
 
-	// Validar role solo si está presente (tokens legacy)
-	// Tokens RBAC nuevos usan ActiveContext en su lugar
-	if claims.Role != "" && !claims.Role.IsValid() {
-		return nil, errors.NewUnauthorizedError("invalid role in token")
+	// Validar que ActiveContext esté presente
+	if claims.ActiveContext == nil {
+		return nil, errors.NewUnauthorizedError("token missing active context")
 	}
 
 	return claims, nil
-}
-
-// RefreshToken genera un nuevo token basado en uno existente (no expirado)
-func (m *JWTManager) RefreshToken(tokenString string, expiresIn time.Duration) (string, error) {
-	claims, err := m.ValidateToken(tokenString)
-	if err != nil {
-		return "", err
-	}
-
-	return m.GenerateTokenWithSchool(claims.UserID, claims.Email, claims.Role, claims.SchoolID, expiresIn)
 }
 
 // ExtractUserID extrae el user ID de un token sin validar completamente
@@ -212,36 +161,4 @@ func ExtractUserID(tokenString string) (string, error) {
 	}
 
 	return claims.UserID, nil
-}
-
-// ExtractRole extrae el rol de un token sin validar completamente
-// Útil solo para logging o debugging, NO para autenticación
-func ExtractRole(tokenString string) (enum.SystemRole, error) {
-	token, _, err := new(jwt.Parser).ParseUnverified(tokenString, &Claims{})
-	if err != nil {
-		return "", err
-	}
-
-	claims, ok := token.Claims.(*Claims)
-	if !ok {
-		return "", fmt.Errorf("invalid claims")
-	}
-
-	return claims.Role, nil
-}
-
-// ExtractSchoolID extrae el school ID de un token sin validar completamente
-// Útil solo para logging o debugging, NO para autenticación
-func ExtractSchoolID(tokenString string) (string, error) {
-	token, _, err := new(jwt.Parser).ParseUnverified(tokenString, &Claims{})
-	if err != nil {
-		return "", err
-	}
-
-	claims, ok := token.Claims.(*Claims)
-	if !ok {
-		return "", fmt.Errorf("invalid claims")
-	}
-
-	return claims.SchoolID, nil
 }

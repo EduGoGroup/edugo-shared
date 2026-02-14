@@ -192,6 +192,18 @@ func TestAllPermissions_MapIntegrity(t *testing.T) {
 			PermissionStatsGlobal,
 			PermissionStatsSchool,
 			PermissionStatsUnit,
+			// Screen templates
+			PermissionScreenTemplatesRead,
+			PermissionScreenTemplatesCreate,
+			PermissionScreenTemplatesUpdate,
+			PermissionScreenTemplatesDelete,
+			// Screen instances
+			PermissionScreenInstancesRead,
+			PermissionScreenInstancesCreate,
+			PermissionScreenInstancesUpdate,
+			PermissionScreenInstancesDelete,
+			// Screens
+			PermissionScreensRead,
 			// Gestión de permisos
 			PermissionPermissionsMgmtRead,
 			PermissionPermissionsMgmtUpdate,

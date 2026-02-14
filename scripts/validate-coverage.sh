@@ -42,6 +42,8 @@ get_threshold() {
 validate_module() {
     local module_path="$PROJECT_ROOT/$1"
     local module_name=$(basename $1)
+    local mod_download_log
+    local test_log
 
     # Obtener threshold configurado
     local threshold=$(get_threshold "$module_name")
@@ -54,12 +56,29 @@ validate_module() {
 
     cd "$module_path"
 
-    # Ejecutar tests con coverage
-    if ! go test -short ./... -coverprofile=coverage.out -covermode=atomic > /dev/null 2>&1; then
-        echo -e "${RED}❌ $module_name: Tests fallan${NC}"
+    # Descargar dependencias explícitamente para evitar fallos intermitentes de resolución de módulos
+    mod_download_log=$(mktemp)
+    if ! go mod download > "$mod_download_log" 2>&1; then
+        echo -e "${RED}❌ $module_name: Falló go mod download${NC}"
+        echo "   Detalle:"
+        sed -n '1,80p' "$mod_download_log" | sed 's/^/   /'
+        rm -f "$mod_download_log"
         cd "$PROJECT_ROOT"
         return 1
     fi
+    rm -f "$mod_download_log"
+
+    # Ejecutar tests con coverage
+    test_log=$(mktemp)
+    if ! go test -short ./... -coverprofile=coverage.out -covermode=atomic > "$test_log" 2>&1; then
+        echo -e "${RED}❌ $module_name: Tests fallan${NC}"
+        echo "   Detalle:"
+        sed -n '1,120p' "$test_log" | sed 's/^/   /'
+        rm -f "$test_log"
+        cd "$PROJECT_ROOT"
+        return 1
+    fi
+    rm -f "$test_log"
 
     if [ ! -f coverage.out ]; then
         echo -e "${YELLOW}⚠️  $module_name: Sin archivo de coverage${NC}"

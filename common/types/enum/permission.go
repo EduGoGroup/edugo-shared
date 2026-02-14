@@ -66,6 +66,27 @@ const (
 	PermissionStatsUnit   Permission = "stats:unit"
 )
 
+// Permisos de screen templates
+const (
+	PermissionScreenTemplatesRead   Permission = "screen_templates:read"
+	PermissionScreenTemplatesCreate Permission = "screen_templates:create"
+	PermissionScreenTemplatesUpdate Permission = "screen_templates:update"
+	PermissionScreenTemplatesDelete Permission = "screen_templates:delete"
+)
+
+// Permisos de screen instances
+const (
+	PermissionScreenInstancesRead   Permission = "screen_instances:read"
+	PermissionScreenInstancesCreate Permission = "screen_instances:create"
+	PermissionScreenInstancesUpdate Permission = "screen_instances:update"
+	PermissionScreenInstancesDelete Permission = "screen_instances:delete"
+)
+
+// Permisos de screens (lectura combinada)
+const (
+	PermissionScreensRead Permission = "screens:read"
+)
+
 // Gestión de permisos
 const (
 	PermissionPermissionsMgmtRead   Permission = "permissions_mgmt:read"
@@ -131,6 +152,18 @@ var AllPermissions = map[Permission]bool{
 	PermissionStatsGlobal: true,
 	PermissionStatsSchool: true,
 	PermissionStatsUnit:   true,
+	// Screen templates
+	PermissionScreenTemplatesRead:   true,
+	PermissionScreenTemplatesCreate: true,
+	PermissionScreenTemplatesUpdate: true,
+	PermissionScreenTemplatesDelete: true,
+	// Screen instances
+	PermissionScreenInstancesRead:   true,
+	PermissionScreenInstancesCreate: true,
+	PermissionScreenInstancesUpdate: true,
+	PermissionScreenInstancesDelete: true,
+	// Screens
+	PermissionScreensRead: true,
 	// Gestión de permisos
 	PermissionPermissionsMgmtRead:   true,
 	PermissionPermissionsMgmtUpdate: true,

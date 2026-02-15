@@ -41,6 +41,7 @@ type CombinedScreenDTO struct {
 	Pattern         Pattern         `json:"pattern"`
 	Version         int             `json:"version"`
 	Template        json.RawMessage `json:"template"`
+	SlotData        json.RawMessage `json:"slotData,omitempty"`
 	DataEndpoint    string          `json:"dataEndpoint,omitempty"`
 	DataConfig      json.RawMessage `json:"dataConfig,omitempty"`
 	Actions         json.RawMessage `json:"actions"`

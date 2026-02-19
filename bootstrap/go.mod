@@ -4,7 +4,7 @@ go 1.25
 
 require (
 	github.com/EduGoGroup/edugo-shared/logger v0.10.0
-	github.com/EduGoGroup/edugo-shared/testing v0.9.0
+	github.com/EduGoGroup/edugo-shared/testing v0.11.0
 	github.com/aws/aws-sdk-go-v2 v1.41.1
 	github.com/aws/aws-sdk-go-v2/config v1.32.9
 	github.com/aws/aws-sdk-go-v2/credentials v1.19.9

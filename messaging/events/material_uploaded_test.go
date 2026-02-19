@@ -22,7 +22,7 @@ func TestNewMaterialUploadedEvent_Valid(t *testing.T) {
 	}
 
 	event, err := NewMaterialUploadedEvent("evt_123", "material.uploaded", "1.0", payload)
-	
+
 	require.NoError(t, err)
 	assert.Equal(t, "evt_123", event.EventID)
 	assert.Equal(t, "material.uploaded", event.EventType)
@@ -42,7 +42,7 @@ func TestNewMaterialUploadedEvent_EmptyEventID(t *testing.T) {
 	}
 
 	_, err := NewMaterialUploadedEvent("", "material.uploaded", "1.0", payload)
-	
+
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "eventID")
 }
@@ -58,7 +58,7 @@ func TestNewMaterialUploadedEvent_EmptyMaterialID(t *testing.T) {
 	}
 
 	_, err := NewMaterialUploadedEvent("evt_123", "material.uploaded", "1.0", payload)
-	
+
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "MaterialID")
 }
@@ -74,7 +74,7 @@ func TestNewMaterialUploadedEvent_InvalidFileURL(t *testing.T) {
 	}
 
 	_, err := NewMaterialUploadedEvent("evt_123", "material.uploaded", "1.0", payload)
-	
+
 	// URL parsing en Go es permisivo, así que esto debería pasar
 	// pero si necesitamos validación más estricta, se puede mejorar
 	assert.NoError(t, err) // Go acepta URLs sin scheme
@@ -290,15 +290,15 @@ func TestMaterialUploadedPayload_FileSizeBytes_UInt64(t *testing.T) {
 	}
 
 	assert.Greater(t, payload.FileSizeBytes, uint64(0))
-	
+
 	// Serializar y deserializar
 	data, err := json.Marshal(payload)
 	require.NoError(t, err)
-	
+
 	var decoded MaterialUploadedPayload
 	err = json.Unmarshal(data, &decoded)
 	require.NoError(t, err)
-	
+
 	assert.Equal(t, payload.FileSizeBytes, decoded.FileSizeBytes)
 }
 

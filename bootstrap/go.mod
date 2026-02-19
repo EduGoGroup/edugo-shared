@@ -3,8 +3,8 @@ module github.com/EduGoGroup/edugo-shared/bootstrap
 go 1.25
 
 require (
-	github.com/EduGoGroup/edugo-shared/logger v0.10.0
-	github.com/EduGoGroup/edugo-shared/testing v0.11.0
+	github.com/EduGoGroup/edugo-shared/logger v0.50.0
+	github.com/EduGoGroup/edugo-shared/testing v0.50.0
 	github.com/aws/aws-sdk-go-v2 v1.41.1
 	github.com/aws/aws-sdk-go-v2/config v1.32.9
 	github.com/aws/aws-sdk-go-v2/credentials v1.19.9
@@ -101,9 +101,4 @@ require (
 	golang.org/x/sys v0.41.0 // indirect
 	golang.org/x/text v0.34.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-)
-
-replace (
-	github.com/EduGoGroup/edugo-shared/logger => ../logger
-	github.com/EduGoGroup/edugo-shared/testing => ../testing
 )

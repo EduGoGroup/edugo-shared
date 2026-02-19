@@ -15,6 +15,9 @@ import (
 // setupRabbitContainer obtiene el container de RabbitMQ desde el Manager
 func setupRabbitContainer(t *testing.T) (*containers.RabbitMQContainer, string) {
 	t.Helper()
+	if testing.Short() {
+		t.Skip("skipping integration test in short mode")
+	}
 
 	ctx := context.Background()
 

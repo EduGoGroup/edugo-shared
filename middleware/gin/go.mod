@@ -3,8 +3,8 @@ module github.com/EduGoGroup/edugo-shared/middleware/gin
 go 1.25
 
 require (
-	github.com/EduGoGroup/edugo-shared/auth v0.3.3
-	github.com/EduGoGroup/edugo-shared/common v0.12.0
+	github.com/EduGoGroup/edugo-shared/auth v0.13.3
+	github.com/EduGoGroup/edugo-shared/common v0.12.1
 	github.com/gin-gonic/gin v1.11.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/stretchr/testify v1.11.1

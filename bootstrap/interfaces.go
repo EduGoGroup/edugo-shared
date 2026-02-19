@@ -7,7 +7,7 @@ import (
 	"github.com/EduGoGroup/edugo-shared/logger"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	amqp "github.com/rabbitmq/amqp091-go"
-	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 	"gorm.io/gorm"
 )
 

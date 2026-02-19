@@ -2,7 +2,7 @@ module github.com/EduGoGroup/edugo-shared/lifecycle
 
 go 1.25
 
-require github.com/EduGoGroup/edugo-shared/logger v0.10.0
+require github.com/EduGoGroup/edugo-shared/logger v0.50.0
 
 require (
 	github.com/sirupsen/logrus v1.9.4 // indirect

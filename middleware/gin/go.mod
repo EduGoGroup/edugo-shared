@@ -3,8 +3,8 @@ module github.com/EduGoGroup/edugo-shared/middleware/gin
 go 1.25
 
 require (
-	github.com/EduGoGroup/edugo-shared/auth v0.3.3
-	github.com/EduGoGroup/edugo-shared/common v0.12.0
+	github.com/EduGoGroup/edugo-shared/auth v0.50.0
+	github.com/EduGoGroup/edugo-shared/common v0.50.0
 	github.com/gin-gonic/gin v1.11.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/stretchr/testify v1.11.1
@@ -42,9 +42,4 @@ require (
 	golang.org/x/text v0.34.0 // indirect
 	google.golang.org/protobuf v1.36.10 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-)
-
-replace (
-	github.com/EduGoGroup/edugo-shared/auth => ../../auth
-	github.com/EduGoGroup/edugo-shared/common => ../../common
 )

@@ -1,3 +1,7 @@
+github.com/EduGoGroup/edugo-shared/auth v0.50.0 h1:0p1A/2VBfuVj8GzKLXLVHQYzUvuQGm8TOZQI+rF3uz0=
+github.com/EduGoGroup/edugo-shared/auth v0.50.0/go.mod h1:05BhDTlcf9t9T9ueNdJ80IMsBsJIxkcGWt4mvakfq2s=
+github.com/EduGoGroup/edugo-shared/common v0.50.0 h1:Q7CdkMkPzmRmtVepRLbrLXWRleWnXcz0/dsdNQtg0dc=
+github.com/EduGoGroup/edugo-shared/common v0.50.0/go.mod h1:OMC06zvRWLTExtE8okedmCiuCRmZRnbeps3yZeA87fE=
 github.com/bytedance/sonic v1.14.0 h1:/OfKt8HFw0kh2rj8N0F6C/qPGRESq0BbaNZgcNXXzQQ=
 github.com/bytedance/sonic v1.14.0/go.mod h1:WoEbx8WTcFJfzCe0hbmyTGrfjt8PzNEBdxlNUO24NhA=
 github.com/bytedance/sonic/loader v0.3.0 h1:dskwH8edlzNMctoruo8FPTJDF3vLtDT0sXZwvZJyqeA=

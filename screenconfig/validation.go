@@ -28,6 +28,7 @@ var validActionTypes = map[ActionType]bool{
 	ActionRefresh:      true,
 	ActionConfirm:      true,
 	ActionLogout:       true,
+	ActionCustom:       true,
 }
 
 var validScreenTypes = map[ScreenType]bool{

@@ -29,6 +29,7 @@ type ScreenInstanceDTO struct {
 	DataConfig         json.RawMessage `json:"data_config,omitempty"`
 	Scope              string          `json:"scope"`
 	RequiredPermission string          `json:"required_permission,omitempty"`
+	HandlerKey         *string         `json:"handler_key,omitempty"`
 	IsActive           bool            `json:"is_active"`
 	CreatedAt          time.Time       `json:"created_at"`
 	UpdatedAt          time.Time       `json:"updated_at"`
@@ -41,9 +42,11 @@ type CombinedScreenDTO struct {
 	Pattern         Pattern         `json:"pattern"`
 	Version         int             `json:"version"`
 	Template        json.RawMessage `json:"template"`
+	SlotData        json.RawMessage `json:"slotData,omitempty"`
 	DataEndpoint    string          `json:"dataEndpoint,omitempty"`
 	DataConfig      json.RawMessage `json:"dataConfig,omitempty"`
 	Actions         json.RawMessage `json:"actions"`
+	HandlerKey      *string         `json:"handlerKey,omitempty"`
 	UserPreferences json.RawMessage `json:"userPreferences,omitempty"`
 	UpdatedAt       time.Time       `json:"updatedAt"`
 }
@@ -62,4 +65,21 @@ type ActionDefinitionDTO struct {
 	TriggerSlotID string          `json:"triggerSlotId,omitempty"`
 	Type          ActionType      `json:"type"`
 	Config        json.RawMessage `json:"config"`
+}
+
+// NavigationItemDTO represents a menu/navigation item
+type NavigationItemDTO struct {
+	Key       string              `json:"key"`
+	Label     string              `json:"label"`
+	Icon      string              `json:"icon,omitempty"`
+	ScreenKey string              `json:"screenKey,omitempty"`
+	SortOrder int                 `json:"sortOrder"`
+	Children  []NavigationItemDTO `json:"children,omitempty"`
+}
+
+// NavigationConfigDTO represents the complete navigation configuration
+type NavigationConfigDTO struct {
+	BottomNav   []NavigationItemDTO `json:"bottomNav"`
+	DrawerItems []NavigationItemDTO `json:"drawerItems"`
+	Version     int                 `json:"version"`
 }

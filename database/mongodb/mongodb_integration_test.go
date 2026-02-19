@@ -8,7 +8,7 @@ import (
 
 	"github.com/EduGoGroup/edugo-shared/database/mongodb"
 	"github.com/EduGoGroup/edugo-shared/testing/containers"
-	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func TestConnect_Integration(t *testing.T) {

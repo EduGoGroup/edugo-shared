@@ -41,4 +41,5 @@ const (
 	ActionRefresh      ActionType = "REFRESH"
 	ActionConfirm      ActionType = "CONFIRM"
 	ActionLogout       ActionType = "LOGOUT"
+	ActionCustom       ActionType = "CUSTOM"
 )

@@ -43,3 +43,14 @@ const (
 	ActionLogout       ActionType = "LOGOUT"
 	ActionCustom       ActionType = "CUSTOM"
 )
+
+// Platform identifica la plataforma del cliente para aplicar overrides de UI
+type Platform string
+
+const (
+	PlatformIOS     Platform = "ios"
+	PlatformAndroid Platform = "android"
+	PlatformMobile  Platform = "mobile"  // fallback generico para mobile
+	PlatformDesktop Platform = "desktop"
+	PlatformWeb     Platform = "web"
+)

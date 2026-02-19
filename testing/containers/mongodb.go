@@ -8,8 +8,8 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/mongodb"
 	"github.com/testcontainers/testcontainers-go/wait"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 // MongoDBContainer envuelve el container de MongoDB
@@ -63,7 +63,7 @@ func createMongoDB(ctx context.Context, cfg *MongoConfig) (*MongoDBContainer, er
 		SetConnectTimeout(10 * time.Second).
 		SetServerSelectionTimeout(10 * time.Second)
 
-	client, err := mongo.Connect(ctx, clientOpts)
+	client, err := mongo.Connect(clientOpts)
 	if err != nil {
 		_ = container.Terminate(ctx) //nolint:errcheck // Cleanup en error, el error principal es el de conexión
 		return nil, fmt.Errorf("error conectando a MongoDB: %w", err)

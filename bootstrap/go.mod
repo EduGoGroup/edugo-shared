@@ -3,7 +3,8 @@ module github.com/EduGoGroup/edugo-shared/bootstrap
 go 1.25
 
 require (
-	github.com/EduGoGroup/edugo-shared/testing v0.8.0
+	github.com/EduGoGroup/edugo-shared/logger v0.9.0
+	github.com/EduGoGroup/edugo-shared/testing v0.9.0
 	github.com/aws/aws-sdk-go-v2 v1.32.5
 	github.com/aws/aws-sdk-go-v2/config v1.28.5
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.46
@@ -19,7 +20,6 @@ require (
 require (
 	dario.cat/mergo v1.0.2 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 // indirect
-	github.com/EduGoGroup/edugo-shared/logger v0.8.0 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.7 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.20 // indirect

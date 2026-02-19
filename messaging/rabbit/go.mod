@@ -3,7 +3,7 @@ module github.com/EduGoGroup/edugo-shared/messaging/rabbit
 go 1.25
 
 require (
-	github.com/EduGoGroup/edugo-shared/testing v0.11.0
+	github.com/EduGoGroup/edugo-shared/testing v0.50.0
 	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/stretchr/testify v1.11.1
 )

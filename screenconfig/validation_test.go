@@ -67,6 +67,68 @@ func TestValidateScreenType_InvalidTypes(t *testing.T) {
 	}
 }
 
+func TestValidatePlatform_ValidPlatforms(t *testing.T) {
+	validPlatforms := []string{"ios", "android", "mobile", "desktop", "web"}
+	for _, p := range validPlatforms {
+		if err := ValidatePlatform(p); err != nil {
+			t.Errorf("expected platform %q to be valid but got error: %v", p, err)
+		}
+	}
+}
+
+func TestValidatePlatform_InvalidPlatforms(t *testing.T) {
+	invalidPlatforms := []string{"", "iOS", "ANDROID", "windows", "linux"}
+	for _, p := range invalidPlatforms {
+		if err := ValidatePlatform(p); err == nil {
+			t.Errorf("expected platform %q to be invalid but got no error", p)
+		}
+	}
+}
+
+func TestResolvePlatformOverrideKey(t *testing.T) {
+	overrides := map[string]interface{}{
+		"mobile":  nil,
+		"desktop": nil,
+	}
+
+	// ios deberia hacer fallback a mobile
+	key, ok := ResolvePlatformOverrideKey(PlatformIOS, overrides)
+	if !ok || key != "mobile" {
+		t.Errorf("expected ios to fallback to mobile, got key=%q ok=%v", key, ok)
+	}
+
+	// android deberia hacer fallback a mobile
+	key, ok = ResolvePlatformOverrideKey(PlatformAndroid, overrides)
+	if !ok || key != "mobile" {
+		t.Errorf("expected android to fallback to mobile, got key=%q ok=%v", key, ok)
+	}
+
+	// desktop deberia encontrar directamente
+	key, ok = ResolvePlatformOverrideKey(PlatformDesktop, overrides)
+	if !ok || key != "desktop" {
+		t.Errorf("expected desktop to match directly, got key=%q ok=%v", key, ok)
+	}
+
+	// web no existe en overrides y no tiene fallback
+	key, ok = ResolvePlatformOverrideKey(PlatformWeb, overrides)
+	if ok {
+		t.Errorf("expected web to not match, got key=%q ok=%v", key, ok)
+	}
+}
+
+func TestResolvePlatformOverrideKey_SpecificOverIDE(t *testing.T) {
+	// Cuando existe override especifico de ios, debe preferirlo sobre mobile
+	overrides := map[string]interface{}{
+		"ios":    nil,
+		"mobile": nil,
+	}
+
+	key, ok := ResolvePlatformOverrideKey(PlatformIOS, overrides)
+	if !ok || key != "ios" {
+		t.Errorf("expected ios to match directly when available, got key=%q ok=%v", key, ok)
+	}
+}
+
 func TestValidateTemplateDefinition_Valid(t *testing.T) {
 	definition := []byte(`{
 		"zones": [

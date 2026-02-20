@@ -68,15 +68,39 @@ jobs:
         with:
           script: |
             const fs = require('fs');
+            const dir = 'docs/cicd/coverage-analysis/';
+
+            // Guard: si el directorio no existe o no tiene reportes, comentar sin detalle
+            if (!fs.existsSync(dir)) {
+              const comment = `## Validacion de Coverage\n\nNo se genero reporte de coverage. Revisar logs del pipeline.`;
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+              return;
+            }
 
             // Leer ultimo reporte
-            const files = fs.readdirSync('docs/cicd/coverage-analysis/');
+            const files = fs.readdirSync(dir);
             const latestReport = files
               .filter(f => f.startsWith('coverage-report-'))
               .sort()
               .reverse()[0];
 
-            const reportPath = `docs/cicd/coverage-analysis/${latestReport}`;
+            if (!latestReport) {
+              const comment = `## Validacion de Coverage\n\nNo se encontraron reportes de coverage.`;
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+              return;
+            }
+
+            const reportPath = `${dir}${latestReport}`;
             const report = fs.readFileSync(reportPath, 'utf8');
 
             // Extraer tabla de resumen

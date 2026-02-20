@@ -40,6 +40,21 @@ var validScreenTypes = map[ScreenType]bool{
 	ScreenTypeSettings:  true,
 }
 
+var validPlatforms = map[Platform]bool{
+	PlatformIOS:     true,
+	PlatformAndroid: true,
+	PlatformMobile:  true,
+	PlatformDesktop: true,
+	PlatformWeb:     true,
+}
+
+// PlatformFallback define la cadena de fallback por plataforma.
+// Si no hay override para la plataforma especifica, se intenta con el fallback.
+var PlatformFallback = map[Platform]Platform{
+	PlatformIOS:     PlatformMobile,
+	PlatformAndroid: PlatformMobile,
+}
+
 // ValidatePattern valida que el string sea un Pattern valido
 func ValidatePattern(p string) error {
 	if !validPatterns[Pattern(p)] {
@@ -62,6 +77,31 @@ func ValidateScreenType(st string) error {
 		return fmt.Errorf("invalid screen type: %q", st)
 	}
 	return nil
+}
+
+// ValidatePlatform valida que el string sea una Platform valida
+func ValidatePlatform(p string) error {
+	if !validPlatforms[Platform(p)] {
+		return fmt.Errorf("invalid platform: %q", p)
+	}
+	return nil
+}
+
+// ResolvePlatformOverrideKey retorna la clave a usar para buscar platformOverrides.
+// Intenta la plataforma especifica primero, luego el fallback.
+// Retorna la clave encontrada y true, o string vacio y false si no hay override.
+func ResolvePlatformOverrideKey(platform Platform, availableOverrides map[string]interface{}) (string, bool) {
+	// 1. Intentar plataforma especifica (ej: "ios")
+	if _, ok := availableOverrides[string(platform)]; ok {
+		return string(platform), true
+	}
+	// 2. Intentar fallback (ej: "ios" -> "mobile")
+	if fallback, hasFallback := PlatformFallback[platform]; hasFallback {
+		if _, ok := availableOverrides[string(fallback)]; ok {
+			return string(fallback), true
+		}
+	}
+	return "", false
 }
 
 // templateDefinition es la estructura interna para validar definitions

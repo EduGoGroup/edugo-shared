@@ -1,6 +1,5 @@
 # Makefile para auth
 MODULE_NAME = github.com/EduGoGroup/edugo-shared/auth
-BUILD_DIR = build
 
 RED = \033[0;31m
 GREEN = \033[0;32m
@@ -15,10 +14,9 @@ help: ## Mostrar ayuda
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-15s$(NC) %s\n", $$1, $$2}'
 
 .PHONY: build
-build: ## Compilar el modulo
+build: ## Verificar que el modulo compila (libreria, sin binario)
 	@echo "$(BLUE)Compilando $(MODULE_NAME)...$(NC)"
-	@mkdir -p $(BUILD_DIR)
-	@go build -o $(BUILD_DIR)/ ./...
+	@go build ./...
 	@echo "$(GREEN)Compilacion exitosa$(NC)"
 
 .PHONY: test
@@ -75,7 +73,6 @@ check: fmt vet lint test ## Validacion completa
 
 .PHONY: clean
 clean: ## Limpiar archivos generados
-	@rm -rf $(BUILD_DIR)
 	@go clean -testcache
 	@echo "$(GREEN)Limpieza completada$(NC)"
 

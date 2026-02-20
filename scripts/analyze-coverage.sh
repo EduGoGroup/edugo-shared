@@ -10,6 +10,7 @@ echo "📊 Análisis de Cobertura - edugo-shared"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
+mkdir -p "$PROJECT_ROOT/docs/cicd/coverage-analysis"
 OUTPUT_FILE="$PROJECT_ROOT/docs/cicd/coverage-analysis/coverage-report-$(date +%Y%m%d).md"
 CURRENT_DATE=$(date '+%Y-%m-%d %H:%M')
 

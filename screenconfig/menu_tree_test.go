@@ -2,6 +2,9 @@ package screenconfig
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestBuildMenuTree_FlatList(t *testing.T) {
@@ -13,18 +16,10 @@ func TestBuildMenuTree_FlatList(t *testing.T) {
 
 	items := BuildMenuTree(nodes, nil, nil)
 
-	if len(items) != 3 {
-		t.Fatalf("expected 3 items, got %d", len(items))
-	}
-	if items[0].Key != "dashboard" {
-		t.Errorf("expected first item 'dashboard', got %q", items[0].Key)
-	}
-	if items[1].Key != "materials" {
-		t.Errorf("expected second item 'materials', got %q", items[1].Key)
-	}
-	if items[2].Key != "settings" {
-		t.Errorf("expected third item 'settings', got %q", items[2].Key)
-	}
+	require.Len(t, items, 3)
+	assert.Equal(t, "dashboard", items[0].Key)
+	assert.Equal(t, "materials", items[1].Key)
+	assert.Equal(t, "settings", items[2].Key)
 }
 
 func TestBuildMenuTree_Hierarchical(t *testing.T) {
@@ -36,21 +31,11 @@ func TestBuildMenuTree_Hierarchical(t *testing.T) {
 
 	items := BuildMenuTree(nodes, nil, nil)
 
-	if len(items) != 1 {
-		t.Fatalf("expected 1 top-level item, got %d", len(items))
-	}
-	if items[0].Key != "admin" {
-		t.Errorf("expected 'admin', got %q", items[0].Key)
-	}
-	if len(items[0].Children) != 2 {
-		t.Fatalf("expected 2 children, got %d", len(items[0].Children))
-	}
-	if items[0].Children[0].Key != "users" {
-		t.Errorf("expected first child 'users', got %q", items[0].Children[0].Key)
-	}
-	if items[0].Children[1].Key != "roles" {
-		t.Errorf("expected second child 'roles', got %q", items[0].Children[1].Key)
-	}
+	require.Len(t, items, 1)
+	assert.Equal(t, "admin", items[0].Key)
+	require.Len(t, items[0].Children, 2)
+	assert.Equal(t, "users", items[0].Children[0].Key)
+	assert.Equal(t, "roles", items[0].Children[1].Key)
 }
 
 func TestBuildMenuTree_FilterByVisibleKeys(t *testing.T) {
@@ -67,15 +52,9 @@ func TestBuildMenuTree_FilterByVisibleKeys(t *testing.T) {
 
 	items := BuildMenuTree(nodes, visibleKeys, nil)
 
-	if len(items) != 2 {
-		t.Fatalf("expected 2 items, got %d", len(items))
-	}
-	if items[0].Key != "dashboard" {
-		t.Errorf("expected 'dashboard', got %q", items[0].Key)
-	}
-	if items[1].Key != "settings" {
-		t.Errorf("expected 'settings', got %q", items[1].Key)
-	}
+	require.Len(t, items, 2)
+	assert.Equal(t, "dashboard", items[0].Key)
+	assert.Equal(t, "settings", items[1].Key)
 }
 
 func TestBuildMenuTree_SortOrder(t *testing.T) {
@@ -87,18 +66,10 @@ func TestBuildMenuTree_SortOrder(t *testing.T) {
 
 	items := BuildMenuTree(nodes, nil, nil)
 
-	if len(items) != 3 {
-		t.Fatalf("expected 3 items, got %d", len(items))
-	}
-	if items[0].Key != "a-item" {
-		t.Errorf("expected first 'a-item', got %q", items[0].Key)
-	}
-	if items[1].Key != "b-item" {
-		t.Errorf("expected second 'b-item', got %q", items[1].Key)
-	}
-	if items[2].Key != "c-item" {
-		t.Errorf("expected third 'c-item', got %q", items[2].Key)
-	}
+	require.Len(t, items, 3)
+	assert.Equal(t, "a-item", items[0].Key)
+	assert.Equal(t, "b-item", items[1].Key)
+	assert.Equal(t, "c-item", items[2].Key)
 }
 
 func TestBuildMenuTree_ScreenMapping(t *testing.T) {
@@ -114,12 +85,8 @@ func TestBuildMenuTree_ScreenMapping(t *testing.T) {
 
 	items := BuildMenuTree(nodes, nil, screenMap)
 
-	if items[0].ScreenKey != "dashboard-teacher" {
-		t.Errorf("expected screenKey 'dashboard-teacher', got %q", items[0].ScreenKey)
-	}
-	if items[1].ScreenKey != "materials-list" {
-		t.Errorf("expected screenKey 'materials-list', got %q", items[1].ScreenKey)
-	}
+	assert.Equal(t, "dashboard-teacher", items[0].ScreenKey)
+	assert.Equal(t, "materials-list", items[1].ScreenKey)
 }
 
 func TestBuildMenuTree_WithPermissions(t *testing.T) {
@@ -135,12 +102,8 @@ func TestBuildMenuTree_WithPermissions(t *testing.T) {
 
 	items := BuildMenuTree(nodes, nil, nil)
 
-	if len(items) != 1 {
-		t.Fatalf("expected 1 item, got %d", len(items))
-	}
-	if len(items[0].Permissions) != 2 {
-		t.Errorf("expected 2 permissions, got %d", len(items[0].Permissions))
-	}
+	require.Len(t, items, 1)
+	assert.Len(t, items[0].Permissions, 2)
 }
 
 func TestBuildMenuTree_WithScreens(t *testing.T) {
@@ -156,26 +119,17 @@ func TestBuildMenuTree_WithScreens(t *testing.T) {
 
 	items := BuildMenuTree(nodes, nil, nil)
 
-	if len(items) != 1 {
-		t.Fatalf("expected 1 item, got %d", len(items))
-	}
-	if items[0].Screens["list"] != "materials-list" {
-		t.Errorf("expected screen 'materials-list' for type 'list', got %q", items[0].Screens["list"])
-	}
-	if items[0].Screens["detail"] != "material-detail" {
-		t.Errorf("expected screen 'material-detail' for type 'detail', got %q", items[0].Screens["detail"])
-	}
+	require.Len(t, items, 1)
+	assert.Equal(t, "materials-list", items[0].Screens["list"])
+	assert.Equal(t, "material-detail", items[0].Screens["detail"])
 }
 
 func TestBuildMenuTree_Empty(t *testing.T) {
 	items := BuildMenuTree(nil, nil, nil)
-
-	if items != nil {
-		t.Errorf("expected nil for empty input, got %v", items)
-	}
+	assert.Empty(t, items)
+	assert.NotNil(t, items, "should return empty slice not nil for JSON serialization")
 
 	items = BuildMenuTree([]MenuNode{}, nil, nil)
-	if items != nil {
-		t.Errorf("expected nil for empty slice, got %v", items)
-	}
+	assert.Empty(t, items)
+	assert.NotNil(t, items)
 }

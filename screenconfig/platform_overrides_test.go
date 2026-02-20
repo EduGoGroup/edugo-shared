@@ -3,6 +3,9 @@ package screenconfig
 import (
 	"encoding/json"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestApplyPlatformOverrides_MatchDesktop(t *testing.T) {
@@ -22,27 +25,17 @@ func TestApplyPlatformOverrides_MatchDesktop(t *testing.T) {
 	result := ApplyPlatformOverrides(definition, "desktop")
 
 	var resultMap map[string]interface{}
-	if err := json.Unmarshal(result, &resultMap); err != nil {
-		t.Fatalf("failed to unmarshal result: %v", err)
-	}
+	require.NoError(t, json.Unmarshal(result, &resultMap))
 
-	// platformOverrides should be removed
-	if _, exists := resultMap["platformOverrides"]; exists {
-		t.Error("platformOverrides should be removed from result")
-	}
+	assert.NotContains(t, resultMap, "platformOverrides", "platformOverrides should be removed from result")
 
-	// zone should have overrides applied
 	zones, ok := resultMap["zones"].([]interface{})
-	if !ok || len(zones) == 0 {
-		t.Fatal("expected zones array")
-	}
+	require.True(t, ok)
+	require.Len(t, zones, 1)
+
 	zone := zones[0].(map[string]interface{})
-	if zone["distribution"] != "grid" {
-		t.Errorf("expected distribution 'grid', got %v", zone["distribution"])
-	}
-	if zone["columns"] != float64(3) {
-		t.Errorf("expected columns 3, got %v", zone["columns"])
-	}
+	assert.Equal(t, "grid", zone["distribution"])
+	assert.Equal(t, float64(3), zone["columns"])
 }
 
 func TestApplyPlatformOverrides_FallbackIosToMobile(t *testing.T) {
@@ -59,19 +52,14 @@ func TestApplyPlatformOverrides_FallbackIosToMobile(t *testing.T) {
 		}
 	}`)
 
-	// ios falls back to mobile
 	result := ApplyPlatformOverrides(definition, "ios")
 
 	var resultMap map[string]interface{}
-	if err := json.Unmarshal(result, &resultMap); err != nil {
-		t.Fatalf("failed to unmarshal result: %v", err)
-	}
+	require.NoError(t, json.Unmarshal(result, &resultMap))
 
 	zones := resultMap["zones"].([]interface{})
 	zone := zones[0].(map[string]interface{})
-	if zone["height"] != float64(44) {
-		t.Errorf("expected height 44 (mobile fallback), got %v", zone["height"])
-	}
+	assert.Equal(t, float64(44), zone["height"], "ios should fallback to mobile override")
 }
 
 func TestApplyPlatformOverrides_NoPlatformMatch(t *testing.T) {
@@ -88,19 +76,14 @@ func TestApplyPlatformOverrides_NoPlatformMatch(t *testing.T) {
 		}
 	}`)
 
-	// "web" has no override and no fallback
 	result := ApplyPlatformOverrides(definition, "web")
 
 	var resultMap map[string]interface{}
-	if err := json.Unmarshal(result, &resultMap); err != nil {
-		t.Fatalf("failed to unmarshal result: %v", err)
-	}
+	require.NoError(t, json.Unmarshal(result, &resultMap))
 
 	zones := resultMap["zones"].([]interface{})
 	zone := zones[0].(map[string]interface{})
-	if zone["distribution"] != "stacked" {
-		t.Errorf("expected distribution unchanged 'stacked', got %v", zone["distribution"])
-	}
+	assert.Equal(t, "stacked", zone["distribution"], "should remain unchanged without matching override")
 }
 
 func TestApplyPlatformOverrides_NoOverridesKey(t *testing.T) {
@@ -112,19 +95,7 @@ func TestApplyPlatformOverrides_NoOverridesKey(t *testing.T) {
 
 	result := ApplyPlatformOverrides(definition, "desktop")
 
-	// Without platformOverrides, the template should be identical
-	var origMap, resultMap map[string]interface{}
-	json.Unmarshal(definition, &origMap)
-	json.Unmarshal(result, &resultMap)
-
-	origZones := origMap["zones"].([]interface{})
-	resultZones := resultMap["zones"].([]interface{})
-	origZone := origZones[0].(map[string]interface{})
-	resultZone := resultZones[0].(map[string]interface{})
-
-	if origZone["distribution"] != resultZone["distribution"] {
-		t.Error("definition should be unchanged without platformOverrides")
-	}
+	assert.JSONEq(t, string(definition), string(result))
 }
 
 func TestApplyPlatformOverrides_InvalidJSON(t *testing.T) {
@@ -132,7 +103,5 @@ func TestApplyPlatformOverrides_InvalidJSON(t *testing.T) {
 
 	result := ApplyPlatformOverrides(definition, "desktop")
 
-	if string(result) != string(definition) {
-		t.Error("invalid JSON should return definition unchanged")
-	}
+	assert.Equal(t, string(definition), string(result), "invalid JSON should return definition unchanged")
 }

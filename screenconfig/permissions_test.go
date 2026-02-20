@@ -3,6 +3,9 @@ package screenconfig
 import (
 	"sort"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestExtractResourceKeys_BasicParsing(t *testing.T) {
@@ -11,15 +14,8 @@ func TestExtractResourceKeys_BasicParsing(t *testing.T) {
 	keys := ExtractResourceKeys(permissions)
 	sort.Strings(keys)
 
-	expected := []string{"assessments", "materials", "users"}
-	if len(keys) != len(expected) {
-		t.Fatalf("expected %d keys, got %d", len(expected), len(keys))
-	}
-	for i, k := range keys {
-		if k != expected[i] {
-			t.Errorf("expected key %q at index %d, got %q", expected[i], i, k)
-		}
-	}
+	require.Len(t, keys, 3)
+	assert.Equal(t, []string{"assessments", "materials", "users"}, keys)
 }
 
 func TestExtractResourceKeys_Dedup(t *testing.T) {
@@ -27,25 +23,13 @@ func TestExtractResourceKeys_Dedup(t *testing.T) {
 
 	keys := ExtractResourceKeys(permissions)
 
-	if len(keys) != 1 {
-		t.Fatalf("expected 1 unique key, got %d", len(keys))
-	}
-	if keys[0] != "users" {
-		t.Errorf("expected 'users', got %q", keys[0])
-	}
+	require.Len(t, keys, 1)
+	assert.Equal(t, "users", keys[0])
 }
 
 func TestExtractResourceKeys_Empty(t *testing.T) {
-	keys := ExtractResourceKeys([]string{})
-
-	if len(keys) != 0 {
-		t.Errorf("expected 0 keys, got %d", len(keys))
-	}
-
-	keys = ExtractResourceKeys(nil)
-	if len(keys) != 0 {
-		t.Errorf("expected 0 keys for nil, got %d", len(keys))
-	}
+	assert.Empty(t, ExtractResourceKeys([]string{}))
+	assert.Empty(t, ExtractResourceKeys(nil))
 }
 
 func TestExtractResourceKeys_Malformed(t *testing.T) {
@@ -54,45 +38,24 @@ func TestExtractResourceKeys_Malformed(t *testing.T) {
 	keys := ExtractResourceKeys(permissions)
 	sort.Strings(keys)
 
-	// "nocolon" and "" should be skipped (no colon)
-	expected := []string{"also", "valid"}
-	if len(keys) != len(expected) {
-		t.Fatalf("expected %d keys, got %d: %v", len(expected), len(keys), keys)
-	}
-	for i, k := range keys {
-		if k != expected[i] {
-			t.Errorf("expected key %q at index %d, got %q", expected[i], i, k)
-		}
-	}
+	assert.Equal(t, []string{"also", "valid"}, keys)
 }
 
 func TestHasPermission_Found(t *testing.T) {
 	perms := []string{"materials:read", "materials:write", "assessments:read"}
 
-	if !HasPermission(perms, "materials:read") {
-		t.Error("expected to find 'materials:read'")
-	}
-	if !HasPermission(perms, "assessments:read") {
-		t.Error("expected to find 'assessments:read'")
-	}
+	assert.True(t, HasPermission(perms, "materials:read"))
+	assert.True(t, HasPermission(perms, "assessments:read"))
 }
 
 func TestHasPermission_NotFound(t *testing.T) {
 	perms := []string{"materials:read"}
 
-	if HasPermission(perms, "assessments:read") {
-		t.Error("should not find 'assessments:read'")
-	}
-	if HasPermission(perms, "materials:write") {
-		t.Error("should not find 'materials:write'")
-	}
+	assert.False(t, HasPermission(perms, "assessments:read"))
+	assert.False(t, HasPermission(perms, "materials:write"))
 }
 
 func TestHasPermission_EmptyPerms(t *testing.T) {
-	if HasPermission([]string{}, "materials:read") {
-		t.Error("empty slice should return false")
-	}
-	if HasPermission(nil, "materials:read") {
-		t.Error("nil slice should return false")
-	}
+	assert.False(t, HasPermission([]string{}, "materials:read"))
+	assert.False(t, HasPermission(nil, "materials:read"))
 }

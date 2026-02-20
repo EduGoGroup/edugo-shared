@@ -2,9 +2,18 @@ package screenconfig
 
 import "encoding/json"
 
-// ApplyPlatformOverrides applies platform-specific zone overrides to a template definition.
-// Uses the fallback chain (e.g., ios -> mobile -> none). Returns definition with overrides applied
-// and the "platformOverrides" key removed.
+// ApplyPlatformOverrides aplica overrides de zonas especificas de plataforma a una definicion de plantilla.
+//
+// Parametros:
+//   - definition: JSON de la plantilla que puede contener la clave "platformOverrides"
+//   - platform: Plataforma objetivo (ios, android, desktop, web, mobile)
+//
+// La funcion utiliza una cadena de fallback:
+//   - "ios" -> "mobile" (si no existe override para ios)
+//   - "android" -> "mobile" (si no existe override para android)
+//
+// Retorna la definicion con los overrides aplicados y la clave "platformOverrides" eliminada.
+// Si no hay overrides para la plataforma (incluyendo fallback), retorna la definicion sin cambios.
 func ApplyPlatformOverrides(definition json.RawMessage, platform string) json.RawMessage {
 	var defMap map[string]interface{}
 	if err := json.Unmarshal(definition, &defMap); err != nil {

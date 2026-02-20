@@ -2,7 +2,11 @@ package screenconfig
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestResolveSlots_BasicReplacement(t *testing.T) {
@@ -12,16 +16,10 @@ func TestResolveSlots_BasicReplacement(t *testing.T) {
 	result := ResolveSlots(definition, slotData)
 
 	var resultMap map[string]interface{}
-	if err := json.Unmarshal(result, &resultMap); err != nil {
-		t.Fatalf("failed to unmarshal result: %v", err)
-	}
+	require.NoError(t, json.Unmarshal(result, &resultMap))
 
-	if resultMap["title"] != "My Page Title" {
-		t.Errorf("expected title 'My Page Title', got %v", resultMap["title"])
-	}
-	if resultMap["subtitle"] != "static text" {
-		t.Errorf("expected subtitle 'static text', got %v", resultMap["subtitle"])
-	}
+	assert.Equal(t, "My Page Title", resultMap["title"])
+	assert.Equal(t, "static text", resultMap["subtitle"])
 }
 
 func TestResolveSlots_EmptySlotData(t *testing.T) {
@@ -29,9 +27,7 @@ func TestResolveSlots_EmptySlotData(t *testing.T) {
 
 	result := ResolveSlots(definition, json.RawMessage(`{}`))
 
-	if string(result) != string(definition) {
-		t.Errorf("expected unchanged definition, got %s", string(result))
-	}
+	assert.Equal(t, string(definition), string(result))
 }
 
 func TestResolveSlots_NullSlotData(t *testing.T) {
@@ -39,9 +35,7 @@ func TestResolveSlots_NullSlotData(t *testing.T) {
 
 	result := ResolveSlots(definition, json.RawMessage(`null`))
 
-	if string(result) != string(definition) {
-		t.Errorf("expected unchanged definition, got %s", string(result))
-	}
+	assert.Equal(t, string(definition), string(result))
 }
 
 func TestResolveSlots_NilSlotData(t *testing.T) {
@@ -49,9 +43,7 @@ func TestResolveSlots_NilSlotData(t *testing.T) {
 
 	result := ResolveSlots(definition, nil)
 
-	if string(result) != string(definition) {
-		t.Errorf("expected unchanged definition, got %s", string(result))
-	}
+	assert.Equal(t, string(definition), string(result))
 }
 
 func TestResolveSlots_NestedStructure(t *testing.T) {
@@ -72,23 +64,13 @@ func TestResolveSlots_NestedStructure(t *testing.T) {
 	}`)
 
 	result := ResolveSlots(definition, slotData)
-
 	resultStr := string(result)
-	if contains(resultStr, "slot:header_title") {
-		t.Error("slot:header_title should have been resolved")
-	}
-	if contains(resultStr, "slot:item_label") {
-		t.Error("slot:item_label should have been resolved")
-	}
-	if !contains(resultStr, "Dashboard") {
-		t.Error("expected 'Dashboard' in result")
-	}
-	if !contains(resultStr, "Home") {
-		t.Error("expected 'Home' in result")
-	}
-	if !contains(resultStr, "fixed") {
-		t.Error("expected 'fixed' to remain unchanged")
-	}
+
+	assert.False(t, strings.Contains(resultStr, "slot:header_title"), "slot:header_title should have been resolved")
+	assert.False(t, strings.Contains(resultStr, "slot:item_label"), "slot:item_label should have been resolved")
+	assert.Contains(t, resultStr, "Dashboard")
+	assert.Contains(t, resultStr, "Home")
+	assert.Contains(t, resultStr, "fixed")
 }
 
 func TestResolveSlots_UnknownSlotKey_KeepsOriginal(t *testing.T) {
@@ -98,24 +80,7 @@ func TestResolveSlots_UnknownSlotKey_KeepsOriginal(t *testing.T) {
 	result := ResolveSlots(definition, slotData)
 
 	var resultMap map[string]interface{}
-	if err := json.Unmarshal(result, &resultMap); err != nil {
-		t.Fatalf("failed to unmarshal result: %v", err)
-	}
+	require.NoError(t, json.Unmarshal(result, &resultMap))
 
-	if resultMap["title"] != "slot:unknown_key" {
-		t.Errorf("expected unresolved slot reference, got %v", resultMap["title"])
-	}
-}
-
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || len(s) > 0 && containsStr(s, substr))
-}
-
-func containsStr(s, substr string) bool {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
-		}
-	}
-	return false
+	assert.Equal(t, "slot:unknown_key", resultMap["title"])
 }

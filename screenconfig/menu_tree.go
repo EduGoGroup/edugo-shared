@@ -2,20 +2,21 @@ package screenconfig
 
 import "sort"
 
-// MenuNode is the generic input for building the tree. Both APIs convert their domain types to MenuNode.
+// MenuNode es la entrada generica para construir el arbol.
+// Ambas APIs convierten sus tipos de dominio a MenuNode antes de llamar a BuildMenuTree.
 type MenuNode struct {
 	ID          string
 	Key         string
 	DisplayName string
 	Icon        string
-	ParentID    string            // empty if top-level
+	ParentID    string            // vacio si top-level
 	SortOrder   int
 	Scope       string
-	Permissions []string          // optional
-	Screens     map[string]string // optional: screenType -> screenKey
+	Permissions []string          // opcional
+	Screens     map[string]string // opcional: screenType -> screenKey
 }
 
-// MenuTreeItem is a node in the built tree.
+// MenuTreeItem es un nodo en el arbol construido.
 type MenuTreeItem struct {
 	Key         string            `json:"key"`
 	DisplayName string            `json:"displayName"`
@@ -28,9 +29,16 @@ type MenuTreeItem struct {
 	Children    []MenuTreeItem    `json:"children,omitempty"`
 }
 
-// BuildMenuTree builds a hierarchical tree from a flat list of MenuNodes.
-// visibleKeys: if non-nil, only includes nodes whose Key is in the set.
-// screenMap: if non-nil, maps resourceKey -> default screenKey.
+// BuildMenuTree construye un arbol jerarquico a partir de una lista plana de MenuNodes.
+// Los nodos se organizan por su campo ParentID, y se ordenan por SortOrder.
+//
+// Parametros:
+//   - nodes: Lista plana de nodos de menu a procesar
+//   - visibleKeys: Si no es nil, solo incluye nodos cuya Key este en el conjunto
+//   - screenMap: Si no es nil, mapea resourceKey a screenKey por defecto
+//
+// Retorna un slice de MenuTreeItem ordenado por SortOrder.
+// Si no hay nodos validos, retorna un slice vacio (no nil).
 func BuildMenuTree(nodes []MenuNode, visibleKeys map[string]bool, screenMap map[string]string) []MenuTreeItem {
 	// Group nodes by parentID
 	childrenOf := make(map[string][]MenuNode)
@@ -43,7 +51,7 @@ func BuildMenuTree(nodes []MenuNode, visibleKeys map[string]bool, screenMap map[
 
 func buildSubTree(childrenOf map[string][]MenuNode, parentID string, visibleKeys map[string]bool, screenMap map[string]string) []MenuTreeItem {
 	nodes := childrenOf[parentID]
-	var items []MenuTreeItem
+	items := make([]MenuTreeItem, 0)
 
 	for _, n := range nodes {
 		// Filter by visibleKeys if provided

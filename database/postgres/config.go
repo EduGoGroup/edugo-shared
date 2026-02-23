@@ -48,6 +48,9 @@ type Config struct {
 
 	// MaxIdleConnections número máximo de conexiones idle
 	MaxIdleConnections int
+
+	// SearchPath configura el search_path de PostgreSQL (schemas a buscar)
+	SearchPath string
 }
 
 // DefaultConfig retorna una configuración con valores por defecto
@@ -62,5 +65,6 @@ func DefaultConfig() Config {
 		MaxLifetime:        DefaultMaxLifetime,
 		SSLMode:            "disable",
 		ConnectTimeout:     DefaultConnectTimeout,
+		SearchPath:         "auth,iam,academic,content,assessment,ui_config,public",
 	}
 }

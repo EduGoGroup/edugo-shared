@@ -27,6 +27,9 @@ func Connect(cfg *Config) (*sql.DB, error) {
 		cfg.SSLMode,
 		int(cfg.ConnectTimeout.Seconds()),
 	)
+	if cfg.SearchPath != "" {
+		dsn += " search_path=" + cfg.SearchPath
+	}
 
 	// Abrir conexión
 	db, err := sql.Open("postgres", dsn)

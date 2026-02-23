@@ -372,7 +372,7 @@ func TestPublisher_Publish_ContextCanceled(t *testing.T) {
 func TestPublisher_PublishWithPriority_MarshalError(t *testing.T) {
 	publisher := &RabbitMQPublisher{}
 
-	err := publisher.PublishWithPriority(nil, "ex", "rk", make(chan int), 1)
+	err := publisher.PublishWithPriority(context.Background(), "ex", "rk", make(chan int), 1)
 	if err == nil {
 		t.Fatal("expected marshal error")
 	}

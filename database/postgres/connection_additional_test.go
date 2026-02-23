@@ -17,7 +17,9 @@ func TestConnect_ReturnsErrorWhenPingFails(t *testing.T) {
 	db, err := Connect(&cfg)
 	if err == nil {
 		if db != nil {
-			_ = db.Close()
+			if closeErr := db.Close(); closeErr != nil {
+				t.Errorf("closing db after unexpected success: %v", closeErr)
+			}
 		}
 		t.Fatal("expected ping error, got nil")
 	}

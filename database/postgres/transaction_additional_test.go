@@ -121,9 +121,11 @@ func TestWithTransaction_RollsBackAndRepanics(t *testing.T) {
 		}
 	}()
 
-	_ = WithTransaction(context.Background(), db, func(*sql.Tx) error {
+	if err := WithTransaction(context.Background(), db, func(*sql.Tx) error {
 		panic("boom")
-	})
+	}); err != nil {
+		t.Fatalf("unexpected error (panic path should re-panic): %v", err)
+	}
 }
 
 func TestWithTransactionIsolation_ReturnsBeginError(t *testing.T) {
@@ -202,12 +204,14 @@ func TestWithTransactionIsolation_RollsBackAndRepanics(t *testing.T) {
 		}
 	}()
 
-	_ = WithTransactionIsolation(
+	if err := WithTransactionIsolation(
 		context.Background(),
 		db,
 		sql.LevelSerializable,
 		func(*sql.Tx) error {
 			panic("boom isolation")
 		},
-	)
+	); err != nil {
+		t.Fatalf("unexpected error (panic path should re-panic): %v", err)
+	}
 }

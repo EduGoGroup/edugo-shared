@@ -62,7 +62,9 @@ func openFakeDB(t *testing.T, behavior *fakeSQLBehavior) *sql.DB {
 	}
 
 	t.Cleanup(func() {
-		_ = db.Close()
+		if closeErr := db.Close(); closeErr != nil {
+			t.Errorf("closing fake db: %v", closeErr)
+		}
 		fakeCasesMu.Lock()
 		delete(fakeCases, caseID)
 		fakeCasesMu.Unlock()

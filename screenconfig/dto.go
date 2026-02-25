@@ -24,9 +24,6 @@ type ScreenInstanceDTO struct {
 	Name               string          `json:"name"`
 	Description        string          `json:"description,omitempty"`
 	SlotData           json.RawMessage `json:"slot_data"`
-	Actions            json.RawMessage `json:"actions"`
-	DataEndpoint       string          `json:"data_endpoint,omitempty"`
-	DataConfig         json.RawMessage `json:"data_config,omitempty"`
 	Scope              string          `json:"scope"`
 	RequiredPermission string          `json:"required_permission,omitempty"`
 	HandlerKey         *string         `json:"handler_key,omitempty"`
@@ -43,9 +40,6 @@ type CombinedScreenDTO struct {
 	Version         int             `json:"version"`
 	Template        json.RawMessage `json:"template"`
 	SlotData        json.RawMessage `json:"slotData,omitempty"`
-	DataEndpoint    string          `json:"dataEndpoint,omitempty"`
-	DataConfig      json.RawMessage `json:"dataConfig,omitempty"`
-	Actions         json.RawMessage `json:"actions"`
 	HandlerKey      *string         `json:"handlerKey,omitempty"`
 	UserPreferences json.RawMessage `json:"userPreferences,omitempty"`
 	UpdatedAt       time.Time       `json:"updatedAt"`
@@ -57,14 +51,6 @@ type ResourceScreenDTO struct {
 	ScreenKey   string `json:"screen_key"`
 	ScreenType  string `json:"screen_type"`
 	IsDefault   bool   `json:"is_default"`
-}
-
-type ActionDefinitionDTO struct {
-	ID            string          `json:"id"`
-	Trigger       string          `json:"trigger"`
-	TriggerSlotID string          `json:"triggerSlotId,omitempty"`
-	Type          ActionType      `json:"type"`
-	Config        json.RawMessage `json:"config"`
 }
 
 // NavigationItemDTO represents a menu/navigation item

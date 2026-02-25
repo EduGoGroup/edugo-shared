@@ -30,27 +30,13 @@ const (
 	ScreenTypeSettings  ScreenType = "settings"
 )
 
-// ActionType enumera las acciones estandar
-type ActionType string
-
-const (
-	ActionNavigate     ActionType = "NAVIGATE"
-	ActionNavigateBack ActionType = "NAVIGATE_BACK"
-	ActionAPICall      ActionType = "API_CALL"
-	ActionSubmitForm   ActionType = "SUBMIT_FORM"
-	ActionRefresh      ActionType = "REFRESH"
-	ActionConfirm      ActionType = "CONFIRM"
-	ActionLogout       ActionType = "LOGOUT"
-	ActionCustom       ActionType = "CUSTOM"
-)
-
 // Platform identifica la plataforma del cliente para aplicar overrides de UI
 type Platform string
 
 const (
 	PlatformIOS     Platform = "ios"
 	PlatformAndroid Platform = "android"
-	PlatformMobile  Platform = "mobile"  // fallback generico para mobile
+	PlatformMobile  Platform = "mobile" // fallback generico para mobile
 	PlatformDesktop Platform = "desktop"
 	PlatformWeb     Platform = "web"
 )

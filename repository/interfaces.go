@@ -14,16 +14,48 @@ import (
 // validFieldName matches only safe column names (alphanumeric + underscore).
 var validFieldName = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_]*$`)
 
+<<<<<<< copilot/sub-pr-67
 // ilikEscapeClause is appended to every ILIKE condition so that backslash is
 // recognised as the escape character by PostgreSQL.
 const ilikEscapeClause = "ESCAPE '\\'"
 
 // ListFilters represents common filters for listing entities
+=======
+// ListFilters represents common filters for listing entities.
+//
+// The Search and SearchFields fields enable flexible text search across multiple
+// database columns using case-insensitive ILIKE matching.
+//
+// SearchFields must contain database column names (not Go struct field names).
+// Each name must match the pattern ^[a-zA-Z_][a-zA-Z0-9_]*$ (letters, digits and
+// underscores only). Invalid names are silently skipped to prevent SQL injection.
+//
+// Example - search users by name or email:
+//
+//	filters := repository.ListFilters{
+//	    Search:       "john",
+//	    SearchFields: []string{"name", "email"},
+//	}
+//	users, err := userRepo.List(ctx, filters)
+//	// Executes: WHERE name ILIKE '%john%' OR email ILIKE '%john%'
+//
+// Example - paginated listing without search:
+//
+//	filters := repository.ListFilters{
+//	    Limit:  20,
+//	    Offset: 0,
+//	}
+>>>>>>> feat/busqueda
 type ListFilters struct {
 	IsActive     *bool
 	Limit        int
 	Offset       int
-	Search       string
+	// Search is the text to look for. It is applied with ILIKE '%value%' against
+	// every column listed in SearchFields. An empty Search skips the search clause.
+	Search string
+	// SearchFields lists the database column names to search in.
+	// Use snake_case column names as they appear in the database schema,
+	// e.g. []string{"first_name", "last_name", "email"}.
 	SearchFields []string
 }
 

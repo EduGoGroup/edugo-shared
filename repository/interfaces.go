@@ -14,6 +14,10 @@ import (
 // validFieldName matches only safe column names (alphanumeric + underscore).
 var validFieldName = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_]*$`)
 
+// ilikEscapeClause is appended to every ILIKE condition so that backslash is
+// recognised as the escape character by PostgreSQL.
+const ilikEscapeClause = "ESCAPE '\\'"
+
 // ListFilters represents common filters for listing entities
 type ListFilters struct {
 	IsActive     *bool
@@ -23,22 +27,38 @@ type ListFilters struct {
 	SearchFields []string
 }
 
+// escapeLikePattern escapes PostgreSQL ILIKE special characters in s so they
+// are treated as literals instead of wildcards. The substitutions must happen
+// in this order:
+//  1. Backslash (\) – the escape character itself, must be escaped first to
+//     avoid double-escaping the sequences added in the next steps.
+//  2. Percent sign (%) – matches any sequence of characters in ILIKE.
+//  3. Underscore (_) – matches any single character in ILIKE.
+func escapeLikePattern(s string) string {
+	s = strings.ReplaceAll(s, `\`, `\\`)
+	s = strings.ReplaceAll(s, `%`, `\%`)
+	s = strings.ReplaceAll(s, `_`, `\_`)
+	return s
+}
+
 // ApplySearch adds ILIKE search conditions to the given GORM query.
-// It validates field names and builds OR conditions like:
+// It validates field names, escapes ILIKE special characters in the search term,
+// and builds OR conditions like:
 //
-//	field1 ILIKE '%search%' OR field2 ILIKE '%search%'
+//	field1 ILIKE '%search%' ESCAPE '\' OR field2 ILIKE '%search%' ESCAPE '\'
 func (f ListFilters) ApplySearch(query *gorm.DB) *gorm.DB {
 	if f.Search == "" || len(f.SearchFields) == 0 {
 		return query
 	}
 	var conditions []string
 	var args []interface{}
+	escaped := escapeLikePattern(f.Search)
 	for _, field := range f.SearchFields {
 		if !validFieldName.MatchString(field) {
 			continue
 		}
-		conditions = append(conditions, fmt.Sprintf("%s ILIKE ?", field))
-		args = append(args, "%"+f.Search+"%")
+		conditions = append(conditions, fmt.Sprintf("%s ILIKE ? %s", field, ilikEscapeClause))
+		args = append(args, "%"+escaped+"%")
 	}
 	if len(conditions) == 0 {
 		return query

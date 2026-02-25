@@ -20,17 +20,6 @@ var validPatterns = map[Pattern]bool{
 	PatternEmptyState:   true,
 }
 
-var validActionTypes = map[ActionType]bool{
-	ActionNavigate:     true,
-	ActionNavigateBack: true,
-	ActionAPICall:      true,
-	ActionSubmitForm:   true,
-	ActionRefresh:      true,
-	ActionConfirm:      true,
-	ActionLogout:       true,
-	ActionCustom:       true,
-}
-
 var validScreenTypes = map[ScreenType]bool{
 	ScreenTypeList:      true,
 	ScreenTypeDetail:    true,
@@ -59,14 +48,6 @@ var PlatformFallback = map[Platform]Platform{
 func ValidatePattern(p string) error {
 	if !validPatterns[Pattern(p)] {
 		return fmt.Errorf("invalid pattern: %q", p)
-	}
-	return nil
-}
-
-// ValidateActionType valida que el string sea un ActionType valido
-func ValidateActionType(a string) error {
-	if !validActionTypes[ActionType(a)] {
-		return fmt.Errorf("invalid action type: %q", a)
 	}
 	return nil
 }

@@ -12,6 +12,7 @@ import (
 
 type postgresMembershipRepository struct{ db *gorm.DB }
 
+// NewPostgresMembershipRepository crea una nueva instancia del repositorio de membresías con PostgreSQL.
 func NewPostgresMembershipRepository(db *gorm.DB) repository.MembershipRepository {
 	return &postgresMembershipRepository{db: db}
 }
@@ -24,7 +25,7 @@ func (r *postgresMembershipRepository) FindByID(ctx context.Context, id uuid.UUI
 	var m entities.Membership
 	if err := r.db.WithContext(ctx).First(&m, "id = ?", id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
+			return nil, gorm.ErrRecordNotFound
 		}
 		return nil, err
 	}
@@ -64,7 +65,7 @@ func (r *postgresMembershipRepository) FindByUserAndSchool(ctx context.Context, 
 	var m entities.Membership
 	if err := r.db.WithContext(ctx).Where("user_id = ? AND school_id = ? AND is_active = true", userID, schoolID).First(&m).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
+			return nil, gorm.ErrRecordNotFound
 		}
 		return nil, err
 	}

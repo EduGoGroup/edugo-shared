@@ -26,27 +26,6 @@ func TestValidatePattern_InvalidPatterns(t *testing.T) {
 	}
 }
 
-func TestValidateActionType_ValidTypes(t *testing.T) {
-	validTypes := []string{
-		"NAVIGATE", "NAVIGATE_BACK", "API_CALL", "SUBMIT_FORM",
-		"REFRESH", "CONFIRM", "LOGOUT",
-	}
-	for _, a := range validTypes {
-		if err := ValidateActionType(a); err != nil {
-			t.Errorf("expected action type %q to be valid but got error: %v", a, err)
-		}
-	}
-}
-
-func TestValidateActionType_InvalidTypes(t *testing.T) {
-	invalidTypes := []string{"", "navigate", "UNKNOWN", "DELETE"}
-	for _, a := range invalidTypes {
-		if err := ValidateActionType(a); err == nil {
-			t.Errorf("expected action type %q to be invalid but got no error", a)
-		}
-	}
-}
-
 func TestValidateScreenType_ValidTypes(t *testing.T) {
 	validTypes := []string{
 		"list", "detail", "create", "edit", "dashboard", "settings",

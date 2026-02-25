@@ -9,7 +9,7 @@ type MenuNode struct {
 	Key         string
 	DisplayName string
 	Icon        string
-	ParentID    string            // vacio si top-level
+	ParentID    string // vacio si top-level
 	SortOrder   int
 	Scope       string
 	Permissions []string          // opcional

@@ -14,6 +14,7 @@ type MessageHandler func(ctx context.Context, body []byte) error
 // Consumer interface para consumir mensajes
 type Consumer interface {
 	Consume(ctx context.Context, queueName string, handler MessageHandler) error
+	ConsumeWithDLQ(ctx context.Context, queueName string, handler MessageHandler) error
 	Wait() error
 	Stop()
 	Errors() <-chan error

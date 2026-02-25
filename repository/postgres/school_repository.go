@@ -55,6 +55,7 @@ func (r *postgresSchoolRepository) List(ctx context.Context, filters repository.
 	if filters.IsActive != nil {
 		query = query.Where("is_active = ?", *filters.IsActive)
 	}
+	query = filters.ApplySearch(query)
 	query = query.Order("created_at DESC")
 	if filters.Limit > 0 {
 		query = query.Limit(filters.Limit)

@@ -2,16 +2,48 @@ package repository
 
 import (
 	"context"
+	"fmt"
+	"regexp"
+	"strings"
 
 	"github.com/EduGoGroup/edugo-infrastructure/postgres/entities"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
+
+// validFieldName matches only safe column names (alphanumeric + underscore).
+var validFieldName = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_]*$`)
 
 // ListFilters represents common filters for listing entities
 type ListFilters struct {
-	IsActive *bool
-	Limit    int
-	Offset   int
+	IsActive     *bool
+	Limit        int
+	Offset       int
+	Search       string
+	SearchFields []string
+}
+
+// ApplySearch adds ILIKE search conditions to the given GORM query.
+// It validates field names and builds OR conditions like:
+//
+//	field1 ILIKE '%search%' OR field2 ILIKE '%search%'
+func (f ListFilters) ApplySearch(query *gorm.DB) *gorm.DB {
+	if f.Search == "" || len(f.SearchFields) == 0 {
+		return query
+	}
+	var conditions []string
+	var args []interface{}
+	for _, field := range f.SearchFields {
+		if !validFieldName.MatchString(field) {
+			continue
+		}
+		conditions = append(conditions, fmt.Sprintf("%s ILIKE ?", field))
+		args = append(args, "%"+f.Search+"%")
+	}
+	if len(conditions) == 0 {
+		return query
+	}
+	return query.Where(strings.Join(conditions, " OR "), args...)
 }
 
 // UserRepository defines persistence operations for User
@@ -29,9 +61,9 @@ type UserRepository interface {
 type MembershipRepository interface {
 	Create(ctx context.Context, membership *entities.Membership) error
 	FindByID(ctx context.Context, id uuid.UUID) (*entities.Membership, error)
-	FindByUser(ctx context.Context, userID uuid.UUID) ([]*entities.Membership, error)
-	FindByUnit(ctx context.Context, unitID uuid.UUID) ([]*entities.Membership, error)
-	FindByUnitAndRole(ctx context.Context, unitID uuid.UUID, role string, activeOnly bool) ([]*entities.Membership, error)
+	FindByUser(ctx context.Context, userID uuid.UUID, filters ListFilters) ([]*entities.Membership, error)
+	FindByUnit(ctx context.Context, unitID uuid.UUID, filters ListFilters) ([]*entities.Membership, error)
+	FindByUnitAndRole(ctx context.Context, unitID uuid.UUID, role string, activeOnly bool, filters ListFilters) ([]*entities.Membership, error)
 	FindByUserAndSchool(ctx context.Context, userID, schoolID uuid.UUID) (*entities.Membership, error)
 	Update(ctx context.Context, membership *entities.Membership) error
 	Delete(ctx context.Context, id uuid.UUID) error

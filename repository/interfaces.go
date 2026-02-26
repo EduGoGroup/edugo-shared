@@ -43,9 +43,9 @@ const ilikEscapeClause = "ESCAPE '\\'"
 //	    Offset: 0,
 //	}
 type ListFilters struct {
-	IsActive     *bool
-	Limit        int
-	Offset       int
+	IsActive *bool
+	Limit    int
+	Offset   int
 	// Search is the text to look for. It is applied with ILIKE '%value%' against
 	// every column listed in SearchFields. An empty Search skips the search clause.
 	Search string

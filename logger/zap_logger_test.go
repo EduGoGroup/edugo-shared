@@ -36,9 +36,9 @@ func TestZapLogger_JSONOutput(t *testing.T) {
 	// Custom sink to capture output
 	buffer := &bytes.Buffer{}
 	encoderConfig := zapcore.EncoderConfig{
-		MessageKey:     "msg",
-		LevelKey:       "level",
-		EncodeLevel:    zapcore.LowercaseLevelEncoder,
+		MessageKey:  "msg",
+		LevelKey:    "level",
+		EncodeLevel: zapcore.LowercaseLevelEncoder,
 	}
 	core := zapcore.NewCore(
 		zapcore.NewJSONEncoder(encoderConfig),
@@ -66,9 +66,9 @@ func TestZapLogger_Levels(t *testing.T) {
 	// Testing wrapper methods with a buffer
 	buffer := &bytes.Buffer{}
 	encoderConfig := zapcore.EncoderConfig{
-		MessageKey:     "msg",
-		LevelKey:       "level",
-		EncodeLevel:    zapcore.LowercaseLevelEncoder,
+		MessageKey:  "msg",
+		LevelKey:    "level",
+		EncodeLevel: zapcore.LowercaseLevelEncoder,
 	}
 	core := zapcore.NewCore(
 		zapcore.NewJSONEncoder(encoderConfig),
@@ -95,13 +95,13 @@ func TestZapLogger_Levels(t *testing.T) {
 	buffer.Reset()
 
 	// Fatal usually calls os.Exit, so we skip it or mock it if possible (zap allow hooking checkwrite)
-    // For now we skip Fatal test to avoid crashing the test runner
+	// For now we skip Fatal test to avoid crashing the test runner
 }
 
 func TestZapLogger_With(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	encoderConfig := zapcore.EncoderConfig{
-		MessageKey:     "msg",
+		MessageKey: "msg",
 	}
 	core := zapcore.NewCore(
 		zapcore.NewJSONEncoder(encoderConfig),

@@ -223,6 +223,22 @@ func TestExtractPostgreSQLConfig(t *testing.T) {
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "PostgreSQL field not found")
 	})
+
+	t.Run("successful extraction", func(t *testing.T) {
+		expected := PostgreSQLConfig{Host: "localhost", Port: 5432}
+		config := struct{ PostgreSQL PostgreSQLConfig }{PostgreSQL: expected}
+		res, err := extractPostgreSQLConfig(config)
+		assert.NoError(t, err)
+		assert.Equal(t, expected, res)
+	})
+
+	t.Run("successful extraction from pointer", func(t *testing.T) {
+		expected := PostgreSQLConfig{Host: "localhost", Port: 5432}
+		config := &struct{ PostgreSQL PostgreSQLConfig }{PostgreSQL: expected}
+		res, err := extractPostgreSQLConfig(config)
+		assert.NoError(t, err)
+		assert.Equal(t, expected, res)
+	})
 }
 
 func TestExtractMongoDBConfig(t *testing.T) {
@@ -236,6 +252,14 @@ func TestExtractMongoDBConfig(t *testing.T) {
 		_, err := extractMongoDBConfig(123)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "config must be a struct")
+	})
+
+	t.Run("successful extraction", func(t *testing.T) {
+		expected := MongoDBConfig{URI: "mongodb://localhost"}
+		config := struct{ MongoDB MongoDBConfig }{MongoDB: expected}
+		res, err := extractMongoDBConfig(config)
+		assert.NoError(t, err)
+		assert.Equal(t, expected, res)
 	})
 }
 
@@ -251,6 +275,14 @@ func TestExtractRabbitMQConfig(t *testing.T) {
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "config must be a struct")
 	})
+
+	t.Run("successful extraction", func(t *testing.T) {
+		expected := RabbitMQConfig{URL: "amqp://localhost"}
+		config := struct{ RabbitMQ RabbitMQConfig }{RabbitMQ: expected}
+		res, err := extractRabbitMQConfig(config)
+		assert.NoError(t, err)
+		assert.Equal(t, expected, res)
+	})
 }
 
 func TestExtractS3Config(t *testing.T) {
@@ -264,5 +296,13 @@ func TestExtractS3Config(t *testing.T) {
 		_, err := extractS3Config(make(map[string]string))
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "config must be a struct")
+	})
+
+	t.Run("successful extraction", func(t *testing.T) {
+		expected := S3Config{Bucket: "my-bucket"}
+		config := struct{ S3 S3Config }{S3: expected}
+		res, err := extractS3Config(config)
+		assert.NoError(t, err)
+		assert.Equal(t, expected, res)
 	})
 }

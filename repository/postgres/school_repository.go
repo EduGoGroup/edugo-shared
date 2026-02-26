@@ -12,6 +12,7 @@ import (
 
 type postgresSchoolRepository struct{ db *gorm.DB }
 
+// NewPostgresSchoolRepository crea una nueva instancia del repositorio de escuelas con PostgreSQL.
 func NewPostgresSchoolRepository(db *gorm.DB) repository.SchoolRepository {
 	return &postgresSchoolRepository{db: db}
 }
@@ -24,7 +25,7 @@ func (r *postgresSchoolRepository) FindByID(ctx context.Context, id uuid.UUID) (
 	var s entities.School
 	if err := r.db.WithContext(ctx).First(&s, "id = ?", id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
+			return nil, gorm.ErrRecordNotFound
 		}
 		return nil, err
 	}
@@ -35,7 +36,7 @@ func (r *postgresSchoolRepository) FindByCode(ctx context.Context, code string) 
 	var s entities.School
 	if err := r.db.WithContext(ctx).Where("code = ?", code).First(&s).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
+			return nil, gorm.ErrRecordNotFound
 		}
 		return nil, err
 	}
@@ -55,6 +56,7 @@ func (r *postgresSchoolRepository) List(ctx context.Context, filters repository.
 	if filters.IsActive != nil {
 		query = query.Where("is_active = ?", *filters.IsActive)
 	}
+	query = filters.ApplySearch(query)
 	query = query.Order("created_at DESC")
 	if filters.Limit > 0 {
 		query = query.Limit(filters.Limit)

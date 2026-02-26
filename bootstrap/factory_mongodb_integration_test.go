@@ -1,5 +1,7 @@
 package bootstrap
 
+// Integration tests for MongoDB factory
+
 import (
 	"context"
 	"testing"

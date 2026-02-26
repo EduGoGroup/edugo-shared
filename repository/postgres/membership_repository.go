@@ -12,6 +12,7 @@ import (
 
 type postgresMembershipRepository struct{ db *gorm.DB }
 
+// NewPostgresMembershipRepository crea una nueva instancia del repositorio de membresías con PostgreSQL.
 func NewPostgresMembershipRepository(db *gorm.DB) repository.MembershipRepository {
 	return &postgresMembershipRepository{db: db}
 }
@@ -24,30 +25,37 @@ func (r *postgresMembershipRepository) FindByID(ctx context.Context, id uuid.UUI
 	var m entities.Membership
 	if err := r.db.WithContext(ctx).First(&m, "id = ?", id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
+			return nil, gorm.ErrRecordNotFound
 		}
 		return nil, err
 	}
 	return &m, nil
 }
 
-func (r *postgresMembershipRepository) FindByUser(ctx context.Context, userID uuid.UUID) ([]*entities.Membership, error) {
+func (r *postgresMembershipRepository) FindByUser(ctx context.Context, userID uuid.UUID, filters repository.ListFilters) ([]*entities.Membership, error) {
+	query := r.db.WithContext(ctx).Where("user_id = ? AND is_active = true", userID)
+	query = filters.ApplySearch(query)
+	query = query.Order("created_at DESC")
 	var memberships []*entities.Membership
-	err := r.db.WithContext(ctx).Where("user_id = ? AND is_active = true", userID).Order("created_at DESC").Find(&memberships).Error
+	err := query.Find(&memberships).Error
 	return memberships, err
 }
 
-func (r *postgresMembershipRepository) FindByUnit(ctx context.Context, unitID uuid.UUID) ([]*entities.Membership, error) {
+func (r *postgresMembershipRepository) FindByUnit(ctx context.Context, unitID uuid.UUID, filters repository.ListFilters) ([]*entities.Membership, error) {
+	query := r.db.WithContext(ctx).Where("academic_unit_id = ? AND is_active = true", unitID)
+	query = filters.ApplySearch(query)
+	query = query.Order("created_at DESC")
 	var memberships []*entities.Membership
-	err := r.db.WithContext(ctx).Where("academic_unit_id = ? AND is_active = true", unitID).Order("created_at DESC").Find(&memberships).Error
+	err := query.Find(&memberships).Error
 	return memberships, err
 }
 
-func (r *postgresMembershipRepository) FindByUnitAndRole(ctx context.Context, unitID uuid.UUID, role string, activeOnly bool) ([]*entities.Membership, error) {
+func (r *postgresMembershipRepository) FindByUnitAndRole(ctx context.Context, unitID uuid.UUID, role string, activeOnly bool, filters repository.ListFilters) ([]*entities.Membership, error) {
 	query := r.db.WithContext(ctx).Where("academic_unit_id = ? AND role = ?", unitID, role)
 	if activeOnly {
 		query = query.Where("is_active = true")
 	}
+	query = filters.ApplySearch(query)
 	var memberships []*entities.Membership
 	err := query.Find(&memberships).Error
 	return memberships, err
@@ -57,7 +65,7 @@ func (r *postgresMembershipRepository) FindByUserAndSchool(ctx context.Context, 
 	var m entities.Membership
 	if err := r.db.WithContext(ctx).Where("user_id = ? AND school_id = ? AND is_active = true", userID, schoolID).First(&m).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
+			return nil, gorm.ErrRecordNotFound
 		}
 		return nil, err
 	}

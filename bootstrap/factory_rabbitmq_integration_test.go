@@ -1,5 +1,7 @@
 package bootstrap
 
+// Integration tests for RabbitMQ factory
+
 import (
 	"context"
 	"testing"

@@ -1,5 +1,7 @@
 package bootstrap
 
+// Unit tests for Resources
+
 import (
 	"context"
 	"testing"

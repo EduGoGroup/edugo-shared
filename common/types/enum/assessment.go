@@ -19,7 +19,7 @@ const (
 // IsValid verifica si el tipo es válido
 func (a AssessmentType) IsValid() bool {
 	switch a {
-	case AssessmentTypeMultipleChoice, AssessmentTypeTrueFalse, AssessmentTypeShortAnswer:
+	case AssessmentTypeMultipleChoice, AssessmentTypeTrueFalse, AssessmentTypeShortAnswer, AssessmentTypeEssay:
 		return true
 	}
 	return false
@@ -36,5 +36,6 @@ func AllAssessmentTypes() []AssessmentType {
 		AssessmentTypeMultipleChoice,
 		AssessmentTypeTrueFalse,
 		AssessmentTypeShortAnswer,
+		AssessmentTypeEssay,
 	}
 }

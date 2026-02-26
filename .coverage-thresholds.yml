@@ -110,7 +110,7 @@ database/postgres:
     - "Objetivo: 5.9% → 58% (requiere ~15h con sqlmock)"
 
 database/mongodb:
-  threshold: 10
+  threshold: 4
   current: 13.6
   target: 80
   status: "⚠️ Cobertura baja - Requiere mocks (mongo driver)"

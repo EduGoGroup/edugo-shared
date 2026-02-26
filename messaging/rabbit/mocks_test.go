@@ -19,7 +19,11 @@ func (m *MockChannel) PublishWithContext(ctx context.Context, exchange, key stri
 
 func (m *MockChannel) Consume(queue, consumer string, autoAck, exclusive, noLocal, noWait bool, args amqp.Table) (<-chan amqp.Delivery, error) {
 	callArgs := m.Called(queue, consumer, autoAck, exclusive, noLocal, noWait, args)
-	return callArgs.Get(0).(<-chan amqp.Delivery), callArgs.Error(1)
+	res0 := callArgs.Get(0)
+	if res0 != nil {
+		return res0.(<-chan amqp.Delivery), callArgs.Error(1)
+	}
+	return nil, callArgs.Error(1)
 }
 
 func (m *MockChannel) ExchangeDeclare(name, kind string, durable, autoDelete, internal, noWait bool, args amqp.Table) error {
@@ -29,7 +33,11 @@ func (m *MockChannel) ExchangeDeclare(name, kind string, durable, autoDelete, in
 
 func (m *MockChannel) QueueDeclare(name string, durable, autoDelete, exclusive, noWait bool, args amqp.Table) (amqp.Queue, error) {
 	callArgs := m.Called(name, durable, autoDelete, exclusive, noWait, args)
-	return callArgs.Get(0).(amqp.Queue), callArgs.Error(1)
+	// Safe cast or default value
+	if q, ok := callArgs.Get(0).(amqp.Queue); ok {
+		return q, callArgs.Error(1)
+	}
+	return amqp.Queue{}, callArgs.Error(1)
 }
 
 func (m *MockChannel) QueueBind(name, key, exchange string, noWait bool, args amqp.Table) error {

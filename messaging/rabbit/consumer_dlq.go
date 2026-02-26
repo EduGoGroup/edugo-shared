@@ -3,6 +3,7 @@ package rabbit
 import (
 	"context"
 	"fmt"
+	"log"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -20,7 +21,14 @@ type ConsumerDLQ struct {
 
 // NewConsumerDLQ creates a new Consumer with DLQ support
 func NewConsumerDLQ(conn *Connection, config ConsumerConfig) Consumer {
-	base := NewConsumer(conn, config).(*RabbitMQConsumer)
+	// We know NewConsumer returns *RabbitMQConsumer implementation
+	c := NewConsumer(conn, config)
+	base, ok := c.(*RabbitMQConsumer)
+	if !ok {
+		// Should not happen with current implementation
+		panic("NewConsumer returned unexpected type")
+	}
+
 	return &ConsumerDLQ{
 		conn:   conn,
 		config: config,
@@ -163,6 +171,7 @@ func (c *ConsumerDLQ) processMessage(ctx context.Context, ch ChannelInterface, q
 
 	if err == nil {
 		if !c.config.AutoAck {
+			// Ack success, ignore error as we can't recover from ack failure here
 			_ = delivery.Ack(false)
 		}
 		return
@@ -180,25 +189,34 @@ func (c *ConsumerDLQ) processMessage(ctx context.Context, ch ChannelInterface, q
 			}
 		}
 
-		if retries >= c.config.DLQ.MaxRetries {
-			// Max retries exceeded, send to DLQ (Reject with requeue=false)
-			_ = delivery.Nack(false, false) // requeue = false -> DLX
-		} else {
-			// Retry mechanism
-			// Ideally we would publish to a retry queue with TTL, but simple Nack(requeue=true)
-			// might cause busy loop.
-			// With DLQ config, we might want to implement delayed retry.
-			// For this implementation, we'll assume basic Nack(requeue=false) sends to DLX immediately
-			// if configured on the queue. If we want exponential backoff, we need a separate retry architecture.
-			// Here we just Nack without requeue to send to DLX, assuming manual intervention or separate DLQ processor.
-			_ = delivery.Nack(false, false)
+		// Always Nack without requeue to send to DLX (via queue config)
+		// If we wanted exponential backoff retry here, we would need to republish to a delay queue.
+		// For now, simpler behavior: fail -> Nack(false) -> DLX -> DLQ.
+		// This handles both max retries exceeded and initial failures same way if using simple DLX.
+		// If we have advanced retry logic (republish), we would differentiate.
+		// Here we simplify to avoid dupBranchBody linter error and clarify intent.
+
+		shouldRetry := retries < c.config.DLQ.MaxRetries
+		_ = shouldRetry // logic placeholder if we implement republishing later
+
+		// Reject with requeue=false sends to DLX
+		if nackErr := delivery.Nack(false, false); nackErr != nil {
+			log.Printf("[ERROR] failed to nack message: %v", nackErr)
 		}
 	}
 }
 
-// Delegate other methods to base
+// Wait blocks until the consumer stops
 func (c *ConsumerDLQ) Wait() error { return c.base.Wait() }
-func (c *ConsumerDLQ) Stop()       { c.base.Stop() }
+
+// Stop stops the consumer
+func (c *ConsumerDLQ) Stop() { c.base.Stop() }
+
+// Errors returns the error channel
 func (c *ConsumerDLQ) Errors() <-chan error { return c.base.Errors() }
+
+// IsRunning returns true if the consumer is running
 func (c *ConsumerDLQ) IsRunning() bool { return c.base.IsRunning() }
+
+// Close closes the consumer
 func (c *ConsumerDLQ) Close() error { return c.base.Close() }

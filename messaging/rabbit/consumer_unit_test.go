@@ -33,7 +33,7 @@ func TestConsumer_Consume_Unit(t *testing.T) {
 		config.AutoAck,
 		config.Exclusive,
 		config.NoLocal,
-		false, // noWait
+		false,         // noWait
 		mock.Anything, // args
 	).Return((<-chan amqp.Delivery)(deliveryChan), nil)
 
@@ -67,7 +67,7 @@ func TestConsumer_Consume_Unit(t *testing.T) {
 	// Clean stop
 	cancel()
 	consumer.Stop()
-	_ = consumer.Wait()
+	_ = consumer.Wait() // Ignore error from Wait() as we just want to ensure it finishes
 	mockChannel.AssertExpectations(t)
 }
 

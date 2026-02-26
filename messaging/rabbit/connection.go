@@ -10,7 +10,7 @@ import (
 // Connection encapsula la conexión a RabbitMQ
 type Connection struct {
 	conn    *amqp.Connection
-	channel *amqp.Channel
+	channel ChannelInterface // Usar interfaz en lugar de *amqp.Channel concreto
 	url     string
 }
 
@@ -23,7 +23,7 @@ func Connect(url string) (*Connection, error) {
 
 	channel, err := conn.Channel()
 	if err != nil {
-		_ = conn.Close() //nolint:errcheck // Ignorar error en cleanup, el error principal es el de channel
+		_ = conn.Close() //nolint:errcheck // Ignorar error en cleanup
 		return nil, fmt.Errorf("failed to open channel: %w", err)
 	}
 
@@ -35,7 +35,7 @@ func Connect(url string) (*Connection, error) {
 }
 
 // GetChannel retorna el canal de RabbitMQ
-func (c *Connection) GetChannel() *amqp.Channel {
+func (c *Connection) GetChannel() ChannelInterface {
 	return c.channel
 }
 
@@ -110,21 +110,19 @@ func (c *Connection) SetPrefetchCount(count int) error {
 }
 
 // HealthCheck verifica si la conexión está activa
-// Crea un canal temporal para evitar race conditions cuando se llama concurrentemente
 func (c *Connection) HealthCheck() error {
 	if c.IsClosed() {
 		return fmt.Errorf("connection is closed")
 	}
 
 	// Crear un canal temporal para este health check
-	// Esto evita race conditions cuando múltiples goroutines llaman HealthCheck concurrentemente
+	// Nota: conn.Channel() retorna *amqp.Channel concreto, que implementa ChannelInterface
 	ch, err := c.conn.Channel()
 	if err != nil {
 		return fmt.Errorf("health check failed: %w", err)
 	}
-	defer func() { _ = ch.Close() }() //nolint:errcheck // Health check cleanup
+	defer func() { _ = ch.Close() }() //nolint:errcheck
 
-	// Intentar declarar un exchange temporal para verificar conectividad
 	tempExchange := fmt.Sprintf("health_check_%d", time.Now().UnixNano())
 	err = ch.ExchangeDeclare(
 		tempExchange,
@@ -139,6 +137,5 @@ func (c *Connection) HealthCheck() error {
 		return fmt.Errorf("health check failed: %w", err)
 	}
 
-	// Eliminar el exchange temporal
 	return ch.ExchangeDelete(tempExchange, false, false)
 }

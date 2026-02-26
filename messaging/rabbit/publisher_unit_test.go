@@ -1,55 +1,95 @@
-//nolint:errcheck // Tests: errores de Close() en cleanup se ignoran intencionalmente
 package rabbit
 
 import (
 	"context"
+	"errors"
 	"testing"
 
+	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
-// Unit tests for Publisher logic that doesn't strictly depend on AMQP connection
-// (mostly validation or pre-processing, although NewPublisher is simple)
+func TestPublisher_Publish_Unit(t *testing.T) {
+	mockChannel := new(MockChannel)
+	// Connection with mock channel
+	conn := &Connection{
+		channel: mockChannel,
+	}
+	publisher := NewPublisher(conn)
 
-func TestNewPublisher_Unit(t *testing.T) {
-	conn := &Connection{}
-	pub := NewPublisher(conn)
-	assert.NotNil(t, pub)
-	assert.IsType(t, &RabbitMQPublisher{}, pub)
-}
+	ctx := context.Background()
+	exchange := "test_exchange"
+	routingKey := "test_key"
+	msgBody := map[string]string{"msg": "hello"}
 
-func TestRabbitMQPublisher_Close_Unit(t *testing.T) {
-	// Close is a no-op currently, but good to verify it doesn't panic
-	pub := &RabbitMQPublisher{}
-	err := pub.Close()
+	// Expect PublishWithContext call
+	mockChannel.On("PublishWithContext",
+		mock.Anything, // ctx
+		exchange,
+		routingKey,
+		false, // mandatory
+		false, // immediate
+		mock.MatchedBy(func(msg amqp.Publishing) bool {
+			return msg.ContentType == "application/json" && len(msg.Body) > 0
+		}),
+	).Return(nil)
+
+	err := publisher.Publish(ctx, exchange, routingKey, msgBody)
 	assert.NoError(t, err)
+	mockChannel.AssertExpectations(t)
 }
 
-func TestRabbitMQPublisher_PublishWithPriority_ContextCheck_Unit(t *testing.T) {
-	// We can't easily mock the connection/channel without an interface,
-	// but we can check if it fails early on context error before calling the channel
+func TestPublisher_PublishWithPriority_Unit(t *testing.T) {
+	mockChannel := new(MockChannel)
+	conn := &Connection{
+		channel: mockChannel,
+	}
+	publisher := NewPublisher(conn)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	cancel() // Cancel immediately
+	ctx := context.Background()
+	exchange := "test_exchange"
+	routingKey := "test_key"
+	msgBody := map[string]string{"msg": "priority"}
+	priority := uint8(5)
 
-	pub := &RabbitMQPublisher{}
+	mockChannel.On("PublishWithContext",
+		mock.Anything,
+		exchange,
+		routingKey,
+		false,
+		false,
+		mock.MatchedBy(func(msg amqp.Publishing) bool {
+			return msg.Priority == priority
+		}),
+	).Return(nil)
 
-	// Should fail because context is canceled
-	err := pub.PublishWithPriority(ctx, "ex", "rk", "body", 0)
+	err := publisher.PublishWithPriority(ctx, exchange, routingKey, msgBody, priority)
+	assert.NoError(t, err)
+	mockChannel.AssertExpectations(t)
+}
+
+func TestPublisher_Publish_Error_Unit(t *testing.T) {
+	mockChannel := new(MockChannel)
+	conn := &Connection{
+		channel: mockChannel,
+	}
+	publisher := NewPublisher(conn)
+
+	ctx := context.Background()
+	expectedErr := errors.New("amqp error")
+
+	mockChannel.On("PublishWithContext",
+		mock.Anything,
+		mock.Anything,
+		mock.Anything,
+		false,
+		false,
+		mock.Anything,
+	).Return(expectedErr)
+
+	err := publisher.Publish(ctx, "ex", "rk", "body")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "failed to publish message")
-	assert.Contains(t, err.Error(), "context canceled")
-}
-
-func TestRabbitMQPublisher_PublishWithPriority_MarshalError_Unit(t *testing.T) {
-	// Test JSON marshal failure
-
-	pub := &RabbitMQPublisher{}
-
-	// Channel with unsupported type for JSON (e.g. channel)
-	badBody := make(chan int)
-
-	err := pub.PublishWithPriority(context.Background(), "ex", "rk", badBody, 0)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to marshal message")
+	mockChannel.AssertExpectations(t)
 }

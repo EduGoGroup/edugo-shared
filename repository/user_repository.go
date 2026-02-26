@@ -1,11 +1,10 @@
-package postgres
+package repository
 
 import (
 	"context"
 	"errors"
 
 	"github.com/EduGoGroup/edugo-infrastructure/postgres/entities"
-	"github.com/EduGoGroup/edugo-shared/repository"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -13,7 +12,7 @@ import (
 type postgresUserRepository struct{ db *gorm.DB }
 
 // NewPostgresUserRepository crea una nueva instancia del repositorio de usuarios con PostgreSQL.
-func NewPostgresUserRepository(db *gorm.DB) repository.UserRepository {
+func NewPostgresUserRepository(db *gorm.DB) UserRepository {
 	return &postgresUserRepository{db: db}
 }
 
@@ -57,7 +56,7 @@ func (r *postgresUserRepository) Delete(ctx context.Context, id uuid.UUID) error
 	return r.db.WithContext(ctx).Delete(&entities.User{}, "id = ?", id).Error
 }
 
-func (r *postgresUserRepository) List(ctx context.Context, filters repository.ListFilters) ([]*entities.User, error) {
+func (r *postgresUserRepository) List(ctx context.Context, filters ListFilters) ([]*entities.User, error) {
 	query := r.db.WithContext(ctx).Model(&entities.User{})
 	if filters.IsActive != nil {
 		query = query.Where("is_active = ?", *filters.IsActive)

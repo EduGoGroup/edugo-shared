@@ -55,6 +55,17 @@ test-all: ## Ejecutar tests unitarios en todos los modulos
 	done
 	@echo "$(GREEN)Todos los modulos pasaron los tests$(NC)"
 
+.PHONY: test-integration-all
+test-integration-all: ## Ejecutar tests de integracion en todos los modulos
+	@echo "$(BLUE)Ejecutando tests de integracion en todos los modulos...$(NC)"
+	@export INTEGRATION_TESTS=true; \
+	for module in $(MODULES); do \
+		echo "$(YELLOW)Integration Testing $$module...$(NC)"; \
+		(cd $$module && go test -v -cover ./...) || echo "$(RED)  $$module integration tests failed$(NC)"; \
+		echo ""; \
+	done
+	@echo "$(GREEN)Ejecucion de tests de integracion completada$(NC)"
+
 .PHONY: test-race-all
 test-race-all: ## Ejecutar tests con race detection en todos los modulos
 	@echo "$(BLUE)Ejecutando tests con race detection...$(NC)"

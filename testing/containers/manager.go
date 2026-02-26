@@ -25,75 +25,70 @@ type Manager struct {
 
 var (
 	globalManager *Manager
-	setupOnce     sync.Once
-	errSetup      error //nolint:errname // Variable interna, no error sentinel exportado
+	initMu        sync.Mutex
 )
 
 // GetManager obtiene o crea el manager global de containers.
 // Usa el patrón singleton para crear los containers UNA sola vez.
 // Los tests subsiguientes reutilizarán los mismos containers.
 func GetManager(t *testing.T, config *Config) (*Manager, error) {
-	setupOnce.Do(func() {
-		ctx := context.Background()
-		m := &Manager{config: config}
+	initMu.Lock()
+	defer initMu.Unlock()
 
-		if t != nil {
-			t.Log("🚀 Iniciando containers de testing...")
-		}
-
-		// Crear PostgreSQL si está habilitado
-		if config.UsePostgreSQL {
-			pg, err := createPostgres(ctx, config.PostgresConfig)
-			if err != nil {
-				errSetup = fmt.Errorf("error creando PostgreSQL: %w", err)
-				return
-			}
-			m.postgres = pg
-			if t != nil {
-				t.Log("✅ PostgreSQL container listo")
-			}
-		}
-
-		// Crear MongoDB si está habilitado
-		if config.UseMongoDB {
-			mongo, err := createMongoDB(ctx, config.MongoConfig)
-			if err != nil {
-				_ = m.cleanup(ctx, t) //nolint:errcheck // En error de setup, cleanup es best-effort
-				errSetup = fmt.Errorf("error creando MongoDB: %w", err)
-				return
-			}
-			m.mongodb = mongo
-			if t != nil {
-				t.Log("✅ MongoDB container listo")
-			}
-		}
-
-		// Crear RabbitMQ si está habilitado
-		if config.UseRabbitMQ {
-			rabbit, err := createRabbitMQ(ctx, config.RabbitConfig)
-			if err != nil {
-				_ = m.cleanup(ctx, t) //nolint:errcheck // En error de setup, cleanup es best-effort
-				errSetup = fmt.Errorf("error creando RabbitMQ: %w", err)
-				return
-			}
-			m.rabbitmq = rabbit
-			if t != nil {
-				t.Log("✅ RabbitMQ container listo")
-			}
-		}
-
-		globalManager = m
-		if t != nil {
-			t.Log("🎉 Todos los containers listos")
-		}
-	})
-
-	if errSetup != nil {
-		return nil, errSetup
+	if globalManager != nil {
+		return globalManager, nil
 	}
-	if globalManager == nil {
-		return nil, fmt.Errorf("error: manager no fue inicializado correctamente")
+
+	ctx := context.Background()
+	m := &Manager{config: config}
+
+	if t != nil {
+		t.Logf("🚀 Iniciando containers de testing... Postgres: %v, Mongo: %v, Rabbit: %v", config.UsePostgreSQL, config.UseMongoDB, config.UseRabbitMQ)
 	}
+
+	// Crear PostgreSQL si está habilitado
+	if config.UsePostgreSQL {
+		pg, err := createPostgres(ctx, config.PostgresConfig)
+		if err != nil {
+			return nil, fmt.Errorf("error creando PostgreSQL: %w", err)
+		}
+		m.postgres = pg
+		if t != nil {
+			t.Log("✅ PostgreSQL container listo")
+		}
+	}
+
+	// Crear MongoDB si está habilitado
+	if config.UseMongoDB {
+		mongo, err := createMongoDB(ctx, config.MongoConfig)
+		if err != nil {
+			_ = m.cleanup(ctx, t) //nolint:errcheck // En error de setup, cleanup es best-effort
+			return nil, fmt.Errorf("error creando MongoDB: %w", err)
+		}
+		m.mongodb = mongo
+		if t != nil {
+			t.Log("✅ MongoDB container listo")
+		}
+	}
+
+	// Crear RabbitMQ si está habilitado
+	if config.UseRabbitMQ {
+		rabbit, err := createRabbitMQ(ctx, config.RabbitConfig)
+		if err != nil {
+			_ = m.cleanup(ctx, t) //nolint:errcheck // En error de setup, cleanup es best-effort
+			return nil, fmt.Errorf("error creando RabbitMQ: %w", err)
+		}
+		m.rabbitmq = rabbit
+		if t != nil {
+			t.Log("✅ RabbitMQ container listo")
+		}
+	}
+
+	globalManager = m
+	if t != nil {
+		t.Log("🎉 Todos los containers listos")
+	}
+
 	return globalManager, nil
 }
 

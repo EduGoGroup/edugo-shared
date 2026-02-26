@@ -101,7 +101,7 @@ func TestS3Factory_ConfigValidation(t *testing.T) {
 	}{
 		{
 			name: "valid config",
-			config: S3Config{
+			config: S3Config{ //nolint:gosec // G101: Example AWS credentials for testing, not real secrets
 				Bucket:          "valid-bucket",
 				Region:          "us-east-1",
 				AccessKeyID:     "AKIAIOSFODNN7EXAMPLE",
@@ -111,7 +111,7 @@ func TestS3Factory_ConfigValidation(t *testing.T) {
 		},
 		{
 			name: "empty bucket",
-			config: S3Config{
+			config: S3Config{ //nolint:gosec // G101: Example AWS credentials for testing, not real secrets
 				Bucket:          "",
 				Region:          "us-east-1",
 				AccessKeyID:     "AKIAIOSFODNN7EXAMPLE",
@@ -121,7 +121,7 @@ func TestS3Factory_ConfigValidation(t *testing.T) {
 		},
 		{
 			name: "empty region",
-			config: S3Config{
+			config: S3Config{ //nolint:gosec // G101: Example AWS credentials for testing, not real secrets
 				Bucket:          "bucket",
 				Region:          "",
 				AccessKeyID:     "AKIAIOSFODNN7EXAMPLE",
@@ -274,7 +274,7 @@ func TestS3Factory_MultipleInstances(t *testing.T) {
 
 // TestS3Factory_ConfigStructure verifica estructura de configuración
 func TestS3Factory_ConfigStructure(t *testing.T) {
-	config := S3Config{
+	config := S3Config{ //nolint:gosec // G101: Example AWS credentials for testing, not real secrets
 		Bucket:          "test-bucket",
 		Region:          "us-west-2",
 		AccessKeyID:     "AKIAIOSFODNN7EXAMPLE",

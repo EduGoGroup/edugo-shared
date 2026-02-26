@@ -4,6 +4,7 @@ package containers
 import (
 	"context"
 	"testing"
+	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -67,12 +68,12 @@ func TestRabbitMQContainer_Integration(t *testing.T) {
 		}
 		defer ch.Close()
 
-		// Declarar cola con nombre único y auto-delete
+		// Declarar cola con nombre único (sin auto-delete para evitar que se elimine antes del inspect)
 		queueName := "test_queue_publish_" + t.Name()
 		queue, err := ch.QueueDeclare(
 			queueName,
 			false, // durable
-			true,  // delete when unused (auto-delete para limpieza)
+			false, // delete when unused
 			false, // exclusive
 			false, // no-wait
 			nil,   // arguments
@@ -95,6 +96,9 @@ func TestRabbitMQContainer_Integration(t *testing.T) {
 		if err != nil {
 			t.Errorf("Error publicando mensaje: %v", err)
 		}
+
+		// Esperar a que RabbitMQ procese el mensaje antes de inspeccionar
+		time.Sleep(100 * time.Millisecond)
 
 		// Verificar que el mensaje está en la cola (puede haber delay)
 		queue, err = ch.QueueInspect(queueName)

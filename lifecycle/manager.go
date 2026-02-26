@@ -155,12 +155,10 @@ func (m *Manager) Cleanup() error {
 					"duration", time.Since(startTime))
 			}
 			errors = append(errors, fmt.Errorf("%s: %w", resource.Name, err))
-		} else {
-			if m.logger != nil {
-				m.logger.Debug("resource cleaned up successfully",
-					"resource", resource.Name,
-					"duration", time.Since(startTime))
-			}
+		} else if m.logger != nil {
+			m.logger.Debug("resource cleaned up successfully",
+				"resource", resource.Name,
+				"duration", time.Since(startTime))
 		}
 	}
 

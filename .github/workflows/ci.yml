@@ -11,7 +11,10 @@ env:
   GO_VERSION: "1.25"
 
 jobs:
-  test-modules:
+  # ============================================================================
+  # Tests unitarios — todos los módulos en paralelo
+  # ============================================================================
+  test:
     name: Test ${{ matrix.module }}
     runs-on: ubuntu-latest
     strategy:
@@ -20,18 +23,24 @@ jobs:
         module:
           - common
           - logger
+          - config
+          - testing
+          - messaging/events
+          - screenconfig
           - auth
+          - lifecycle
           - middleware/gin
-          - messaging/rabbit
           - database/postgres
           - database/mongodb
+          - messaging/rabbit
+          - bootstrap
 
     steps:
       - name: Checkout código
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v4
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
@@ -58,47 +67,42 @@ jobs:
 
       - name: Ejecutar tests con race detection
         working-directory: ${{ matrix.module }}
-        run: go test -v -race ./...
+        run: go test -short -v -race ./...
 
       - name: Verificar build
         working-directory: ${{ matrix.module }}
         run: go build -v ./...
 
-  # =====================================================
-  # MEJORADO: Job lint aplicando lecciones de SPRINT-4
-  #
-  # NO MIGRADO a workflow reusable porque:
-  # - edugo-shared es un MONOREPO con 7 módulos
-  # - Workflow reusable está diseñado para módulo único
-  # - GitHub Actions NO soporta bien strategy.matrix con uses
-  #
-  # MEJORAS APLICADAS:
-  # - golangci-lint-action@v7 (compatible con golangci-lint v2.x)
-  # - golangci-lint v2.4.0 (compilado con Go 1.25)
-  # - Mantiene estructura de matriz para monorepo
-  # =====================================================
+  # ============================================================================
+  # Lint — todos los módulos en paralelo
+  # ============================================================================
   lint:
     name: Lint ${{ matrix.module }}
     runs-on: ubuntu-latest
-    continue-on-error: true # No falla el CI si el linter tiene warnings
     strategy:
       fail-fast: false
       matrix:
         module:
           - common
           - logger
+          - config
+          - testing
+          - messaging/events
+          - screenconfig
           - auth
+          - lifecycle
           - middleware/gin
-          - messaging/rabbit
           - database/postgres
           - database/mongodb
+          - messaging/rabbit
+          - bootstrap
 
     steps:
       - name: Checkout código
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v4
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
@@ -114,3 +118,41 @@ jobs:
           version: v2.4.0
           working-directory: ${{ matrix.module }}
           args: --timeout=5m
+
+  # ============================================================================
+  # Tests de integración — módulos con Docker/TestContainers en paralelo
+  # ubuntu-latest incluye Docker, compatible con testcontainers-go
+  # ============================================================================
+  integration:
+    name: Integration ${{ matrix.module }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - testing
+          - database/postgres
+          - database/mongodb
+          - messaging/rabbit
+          - bootstrap
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+          cache-dependency-path: ${{ matrix.module }}/go.sum
+
+      - name: Descargar dependencias
+        working-directory: ${{ matrix.module }}
+        run: go mod download
+
+      - name: Ejecutar tests de integración
+        working-directory: ${{ matrix.module }}
+        env:
+          INTEGRATION_TESTS: "true"
+        run: go test -v -cover -timeout 10m ./...

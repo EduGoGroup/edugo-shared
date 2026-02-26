@@ -134,6 +134,83 @@ check-all: fmt-all vet-all lint-all test-all ## Validacion completa de todos los
 ci: fmt-all vet-all test-race-all ## Pipeline CI completo
 	@echo "$(GREEN)Pipeline CI completado$(NC)"
 
+# ============================================================================
+# Comandos paralelos (reduce tiempos locales usando background jobs)
+# ============================================================================
+
+.PHONY: build-parallel
+build-parallel: ## Compilar todos los modulos en paralelo
+	@echo "$(BLUE)Compilando todos los modulos en paralelo...$(NC)"
+	@PIDS=""; FAILED=0; \
+	for module in $(MODULES); do \
+		(cd $$module && go build ./... && echo "$(GREEN)  ✓ $$module$(NC)") & \
+		PIDS="$$PIDS $$!"; \
+	done; \
+	for pid in $$PIDS; do wait $$pid || FAILED=1; done; \
+	if [ $$FAILED -ne 0 ]; then echo "$(RED)Algún modulo falló al compilar$(NC)"; exit 1; fi
+	@echo "$(GREEN)Todos los modulos compilados$(NC)"
+
+.PHONY: test-parallel
+test-parallel: ## Tests unitarios en paralelo por nivel de dependencia
+	@echo "$(BLUE)Tests en paralelo (nivel 0)...$(NC)"
+	@PIDS=""; FAILED=0; \
+	for module in $(MODULES_L0); do \
+		(cd $$module && go test -short ./... && echo "$(GREEN)  ✓ $$module$(NC)" || echo "$(RED)  ✗ $$module$(NC)") & \
+		PIDS="$$PIDS $$!"; \
+	done; \
+	for pid in $$PIDS; do wait $$pid || FAILED=1; done; \
+	if [ $$FAILED -ne 0 ]; then echo "$(RED)Fallos en nivel 0$(NC)"; exit 1; fi
+	@echo "$(BLUE)Tests en paralelo (nivel 1)...$(NC)"
+	@PIDS=""; FAILED=0; \
+	for module in $(MODULES_L1); do \
+		(cd $$module && go test -short ./... && echo "$(GREEN)  ✓ $$module$(NC)" || echo "$(RED)  ✗ $$module$(NC)") & \
+		PIDS="$$PIDS $$!"; \
+	done; \
+	for pid in $$PIDS; do wait $$pid || FAILED=1; done; \
+	if [ $$FAILED -ne 0 ]; then echo "$(RED)Fallos en nivel 1$(NC)"; exit 1; fi
+	@echo "$(BLUE)Tests en paralelo (nivel 2)...$(NC)"
+	@PIDS=""; FAILED=0; \
+	for module in $(MODULES_L2); do \
+		(cd $$module && go test -short ./... && echo "$(GREEN)  ✓ $$module$(NC)" || echo "$(RED)  ✗ $$module$(NC)") & \
+		PIDS="$$PIDS $$!"; \
+	done; \
+	for pid in $$PIDS; do wait $$pid || FAILED=1; done; \
+	if [ $$FAILED -ne 0 ]; then echo "$(RED)Fallos en nivel 2$(NC)"; exit 1; fi
+	@echo "$(BLUE)Tests en paralelo (nivel 3)...$(NC)"
+	@PIDS=""; FAILED=0; \
+	for module in $(MODULES_L3); do \
+		(cd $$module && go test -short ./... && echo "$(GREEN)  ✓ $$module$(NC)" || echo "$(RED)  ✗ $$module$(NC)") & \
+		PIDS="$$PIDS $$!"; \
+	done; \
+	for pid in $$PIDS; do wait $$pid || FAILED=1; done; \
+	if [ $$FAILED -ne 0 ]; then echo "$(RED)Fallos en nivel 3$(NC)"; exit 1; fi
+	@echo "$(GREEN)Todos los modulos pasaron los tests$(NC)"
+
+.PHONY: lint-parallel
+lint-parallel: ## Lint en todos los modulos en paralelo
+	@echo "$(BLUE)Linting todos los modulos en paralelo...$(NC)"
+	@PIDS=""; FAILED=0; \
+	for module in $(MODULES); do \
+		(cd $$module && golangci-lint run ./... && echo "$(GREEN)  ✓ $$module$(NC)" || echo "$(RED)  ✗ $$module$(NC)") & \
+		PIDS="$$PIDS $$!"; \
+	done; \
+	for pid in $$PIDS; do wait $$pid || FAILED=1; done; \
+	if [ $$FAILED -ne 0 ]; then echo "$(RED)Algún modulo falló el linter$(NC)"; exit 1; fi
+	@echo "$(GREEN)Todos los modulos pasaron el linter$(NC)"
+
+.PHONY: test-integration-parallel
+test-integration-parallel: ## Tests de integracion en paralelo (requiere Docker)
+	@echo "$(BLUE)Tests de integracion en paralelo...$(NC)"
+	@export INTEGRATION_TESTS=true; \
+	PIDS=""; FAILED=0; \
+	for module in $(MODULES); do \
+		(cd $$module && go test -v -cover ./... && echo "$(GREEN)  ✓ $$module$(NC)" || echo "$(RED)  ✗ $$module$(NC)") & \
+		PIDS="$$PIDS $$!"; \
+	done; \
+	for pid in $$PIDS; do wait $$pid || FAILED=1; done; \
+	if [ $$FAILED -ne 0 ]; then echo "$(RED)Algún modulo falló los tests de integración$(NC)"; exit 1; fi
+	@echo "$(GREEN)Ejecucion de tests de integracion completada$(NC)"
+
 .PHONY: clean-all
 clean-all: ## Limpiar archivos generados en todos los modulos
 	@echo "$(BLUE)Limpiando todos los modulos...$(NC)"

@@ -30,7 +30,7 @@ type DatabaseConfig struct {
 	Host            string        `mapstructure:"host" validate:"required"`
 	Port            int           `mapstructure:"port" validate:"required,min=1,max=65535"`
 	User            string        `mapstructure:"user" validate:"required"`
-	Password        string        `mapstructure:"password" validate:"required"`
+	Password        string        `mapstructure:"password" validate:"required"` //nolint:gosec // G117: Password is a required database config field, not a hardcoded secret
 	Database        string        `mapstructure:"database" validate:"required"`
 	SSLMode         string        `mapstructure:"ssl_mode" validate:"required,oneof=disable require verify-ca verify-full"`
 	MaxOpenConns    int           `mapstructure:"max_open_conns" validate:"min=1"`

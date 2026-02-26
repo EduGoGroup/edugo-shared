@@ -26,7 +26,7 @@ type Config struct {
 	User string
 
 	// Password para autenticación
-	Password string
+	Password string //nolint:gosec // G117: Password is a required database config field, not a hardcoded secret
 
 	// Database nombre de la base de datos
 	Database string

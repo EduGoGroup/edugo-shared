@@ -77,7 +77,10 @@ func applyZoneOverrides(defMap, platformMap map[string]interface{}) {
 		if !ok {
 			continue
 		}
-		zoneID, _ := zoneMap["id"].(string)
+		zoneID, ok := zoneMap["id"].(string)
+		if !ok {
+			continue
+		}
 		overrideMap, ok := toStringMap(zonesMap[zoneID])
 		if !ok {
 			continue

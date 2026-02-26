@@ -29,7 +29,7 @@ func TestDefaultConfig(t *testing.T) {
 }
 
 func TestConfig_Fields(t *testing.T) {
-	config := Config{
+	config := Config{ //nolint:gosec // G101: Example test URL with credentials, not real secrets
 		URL: "amqp://user:pass@example.com:5672/test",
 		Exchange: ExchangeConfig{
 			Name:       "test_exchange",

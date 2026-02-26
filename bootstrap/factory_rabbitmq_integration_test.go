@@ -11,6 +11,25 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// startRabbitContainer crea un container de RabbitMQ independiente para un test.
+// Registra el cleanup automático con t.Cleanup.
+func startRabbitContainer(ctx context.Context, t *testing.T) *containers.RabbitMQContainer { //nolint:contextcheck,gosec // contextcheck: cleanup uses background context intentionally; G101: guest are default RabbitMQ test credentials
+	t.Helper()
+	rabbitContainer, err := containers.CreateRabbitMQ(ctx, &containers.RabbitConfig{
+		Image:    "rabbitmq:3.12-alpine",
+		Username: "guest",
+		Password: "guest",
+	})
+	require.NoError(t, err, "Error creando container RabbitMQ")
+	cleanupCtx := context.Background()
+	t.Cleanup(func() {
+		if err := rabbitContainer.Terminate(cleanupCtx); err != nil {
+			t.Logf("Error terminando container RabbitMQ: %v", err)
+		}
+	})
+	return rabbitContainer
+}
+
 // TestRabbitMQFactory_CreateConnection_Success verifica creación exitosa de conexión
 func TestRabbitMQFactory_CreateConnection_Success(t *testing.T) {
 	if testing.Short() {
@@ -20,17 +39,7 @@ func TestRabbitMQFactory_CreateConnection_Success(t *testing.T) {
 	ctx := context.Background()
 
 	// Setup container
-	config := containers.NewConfig().
-		WithRabbitMQ(&containers.RabbitConfig{
-			Image: "rabbitmq:3.12-alpine",
-		}).
-		Build()
-
-	manager, err := containers.GetManager(t, config)
-	require.NoError(t, err)
-
-	rabbit := manager.RabbitMQ()
-	require.NotNil(t, rabbit)
+	rabbit := startRabbitContainer(ctx, t)
 
 	connectionString, err := rabbit.ConnectionString(ctx)
 	require.NoError(t, err)
@@ -130,16 +139,8 @@ func TestRabbitMQFactory_CreateChannel_Success(t *testing.T) {
 
 	ctx := context.Background()
 
-	config := containers.NewConfig().
-		WithRabbitMQ(&containers.RabbitConfig{
-			Image: "rabbitmq:3.12-alpine",
-		}).
-		Build()
+	rabbit := startRabbitContainer(ctx, t)
 
-	manager, err := containers.GetManager(t, config)
-	require.NoError(t, err)
-
-	rabbit := manager.RabbitMQ()
 	connectionString, err := rabbit.ConnectionString(ctx)
 	require.NoError(t, err)
 
@@ -179,16 +180,8 @@ func TestRabbitMQFactory_CreateChannel_QoSConfigured(t *testing.T) {
 
 	ctx := context.Background()
 
-	config := containers.NewConfig().
-		WithRabbitMQ(&containers.RabbitConfig{
-			Image: "rabbitmq:3.12-alpine",
-		}).
-		Build()
+	rabbit := startRabbitContainer(ctx, t)
 
-	manager, err := containers.GetManager(t, config)
-	require.NoError(t, err)
-
-	rabbit := manager.RabbitMQ()
 	connectionString, err := rabbit.ConnectionString(ctx)
 	require.NoError(t, err)
 
@@ -237,16 +230,8 @@ func TestRabbitMQFactory_DeclareQueue_Success(t *testing.T) {
 
 	ctx := context.Background()
 
-	config := containers.NewConfig().
-		WithRabbitMQ(&containers.RabbitConfig{
-			Image: "rabbitmq:3.12-alpine",
-		}).
-		Build()
+	rabbit := startRabbitContainer(ctx, t)
 
-	manager, err := containers.GetManager(t, config)
-	require.NoError(t, err)
-
-	rabbit := manager.RabbitMQ()
 	connectionString, err := rabbit.ConnectionString(ctx)
 	require.NoError(t, err)
 
@@ -289,16 +274,8 @@ func TestRabbitMQFactory_DeclareQueue_WithConfiguration(t *testing.T) {
 
 	ctx := context.Background()
 
-	config := containers.NewConfig().
-		WithRabbitMQ(&containers.RabbitConfig{
-			Image: "rabbitmq:3.12-alpine",
-		}).
-		Build()
+	rabbit := startRabbitContainer(ctx, t)
 
-	manager, err := containers.GetManager(t, config)
-	require.NoError(t, err)
-
-	rabbit := manager.RabbitMQ()
 	connectionString, err := rabbit.ConnectionString(ctx)
 	require.NoError(t, err)
 
@@ -353,16 +330,8 @@ func TestRabbitMQFactory_Close_Success(t *testing.T) {
 
 	ctx := context.Background()
 
-	config := containers.NewConfig().
-		WithRabbitMQ(&containers.RabbitConfig{
-			Image: "rabbitmq:3.12-alpine",
-		}).
-		Build()
+	rabbit := startRabbitContainer(ctx, t)
 
-	manager, err := containers.GetManager(t, config)
-	require.NoError(t, err)
-
-	rabbit := manager.RabbitMQ()
 	connectionString, err := rabbit.ConnectionString(ctx)
 	require.NoError(t, err)
 
@@ -391,16 +360,8 @@ func TestRabbitMQFactory_Close_WithNilChannel(t *testing.T) {
 
 	ctx := context.Background()
 
-	config := containers.NewConfig().
-		WithRabbitMQ(&containers.RabbitConfig{
-			Image: "rabbitmq:3.12-alpine",
-		}).
-		Build()
+	rabbit := startRabbitContainer(ctx, t)
 
-	manager, err := containers.GetManager(t, config)
-	require.NoError(t, err)
-
-	rabbit := manager.RabbitMQ()
 	connectionString, err := rabbit.ConnectionString(ctx)
 	require.NoError(t, err)
 
@@ -426,16 +387,8 @@ func TestRabbitMQFactory_Close_AlreadyClosed(t *testing.T) {
 
 	ctx := context.Background()
 
-	config := containers.NewConfig().
-		WithRabbitMQ(&containers.RabbitConfig{
-			Image: "rabbitmq:3.12-alpine",
-		}).
-		Build()
+	rabbit := startRabbitContainer(ctx, t)
 
-	manager, err := containers.GetManager(t, config)
-	require.NoError(t, err)
-
-	rabbit := manager.RabbitMQ()
 	connectionString, err := rabbit.ConnectionString(ctx)
 	require.NoError(t, err)
 
@@ -469,16 +422,8 @@ func TestRabbitMQFactory_MultipleChannels(t *testing.T) {
 
 	ctx := context.Background()
 
-	config := containers.NewConfig().
-		WithRabbitMQ(&containers.RabbitConfig{
-			Image: "rabbitmq:3.12-alpine",
-		}).
-		Build()
+	rabbit := startRabbitContainer(ctx, t)
 
-	manager, err := containers.GetManager(t, config)
-	require.NoError(t, err)
-
-	rabbit := manager.RabbitMQ()
 	connectionString, err := rabbit.ConnectionString(ctx)
 	require.NoError(t, err)
 
@@ -525,16 +470,8 @@ func TestRabbitMQFactory_PublishConsume(t *testing.T) {
 
 	ctx := context.Background()
 
-	config := containers.NewConfig().
-		WithRabbitMQ(&containers.RabbitConfig{
-			Image: "rabbitmq:3.12-alpine",
-		}).
-		Build()
+	rabbit := startRabbitContainer(ctx, t)
 
-	manager, err := containers.GetManager(t, config)
-	require.NoError(t, err)
-
-	rabbit := manager.RabbitMQ()
 	connectionString, err := rabbit.ConnectionString(ctx)
 	require.NoError(t, err)
 

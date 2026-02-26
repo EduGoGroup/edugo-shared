@@ -30,7 +30,7 @@ func TestDefaultConfig(t *testing.T) {
 
 func TestConfigCustomization(t *testing.T) {
 	t.Run("permite personalizar todos los campos", func(t *testing.T) {
-		config := Config{
+		config := Config{ //nolint:gosec // G101: Test URI with example credentials, not real secrets
 			URI:         "mongodb://user:pass@custom-host:27017/admin",
 			Database:    "custom-db",
 			Timeout:     30 * time.Second,
@@ -75,12 +75,12 @@ func TestConfigURIFormats(t *testing.T) {
 			uri:         "mongodb://localhost:27017",
 			description: "Conexión local sin autenticación",
 		},
-		{
+		{ //nolint:gosec // G101: Example test URI with credentials, not real secrets
 			name:        "URI con autenticación",
 			uri:         "mongodb://user:password@localhost:27017/admin",
 			description: "Conexión con usuario y password",
 		},
-		{
+		{ //nolint:gosec // G101: Example test URI with credentials, not real secrets
 			name:        "URI con autenticación y authSource",
 			uri:         "mongodb://user:password@localhost:27017/mydb?authSource=admin",
 			description: "Especifica base de datos de autenticación",
@@ -95,7 +95,7 @@ func TestConfigURIFormats(t *testing.T) {
 			uri:         "mongodb://localhost:27017/mydb?maxPoolSize=50&minPoolSize=5",
 			description: "URI con parámetros de pool",
 		},
-		{
+		{ //nolint:gosec // G101: Example test URI with credentials, not real secrets
 			name:        "URI de MongoDB Atlas",
 			uri:         "mongodb+srv://user:password@cluster.mongodb.net/mydb",
 			description: "Conexión a MongoDB Atlas (SRV record)",
@@ -204,7 +204,7 @@ func TestConfigForDifferentEnvironments(t *testing.T) {
 	})
 
 	t.Run("configuración para MongoDB Atlas", func(t *testing.T) {
-		atlasConfig := Config{
+		atlasConfig := Config{ //nolint:gosec // G101: Example test URI for Atlas, not real credentials
 			URI:         "mongodb+srv://user:pass@cluster0.example.mongodb.net/mydb?retryWrites=true&w=majority",
 			MaxPoolSize: 150,
 		}

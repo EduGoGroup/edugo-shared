@@ -97,12 +97,9 @@ func TestManagerIntegration(t *testing.T) {
 	if err := db.Ping(); err != nil {
 		t.Errorf("Error haciendo ping a PostgreSQL: %v", err)
 	}
-
-	// Cleanup
-	ctx := context.Background()
-	if err := manager.Cleanup(ctx); err != nil {
-		t.Errorf("Error en cleanup: %v", err)
-	}
+	// Nota: no se llama Cleanup() aquí porque el Manager es un singleton compartido.
+	// Llamar Cleanup() terminaría los containers para todos los tests subsiguientes.
+	// testcontainers-go (Ryuk) se encarga de limpiar los containers al terminar el proceso.
 }
 
 // Nota: Los tests TestMongoDBIntegration, TestRabbitMQIntegration, y

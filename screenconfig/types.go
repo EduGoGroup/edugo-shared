@@ -3,6 +3,7 @@ package screenconfig
 // Pattern enumera los patterns de pantalla soportados
 type Pattern string
 
+// Pattern constants define the supported screen layout patterns
 const (
 	PatternLogin        Pattern = "login"
 	PatternForm         Pattern = "form"
@@ -21,6 +22,7 @@ const (
 // ScreenType define como una pantalla se relaciona con un recurso
 type ScreenType string
 
+// ScreenType constants define how a screen relates to a resource
 const (
 	ScreenTypeList      ScreenType = "list"
 	ScreenTypeDetail    ScreenType = "detail"
@@ -33,6 +35,7 @@ const (
 // Platform identifica la plataforma del cliente para aplicar overrides de UI
 type Platform string
 
+// Platform constants identify supported client platforms for UI overrides
 const (
 	PlatformIOS     Platform = "ios"
 	PlatformAndroid Platform = "android"

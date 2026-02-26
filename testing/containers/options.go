@@ -19,7 +19,7 @@ type PostgresConfig struct {
 	Image       string   // Imagen Docker (default: "postgres:15-alpine")
 	Database    string   // Nombre de la base de datos (default: "edugo_test")
 	Username    string   // Usuario (default: "edugo_user")
-	Password    string   // Contraseña (default: "edugo_pass")
+	Password    string   //nolint:gosec // G117: Test container password field, not a hardcoded secret
 	Port        string   // Puerto (default: "5432")
 	InitScripts []string // Scripts SQL para ejecutar al iniciar
 }
@@ -30,7 +30,7 @@ type MongoConfig struct {
 	Image    string // Imagen Docker (default: "mongo:7.0")
 	Database string // Nombre de la base de datos (default: "edugo_test")
 	Username string // Usuario (default: "")
-	Password string // Contraseña (default: "")
+	Password string //nolint:gosec // G117: Test container password field, not a hardcoded secret
 }
 
 // RabbitConfig configura el container de RabbitMQ.
@@ -38,7 +38,7 @@ type MongoConfig struct {
 type RabbitConfig struct {
 	Image    string // Imagen Docker (default: "rabbitmq:3.12-management-alpine")
 	Username string // Usuario (default: "edugo_user")
-	Password string // Contraseña (default: "edugo_pass")
+	Password string //nolint:gosec // G117: Test container password field, not a hardcoded secret
 }
 
 // ConfigBuilder permite construir una Config de forma fluida usando el patrón Builder.

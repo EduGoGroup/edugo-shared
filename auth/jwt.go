@@ -35,6 +35,7 @@ type Claims struct {
 	UserID        string       `json:"user_id"`
 	Email         string       `json:"email"`
 	ActiveContext *UserContext `json:"active_context"`
+	TokenUse      string       `json:"token_use,omitempty"`
 	jwt.RegisteredClaims
 }
 
@@ -109,8 +110,9 @@ func (m *JWTManager) GenerateTokenWithContext(
 	return signedToken, expiresAt, nil
 }
 
-// ValidateToken valida un JWT token y retorna los claims
-func (m *JWTManager) ValidateToken(tokenString string) (*Claims, error) {
+// parseAndValidateToken es un helper interno que parsea y valida un JWT,
+// retornando los claims sin verificaciones específicas de tipo de token.
+func (m *JWTManager) parseAndValidateToken(tokenString string) (*Claims, error) {
 	parser := jwt.NewParser(
 		jwt.WithIssuer(m.issuer),
 		jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}),
@@ -139,9 +141,75 @@ func (m *JWTManager) ValidateToken(tokenString string) (*Claims, error) {
 		return nil, errors.NewUnauthorizedError("invalid token issuer")
 	}
 
+	return claims, nil
+}
+
+// ValidateToken valida un JWT token y retorna los claims
+func (m *JWTManager) ValidateToken(tokenString string) (*Claims, error) {
+	claims, err := m.parseAndValidateToken(tokenString)
+	if err != nil {
+		return nil, err
+	}
+
 	// Validar que ActiveContext esté presente
 	if claims.ActiveContext == nil {
 		return nil, errors.NewUnauthorizedError("token missing active context")
+	}
+
+	return claims, nil
+}
+
+// GenerateMinimalToken genera un JWT con claims mínimos (sin ActiveContext).
+// Diseñado para refresh tokens que solo necesitan identificar al usuario.
+func (m *JWTManager) GenerateMinimalToken(userID, email string, expiresIn time.Duration) (string, time.Time, error) {
+	if userID == "" {
+		return "", time.Time{}, errors.NewValidationError("userID no puede estar vacío")
+	}
+	if email == "" {
+		return "", time.Time{}, errors.NewValidationError("email no puede estar vacío")
+	}
+	if expiresIn < time.Minute {
+		return "", time.Time{}, errors.NewValidationError("expiresIn debe ser mayor a 1 minuto")
+	}
+
+	now := time.Now()
+	expiresAt := now.Add(expiresIn)
+
+	claims := Claims{
+		UserID:        userID,
+		Email:         email,
+		ActiveContext: nil,
+		TokenUse:      "refresh",
+		RegisteredClaims: jwt.RegisteredClaims{
+			ID:        uuid.New().String(),
+			Issuer:    m.issuer,
+			Subject:   userID,
+			IssuedAt:  jwt.NewNumericDate(now),
+			ExpiresAt: jwt.NewNumericDate(expiresAt),
+			NotBefore: jwt.NewNumericDate(now),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	signedToken, err := token.SignedString(m.secretKey)
+	if err != nil {
+		return "", time.Time{}, errors.NewInternalError("no se pudo firmar el token JWT", err)
+	}
+
+	return signedToken, expiresAt, nil
+}
+
+// ValidateMinimalToken valida un JWT sin requerir ActiveContext.
+// Diseñado para validar refresh tokens. Verifica que token_use sea "refresh".
+func (m *JWTManager) ValidateMinimalToken(tokenString string) (*Claims, error) {
+	claims, err := m.parseAndValidateToken(tokenString)
+	if err != nil {
+		return nil, err
+	}
+
+	// Verificar que el token sea de tipo refresh
+	if claims.TokenUse != "refresh" {
+		return nil, errors.NewUnauthorizedError("invalid token type: expected refresh token")
 	}
 
 	return claims, nil

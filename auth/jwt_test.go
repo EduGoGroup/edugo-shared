@@ -276,6 +276,177 @@ func TestValidateToken(t *testing.T) {
 	})
 }
 
+func TestGenerateMinimalToken(t *testing.T) {
+	manager := NewJWTManager(testSecretKey, testIssuer)
+	userID := uuid.New().String()
+	email := testEmail
+
+	t.Run("genera token minimal válido exitosamente", func(t *testing.T) {
+		token, expiresAt, err := manager.GenerateMinimalToken(userID, email, 24*time.Hour)
+
+		require.NoError(t, err)
+		assert.NotEmpty(t, token)
+		assert.False(t, expiresAt.IsZero())
+		assert.True(t, expiresAt.After(time.Now()))
+	})
+
+	t.Run("token contiene claims correctos sin ActiveContext", func(t *testing.T) {
+		token, _, err := manager.GenerateMinimalToken(userID, email, 24*time.Hour)
+		require.NoError(t, err)
+
+		claims, err := manager.ValidateMinimalToken(token)
+		require.NoError(t, err)
+
+		assert.Equal(t, userID, claims.UserID)
+		assert.Equal(t, email, claims.Email)
+		assert.Nil(t, claims.ActiveContext)
+		assert.Equal(t, "refresh", claims.TokenUse)
+	})
+
+	t.Run("rechaza userID vacío", func(t *testing.T) {
+		_, _, err := manager.GenerateMinimalToken("", email, 24*time.Hour)
+
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "userID no puede estar vacío")
+	})
+
+	t.Run("rechaza email vacío", func(t *testing.T) {
+		_, _, err := manager.GenerateMinimalToken(userID, "", 24*time.Hour)
+
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "email no puede estar vacío")
+	})
+
+	t.Run("rechaza expiresIn menor a 1 minuto", func(t *testing.T) {
+		_, _, err := manager.GenerateMinimalToken(userID, email, 30*time.Second)
+
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "expiresIn debe ser mayor a 1 minuto")
+	})
+
+	t.Run("tiempo de expiración es correcto", func(t *testing.T) {
+		expiresIn := 7 * 24 * time.Hour
+		_, expiresAt, err := manager.GenerateMinimalToken(userID, email, expiresIn)
+
+		require.NoError(t, err)
+
+		expectedExpiration := time.Now().Add(expiresIn)
+		assert.WithinDuration(t, expectedExpiration, expiresAt, 5*time.Second)
+	})
+
+	t.Run("genera tokens únicos", func(t *testing.T) {
+		token1, _, err1 := manager.GenerateMinimalToken(userID, email, 24*time.Hour)
+		time.Sleep(10 * time.Millisecond)
+		token2, _, err2 := manager.GenerateMinimalToken(userID, email, 24*time.Hour)
+
+		require.NoError(t, err1)
+		require.NoError(t, err2)
+		assert.NotEqual(t, token1, token2)
+	})
+}
+
+func TestValidateMinimalToken(t *testing.T) {
+	manager := NewJWTManager(testSecretKey, testIssuer)
+	userID := uuid.New().String()
+	email := testEmail
+
+	t.Run("valida token minimal válido exitosamente", func(t *testing.T) {
+		token, _, err := manager.GenerateMinimalToken(userID, email, 24*time.Hour)
+		require.NoError(t, err)
+
+		claims, err := manager.ValidateMinimalToken(token)
+		require.NoError(t, err)
+
+		assert.Equal(t, userID, claims.UserID)
+		assert.Equal(t, email, claims.Email)
+		assert.Equal(t, "refresh", claims.TokenUse)
+		assert.Nil(t, claims.ActiveContext)
+	})
+
+	t.Run("rechaza token expirado", func(t *testing.T) {
+		now := time.Now()
+		expiredClaims := Claims{
+			UserID:   userID,
+			Email:    email,
+			TokenUse: "refresh",
+			RegisteredClaims: jwt.RegisteredClaims{
+				ID:        uuid.New().String(),
+				Issuer:    testIssuer,
+				Subject:   userID,
+				IssuedAt:  jwt.NewNumericDate(now.Add(-2 * time.Hour)),
+				ExpiresAt: jwt.NewNumericDate(now.Add(-1 * time.Hour)),
+				NotBefore: jwt.NewNumericDate(now.Add(-2 * time.Hour)),
+			},
+		}
+		expiredToken := jwt.NewWithClaims(jwt.SigningMethodHS256, expiredClaims)
+		expiredTokenString, err := expiredToken.SignedString([]byte(testSecretKey))
+		require.NoError(t, err)
+
+		_, err = manager.ValidateMinimalToken(expiredTokenString)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "token expired")
+	})
+
+	t.Run("rechaza access token (sin token_use refresh)", func(t *testing.T) {
+		activeContext := &UserContext{
+			RoleID:      "role-123",
+			RoleName:    "Teacher",
+			Permissions: []string{"users:read"},
+		}
+		accessToken, _, err := manager.GenerateTokenWithContext(userID, email, activeContext, 24*time.Hour)
+		require.NoError(t, err)
+
+		_, err = manager.ValidateMinimalToken(accessToken)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid token type: expected refresh token")
+	})
+
+	t.Run("rechaza token con token_use incorrecto", func(t *testing.T) {
+		now := time.Now()
+		badClaims := Claims{
+			UserID:   userID,
+			Email:    email,
+			TokenUse: "access",
+			RegisteredClaims: jwt.RegisteredClaims{
+				ID:        uuid.New().String(),
+				Issuer:    testIssuer,
+				Subject:   userID,
+				IssuedAt:  jwt.NewNumericDate(now),
+				ExpiresAt: jwt.NewNumericDate(now.Add(time.Hour)),
+				NotBefore: jwt.NewNumericDate(now),
+			},
+		}
+		badToken := jwt.NewWithClaims(jwt.SigningMethodHS256, badClaims)
+		badTokenString, err := badToken.SignedString([]byte(testSecretKey))
+		require.NoError(t, err)
+
+		_, err = manager.ValidateMinimalToken(badTokenString)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid token type: expected refresh token")
+	})
+
+	t.Run("rechaza token vacío", func(t *testing.T) {
+		_, err := manager.ValidateMinimalToken("")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid token")
+	})
+
+	t.Run("rechaza token malformado", func(t *testing.T) {
+		_, err := manager.ValidateMinimalToken("invalid-token")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid token")
+	})
+
+	t.Run("rechaza token con firma incorrecta", func(t *testing.T) {
+		wrongManager := NewJWTManager("wrong-secret-key", testIssuer)
+		token, _, err := wrongManager.GenerateMinimalToken(userID, email, 24*time.Hour)
+		require.NoError(t, err)
+
+		_, err = manager.ValidateMinimalToken(token)
+		assert.Error(t, err)
+	})
+}
+
 func TestExtractUserID(t *testing.T) {
 	manager := NewJWTManager(testSecretKey, testIssuer)
 	userID := uuid.New().String()

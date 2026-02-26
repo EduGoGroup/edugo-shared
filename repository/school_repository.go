@@ -1,11 +1,10 @@
-package postgres
+package repository
 
 import (
 	"context"
 	"errors"
 
 	"github.com/EduGoGroup/edugo-infrastructure/postgres/entities"
-	"github.com/EduGoGroup/edugo-shared/repository"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -13,7 +12,7 @@ import (
 type postgresSchoolRepository struct{ db *gorm.DB }
 
 // NewPostgresSchoolRepository crea una nueva instancia del repositorio de escuelas con PostgreSQL.
-func NewPostgresSchoolRepository(db *gorm.DB) repository.SchoolRepository {
+func NewPostgresSchoolRepository(db *gorm.DB) SchoolRepository {
 	return &postgresSchoolRepository{db: db}
 }
 
@@ -51,7 +50,7 @@ func (r *postgresSchoolRepository) Delete(ctx context.Context, id uuid.UUID) err
 	return r.db.WithContext(ctx).Delete(&entities.School{}, "id = ?", id).Error
 }
 
-func (r *postgresSchoolRepository) List(ctx context.Context, filters repository.ListFilters) ([]*entities.School, error) {
+func (r *postgresSchoolRepository) List(ctx context.Context, filters ListFilters) ([]*entities.School, error) {
 	query := r.db.WithContext(ctx).Model(&entities.School{})
 	if filters.IsActive != nil {
 		query = query.Where("is_active = ?", *filters.IsActive)

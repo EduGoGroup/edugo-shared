@@ -1,11 +1,10 @@
-package postgres
+package repository
 
 import (
 	"context"
 	"errors"
 
 	"github.com/EduGoGroup/edugo-infrastructure/postgres/entities"
-	"github.com/EduGoGroup/edugo-shared/repository"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -13,7 +12,7 @@ import (
 type postgresMembershipRepository struct{ db *gorm.DB }
 
 // NewPostgresMembershipRepository crea una nueva instancia del repositorio de membresías con PostgreSQL.
-func NewPostgresMembershipRepository(db *gorm.DB) repository.MembershipRepository {
+func NewPostgresMembershipRepository(db *gorm.DB) MembershipRepository {
 	return &postgresMembershipRepository{db: db}
 }
 
@@ -32,7 +31,7 @@ func (r *postgresMembershipRepository) FindByID(ctx context.Context, id uuid.UUI
 	return &m, nil
 }
 
-func (r *postgresMembershipRepository) FindByUser(ctx context.Context, userID uuid.UUID, filters repository.ListFilters) ([]*entities.Membership, error) {
+func (r *postgresMembershipRepository) FindByUser(ctx context.Context, userID uuid.UUID, filters ListFilters) ([]*entities.Membership, error) {
 	query := r.db.WithContext(ctx).Where("user_id = ? AND is_active = true", userID)
 	query = filters.ApplySearch(query)
 	query = query.Order("created_at DESC")
@@ -41,7 +40,7 @@ func (r *postgresMembershipRepository) FindByUser(ctx context.Context, userID uu
 	return memberships, err
 }
 
-func (r *postgresMembershipRepository) FindByUnit(ctx context.Context, unitID uuid.UUID, filters repository.ListFilters) ([]*entities.Membership, error) {
+func (r *postgresMembershipRepository) FindByUnit(ctx context.Context, unitID uuid.UUID, filters ListFilters) ([]*entities.Membership, error) {
 	query := r.db.WithContext(ctx).Where("academic_unit_id = ? AND is_active = true", unitID)
 	query = filters.ApplySearch(query)
 	query = query.Order("created_at DESC")
@@ -50,7 +49,7 @@ func (r *postgresMembershipRepository) FindByUnit(ctx context.Context, unitID uu
 	return memberships, err
 }
 
-func (r *postgresMembershipRepository) FindByUnitAndRole(ctx context.Context, unitID uuid.UUID, role string, activeOnly bool, filters repository.ListFilters) ([]*entities.Membership, error) {
+func (r *postgresMembershipRepository) FindByUnitAndRole(ctx context.Context, unitID uuid.UUID, role string, activeOnly bool, filters ListFilters) ([]*entities.Membership, error) {
 	query := r.db.WithContext(ctx).Where("academic_unit_id = ? AND role = ?", unitID, role)
 	if activeOnly {
 		query = query.Where("is_active = true")

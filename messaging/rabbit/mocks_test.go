@@ -20,8 +20,8 @@ func (m *MockChannel) PublishWithContext(ctx context.Context, exchange, key stri
 func (m *MockChannel) Consume(queue, consumer string, autoAck, exclusive, noLocal, noWait bool, args amqp.Table) (<-chan amqp.Delivery, error) {
 	callArgs := m.Called(queue, consumer, autoAck, exclusive, noLocal, noWait, args)
 	res0 := callArgs.Get(0)
-	if res0 != nil {
-		return res0.(<-chan amqp.Delivery), callArgs.Error(1)
+	if ch, ok := res0.(<-chan amqp.Delivery); ok {
+		return ch, callArgs.Error(1)
 	}
 	return nil, callArgs.Error(1)
 }

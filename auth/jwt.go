@@ -147,6 +147,79 @@ func (m *JWTManager) ValidateToken(tokenString string) (*Claims, error) {
 	return claims, nil
 }
 
+// GenerateMinimalToken genera un JWT con claims mínimos (sin ActiveContext).
+// Diseñado para refresh tokens que solo necesitan identificar al usuario.
+func (m *JWTManager) GenerateMinimalToken(userID, email string, expiresIn time.Duration) (string, time.Time, error) {
+	if userID == "" {
+		return "", time.Time{}, errors.NewValidationError("userID no puede estar vacío")
+	}
+	if email == "" {
+		return "", time.Time{}, errors.NewValidationError("email no puede estar vacío")
+	}
+	if expiresIn < time.Minute {
+		return "", time.Time{}, errors.NewValidationError("expiresIn debe ser mayor a 1 minuto")
+	}
+
+	now := time.Now()
+	expiresAt := now.Add(expiresIn)
+
+	claims := Claims{
+		UserID:        userID,
+		Email:         email,
+		ActiveContext: nil,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ID:        uuid.New().String(),
+			Issuer:    m.issuer,
+			Subject:   userID,
+			IssuedAt:  jwt.NewNumericDate(now),
+			ExpiresAt: jwt.NewNumericDate(expiresAt),
+			NotBefore: jwt.NewNumericDate(now),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	signedToken, err := token.SignedString(m.secretKey)
+	if err != nil {
+		return "", time.Time{}, errors.NewInternalError("no se pudo firmar el token JWT", err)
+	}
+
+	return signedToken, expiresAt, nil
+}
+
+// ValidateMinimalToken valida un JWT sin requerir ActiveContext.
+// Diseñado para validar refresh tokens.
+func (m *JWTManager) ValidateMinimalToken(tokenString string) (*Claims, error) {
+	parser := jwt.NewParser(
+		jwt.WithIssuer(m.issuer),
+		jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}),
+	)
+
+	token, err := parser.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return m.secretKey, nil
+	})
+
+	if err != nil {
+		if stdErrors.Is(err, jwt.ErrTokenExpired) {
+			return nil, errors.NewUnauthorizedError("token expired")
+		}
+		return nil, errors.NewUnauthorizedError("invalid token")
+	}
+
+	claims, ok := token.Claims.(*Claims)
+	if !ok || !token.Valid {
+		return nil, errors.NewUnauthorizedError("invalid token claims")
+	}
+
+	if claims.Issuer != m.issuer {
+		return nil, errors.NewUnauthorizedError("invalid token issuer")
+	}
+
+	return claims, nil
+}
+
 // ExtractUserID extrae el user ID de un token sin validar completamente
 // Útil solo para logging o debugging, NO para autenticación
 func ExtractUserID(tokenString string) (string, error) {

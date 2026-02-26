@@ -35,6 +35,7 @@ type Claims struct {
 	UserID        string       `json:"user_id"`
 	Email         string       `json:"email"`
 	ActiveContext *UserContext `json:"active_context"`
+	TokenUse      string       `json:"token_use,omitempty"`
 	jwt.RegisteredClaims
 }
 
@@ -109,8 +110,9 @@ func (m *JWTManager) GenerateTokenWithContext(
 	return signedToken, expiresAt, nil
 }
 
-// ValidateToken valida un JWT token y retorna los claims
-func (m *JWTManager) ValidateToken(tokenString string) (*Claims, error) {
+// parseAndValidateToken es un helper interno que parsea y valida un JWT,
+// retornando los claims sin verificaciones específicas de tipo de token.
+func (m *JWTManager) parseAndValidateToken(tokenString string) (*Claims, error) {
 	parser := jwt.NewParser(
 		jwt.WithIssuer(m.issuer),
 		jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}),
@@ -137,6 +139,16 @@ func (m *JWTManager) ValidateToken(tokenString string) (*Claims, error) {
 
 	if claims.Issuer != m.issuer {
 		return nil, errors.NewUnauthorizedError("invalid token issuer")
+	}
+
+	return claims, nil
+}
+
+// ValidateToken valida un JWT token y retorna los claims
+func (m *JWTManager) ValidateToken(tokenString string) (*Claims, error) {
+	claims, err := m.parseAndValidateToken(tokenString)
+	if err != nil {
+		return nil, err
 	}
 
 	// Validar que ActiveContext esté presente
@@ -167,6 +179,7 @@ func (m *JWTManager) GenerateMinimalToken(userID, email string, expiresIn time.D
 		UserID:        userID,
 		Email:         email,
 		ActiveContext: nil,
+		TokenUse:      "refresh",
 		RegisteredClaims: jwt.RegisteredClaims{
 			ID:        uuid.New().String(),
 			Issuer:    m.issuer,
@@ -187,34 +200,16 @@ func (m *JWTManager) GenerateMinimalToken(userID, email string, expiresIn time.D
 }
 
 // ValidateMinimalToken valida un JWT sin requerir ActiveContext.
-// Diseñado para validar refresh tokens.
+// Diseñado para validar refresh tokens. Verifica que token_use sea "refresh".
 func (m *JWTManager) ValidateMinimalToken(tokenString string) (*Claims, error) {
-	parser := jwt.NewParser(
-		jwt.WithIssuer(m.issuer),
-		jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}),
-	)
-
-	token, err := parser.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-		return m.secretKey, nil
-	})
-
+	claims, err := m.parseAndValidateToken(tokenString)
 	if err != nil {
-		if stdErrors.Is(err, jwt.ErrTokenExpired) {
-			return nil, errors.NewUnauthorizedError("token expired")
-		}
-		return nil, errors.NewUnauthorizedError("invalid token")
+		return nil, err
 	}
 
-	claims, ok := token.Claims.(*Claims)
-	if !ok || !token.Valid {
-		return nil, errors.NewUnauthorizedError("invalid token claims")
-	}
-
-	if claims.Issuer != m.issuer {
-		return nil, errors.NewUnauthorizedError("invalid token issuer")
+	// Verificar que el token sea de tipo refresh
+	if claims.TokenUse != "refresh" {
+		return nil, errors.NewUnauthorizedError("invalid token type: expected refresh token")
 	}
 
 	return claims, nil

@@ -20,7 +20,7 @@ type PostgreSQLConfig struct {
 	Host     string
 	Port     int
 	User     string
-	Password string
+	Password string //nolint:gosec // G117: Password is a required database config field, not a hardcoded secret
 	Database string
 	SSLMode  string
 }

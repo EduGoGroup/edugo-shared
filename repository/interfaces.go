@@ -14,13 +14,10 @@ import (
 // validFieldName matches only safe column names (alphanumeric + underscore).
 var validFieldName = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_]*$`)
 
-<<<<<<< copilot/sub-pr-67
 // ilikEscapeClause is appended to every ILIKE condition so that backslash is
 // recognised as the escape character by PostgreSQL.
 const ilikEscapeClause = "ESCAPE '\\'"
 
-// ListFilters represents common filters for listing entities
-=======
 // ListFilters represents common filters for listing entities.
 //
 // The Search and SearchFields fields enable flexible text search across multiple
@@ -45,11 +42,10 @@ const ilikEscapeClause = "ESCAPE '\\'"
 //	    Limit:  20,
 //	    Offset: 0,
 //	}
->>>>>>> feat/busqueda
 type ListFilters struct {
-	IsActive     *bool
-	Limit        int
-	Offset       int
+	IsActive *bool
+	Limit    int
+	Offset   int
 	// Search is the text to look for. It is applied with ILIKE '%value%' against
 	// every column listed in SearchFields. An empty Search skips the search clause.
 	Search string

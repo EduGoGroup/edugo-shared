@@ -33,7 +33,8 @@ func TestApplyPlatformOverrides_MatchDesktop(t *testing.T) {
 	require.True(t, ok)
 	require.Len(t, zones, 1)
 
-	zone := zones[0].(map[string]interface{})
+	zone, ok2 := zones[0].(map[string]interface{})
+	require.True(t, ok2)
 	assert.Equal(t, "grid", zone["distribution"])
 	assert.Equal(t, float64(3), zone["columns"])
 }
@@ -57,8 +58,10 @@ func TestApplyPlatformOverrides_FallbackIosToMobile(t *testing.T) {
 	var resultMap map[string]interface{}
 	require.NoError(t, json.Unmarshal(result, &resultMap))
 
-	zones := resultMap["zones"].([]interface{})
-	zone := zones[0].(map[string]interface{})
+	zones, ok := resultMap["zones"].([]interface{})
+	require.True(t, ok)
+	zone, ok2 := zones[0].(map[string]interface{})
+	require.True(t, ok2)
 	assert.Equal(t, float64(44), zone["height"], "ios should fallback to mobile override")
 }
 
@@ -81,8 +84,10 @@ func TestApplyPlatformOverrides_NoPlatformMatch(t *testing.T) {
 	var resultMap map[string]interface{}
 	require.NoError(t, json.Unmarshal(result, &resultMap))
 
-	zones := resultMap["zones"].([]interface{})
-	zone := zones[0].(map[string]interface{})
+	zones, ok := resultMap["zones"].([]interface{})
+	require.True(t, ok)
+	zone, ok2 := zones[0].(map[string]interface{})
+	require.True(t, ok2)
 	assert.Equal(t, "stacked", zone["distribution"], "should remain unchanged without matching override")
 }
 

@@ -12,6 +12,24 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
+// startMongoContainer crea un container de MongoDB independiente para un test.
+// Registra el cleanup automático con t.Cleanup.
+func startMongoContainer(ctx context.Context, t *testing.T) *containers.MongoDBContainer { //nolint:contextcheck // Cleanup uses background context intentionally to avoid cancelled context during teardown
+	t.Helper()
+	mongoContainer, err := containers.CreateMongoDB(ctx, &containers.MongoConfig{
+		Image:    "mongo:7.0",
+		Database: "test_db",
+	})
+	require.NoError(t, err, "Error creando container MongoDB")
+	cleanupCtx := context.Background()
+	t.Cleanup(func() {
+		if err := mongoContainer.Terminate(cleanupCtx); err != nil {
+			t.Logf("Error terminando container MongoDB: %v", err)
+		}
+	})
+	return mongoContainer
+}
+
 // TestMongoDBFactory_CreateConnection_Success verifica creación exitosa de conexión
 func TestMongoDBFactory_CreateConnection_Success(t *testing.T) {
 	if testing.Short() {
@@ -21,15 +39,7 @@ func TestMongoDBFactory_CreateConnection_Success(t *testing.T) {
 	ctx := context.Background()
 
 	// Setup container
-	config := containers.NewConfig().
-		WithMongoDB(nil).
-		Build()
-
-	manager, err := containers.GetManager(t, config)
-	require.NoError(t, err)
-
-	mongoContainer := manager.MongoDB()
-	require.NotNil(t, mongoContainer)
+	mongoContainer := startMongoContainer(ctx, t)
 
 	// Crear factory
 	factory := NewDefaultMongoDBFactory()
@@ -101,15 +111,7 @@ func TestMongoDBFactory_Ping_Success(t *testing.T) {
 
 	ctx := context.Background()
 
-	config := containers.NewConfig().
-		WithMongoDB(nil).
-		Build()
-
-	manager, err := containers.GetManager(t, config)
-	require.NoError(t, err)
-
-	mongoContainer := manager.MongoDB()
-	require.NotNil(t, mongoContainer)
+	mongoContainer := startMongoContainer(ctx, t)
 
 	factory := NewDefaultMongoDBFactory()
 
@@ -142,15 +144,7 @@ func TestMongoDBFactory_GetDatabase(t *testing.T) {
 
 	ctx := context.Background()
 
-	config := containers.NewConfig().
-		WithMongoDB(nil).
-		Build()
-
-	manager, err := containers.GetManager(t, config)
-	require.NoError(t, err)
-
-	mongoContainer := manager.MongoDB()
-	require.NotNil(t, mongoContainer)
+	mongoContainer := startMongoContainer(ctx, t)
 
 	factory := NewDefaultMongoDBFactory()
 
@@ -184,15 +178,7 @@ func TestMongoDBFactory_Close_Success(t *testing.T) {
 
 	ctx := context.Background()
 
-	config := containers.NewConfig().
-		WithMongoDB(nil).
-		Build()
-
-	manager, err := containers.GetManager(t, config)
-	require.NoError(t, err)
-
-	mongoContainer := manager.MongoDB()
-	require.NotNil(t, mongoContainer)
+	mongoContainer := startMongoContainer(ctx, t)
 
 	factory := NewDefaultMongoDBFactory()
 
@@ -220,15 +206,7 @@ func TestMongoDBFactory_ConnectionPoolSettings(t *testing.T) {
 
 	ctx := context.Background()
 
-	config := containers.NewConfig().
-		WithMongoDB(nil).
-		Build()
-
-	manager, err := containers.GetManager(t, config)
-	require.NoError(t, err)
-
-	mongoContainer := manager.MongoDB()
-	require.NotNil(t, mongoContainer)
+	mongoContainer := startMongoContainer(ctx, t)
 
 	factory := NewDefaultMongoDBFactory()
 
@@ -262,15 +240,7 @@ func TestMongoDBFactory_MultipleConnections(t *testing.T) {
 
 	ctx := context.Background()
 
-	config := containers.NewConfig().
-		WithMongoDB(nil).
-		Build()
-
-	manager, err := containers.GetManager(t, config)
-	require.NoError(t, err)
-
-	mongoContainer := manager.MongoDB()
-	require.NotNil(t, mongoContainer)
+	mongoContainer := startMongoContainer(ctx, t)
 
 	factory := NewDefaultMongoDBFactory()
 
@@ -314,15 +284,7 @@ func TestMongoDBFactory_DatabaseOperations(t *testing.T) {
 
 	ctx := context.Background()
 
-	config := containers.NewConfig().
-		WithMongoDB(nil).
-		Build()
-
-	manager, err := containers.GetManager(t, config)
-	require.NoError(t, err)
-
-	mongoContainer := manager.MongoDB()
-	require.NotNil(t, mongoContainer)
+	mongoContainer := startMongoContainer(ctx, t)
 
 	factory := NewDefaultMongoDBFactory()
 
@@ -374,15 +336,7 @@ func TestMongoDBFactory_PingWithTimeout(t *testing.T) {
 
 	ctx := context.Background()
 
-	config := containers.NewConfig().
-		WithMongoDB(nil).
-		Build()
-
-	manager, err := containers.GetManager(t, config)
-	require.NoError(t, err)
-
-	mongoContainer := manager.MongoDB()
-	require.NotNil(t, mongoContainer)
+	mongoContainer := startMongoContainer(ctx, t)
 
 	factory := NewDefaultMongoDBFactory()
 
@@ -418,15 +372,7 @@ func TestMongoDBFactory_GetDatabase_MultipleDatabases(t *testing.T) {
 
 	ctx := context.Background()
 
-	config := containers.NewConfig().
-		WithMongoDB(nil).
-		Build()
-
-	manager, err := containers.GetManager(t, config)
-	require.NoError(t, err)
-
-	mongoContainer := manager.MongoDB()
-	require.NotNil(t, mongoContainer)
+	mongoContainer := startMongoContainer(ctx, t)
 
 	factory := NewDefaultMongoDBFactory()
 
@@ -494,15 +440,7 @@ func TestMongoDBFactory_CloseWithTimeout(t *testing.T) {
 
 	ctx := context.Background()
 
-	config := containers.NewConfig().
-		WithMongoDB(nil).
-		Build()
-
-	manager, err := containers.GetManager(t, config)
-	require.NoError(t, err)
-
-	mongoContainer := manager.MongoDB()
-	require.NotNil(t, mongoContainer)
+	mongoContainer := startMongoContainer(ctx, t)
 
 	factory := NewDefaultMongoDBFactory()
 
@@ -542,15 +480,7 @@ func TestMongoDBFactory_ConcurrentOperations(t *testing.T) {
 
 	ctx := context.Background()
 
-	config := containers.NewConfig().
-		WithMongoDB(nil).
-		Build()
-
-	manager, err := containers.GetManager(t, config)
-	require.NoError(t, err)
-
-	mongoContainer := manager.MongoDB()
-	require.NotNil(t, mongoContainer)
+	mongoContainer := startMongoContainer(ctx, t)
 
 	factory := NewDefaultMongoDBFactory()
 

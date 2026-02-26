@@ -21,6 +21,12 @@ type RabbitMQContainer struct {
 	config     *RabbitConfig
 }
 
+// CreateRabbitMQ crea y configura un container de RabbitMQ de forma independiente.
+// A diferencia de GetManager, no usa el patrón singleton y permite crear containers individuales.
+func CreateRabbitMQ(ctx context.Context, cfg *RabbitConfig) (*RabbitMQContainer, error) {
+	return createRabbitMQ(ctx, cfg)
+}
+
 // createRabbitMQ crea y configura un container de RabbitMQ
 func createRabbitMQ(ctx context.Context, cfg *RabbitConfig) (*RabbitMQContainer, error) {
 	if cfg == nil {

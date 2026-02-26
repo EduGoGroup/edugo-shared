@@ -22,6 +22,12 @@ type PostgresContainer struct {
 	config    *PostgresConfig
 }
 
+// CreatePostgreSQL crea y configura un container de PostgreSQL de forma independiente.
+// A diferencia de GetManager, no usa el patrón singleton y permite crear containers individuales.
+func CreatePostgreSQL(ctx context.Context, cfg *PostgresConfig) (*PostgresContainer, error) {
+	return createPostgres(ctx, cfg)
+}
+
 // createPostgres crea y configura un container de PostgreSQL
 func createPostgres(ctx context.Context, cfg *PostgresConfig) (*PostgresContainer, error) {
 	if cfg == nil {

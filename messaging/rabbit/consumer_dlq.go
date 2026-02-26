@@ -172,7 +172,9 @@ func (c *ConsumerDLQ) processMessage(ctx context.Context, ch ChannelInterface, q
 	if err == nil {
 		if !c.config.AutoAck {
 			// Ack success, ignore error as we can't recover from ack failure here
-			_ = delivery.Ack(false)
+			if ackErr := delivery.Ack(false); ackErr != nil {
+				log.Printf("[ERROR] failed to ack message: %v", ackErr)
+			}
 		}
 		return
 	}

@@ -67,7 +67,7 @@ func TestConsumer_Consume_Unit(t *testing.T) {
 	// Clean stop
 	cancel()
 	consumer.Stop()
-	_ = consumer.Wait() // Ignore error from Wait() as we just want to ensure it finishes
+	assert.NoError(t, consumer.Wait()) // Check error from Wait()
 	mockChannel.AssertExpectations(t)
 }
 

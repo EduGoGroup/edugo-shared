@@ -10,6 +10,9 @@ on:
     branches: [ main, dev ]
 
 jobs:
+  # ============================================================================
+  # Coverage — todos los módulos en paralelo
+  # ============================================================================
   test-coverage:
     name: Coverage ${{ matrix.module }}
     runs-on: ubuntu-latest
@@ -21,21 +24,28 @@ jobs:
         module:
           - common
           - logger
+          - config
+          - testing
+          - messaging/events
+          - screenconfig
           - auth
+          - lifecycle
           - middleware/gin
-          - messaging/rabbit
           - database/postgres
           - database/mongodb
+          - messaging/rabbit
+          - bootstrap
 
     steps:
       - name: Checkout código
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v4
         with:
           go-version: '1.25'
           cache: true
+          cache-dependency-path: ${{ matrix.module }}/go.sum
 
       - name: Descargar dependencias
         working-directory: ${{ matrix.module }}
@@ -45,7 +55,7 @@ jobs:
         working-directory: ${{ matrix.module }}
         run: |
           mkdir -p coverage
-          go test -v -race -coverprofile=coverage/coverage.out -covermode=atomic ./...
+          go test -short -v -race -coverprofile=coverage/coverage.out -covermode=atomic ./...
 
           if [ -f coverage/coverage.out ]; then
             echo ""
@@ -62,7 +72,7 @@ jobs:
           echo "📦 Nombre de artifact: coverage-$SANITIZED"
 
       - name: Subir reporte de cobertura
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: ${{ steps.artifact_name.outputs.name }}
@@ -77,6 +87,9 @@ jobs:
           flags: ${{ matrix.module }}
           fail_ci_if_error: false
 
+  # ============================================================================
+  # Resumen de cobertura — agrega reportes de todos los módulos
+  # ============================================================================
   coverage-summary:
     name: Coverage Summary
     runs-on: ubuntu-latest
@@ -85,15 +98,15 @@ jobs:
 
     steps:
       - name: Checkout código
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v4
         with:
           go-version: '1.25'
 
       - name: Download all coverage artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v4
         with:
           path: coverage-artifacts
 

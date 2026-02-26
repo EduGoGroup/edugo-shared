@@ -34,25 +34,33 @@ func TestResources_HasLogger(t *testing.T) {
 	assert.True(t, resources.HasLogger())
 }
 
+// startPostgresContainer crea un container de PostgreSQL independiente para un test.
+// Registra el cleanup automático con t.Cleanup.
+func startPostgresContainer(ctx context.Context, t *testing.T) *containers.PostgresContainer { //nolint:contextcheck // Cleanup uses background context intentionally to avoid cancelled context during teardown
+	t.Helper()
+	pgContainer, err := containers.CreatePostgreSQL(ctx, &containers.PostgresConfig{
+		Image:    "postgres:15-alpine",
+		Database: "test_db",
+		Username: "test_user",
+		Password: "test_pass", //nolint:gosec // G101: test credentials for local container only
+	})
+	require.NoError(t, err, "Error creando container PostgreSQL")
+	cleanupCtx := context.Background()
+	t.Cleanup(func() {
+		if err := pgContainer.Terminate(cleanupCtx); err != nil {
+			t.Logf("Error terminando container PostgreSQL: %v", err)
+		}
+	})
+	return pgContainer
+}
+
 // TestResources_HasPostgreSQL verifica detección de PostgreSQL
 func TestResources_HasPostgreSQL(t *testing.T) {
 	skipIfNotIntegration(t)
 
 	ctx := context.Background()
 
-	config := containers.NewConfig().
-		WithPostgreSQL(&containers.PostgresConfig{
-			Image:    "postgres:15-alpine",
-			Database: "test_db",
-			Username: "test_user",
-			Password: "test_pass",
-		}).
-		Build()
-
-	manager, err := containers.GetManager(t, config)
-	require.NoError(t, err)
-
-	pg := manager.PostgreSQL()
+	pg := startPostgresContainer(ctx, t)
 	factory := NewDefaultPostgreSQLFactory(nil)
 
 	// Obtener config dinámico del container
@@ -86,17 +94,7 @@ func TestResources_HasMongoDB(t *testing.T) {
 
 	ctx := context.Background()
 
-	config := containers.NewConfig().
-		WithMongoDB(&containers.MongoConfig{
-			Image:    "mongo:7.0",
-			Database: "test_db",
-		}).
-		Build()
-
-	manager, err := containers.GetManager(t, config)
-	require.NoError(t, err)
-
-	mongo := manager.MongoDB()
+	mongo := startMongoContainer(ctx, t)
 	factory := NewDefaultMongoDBFactory()
 
 	mongoURI, err := mongo.ConnectionString(ctx)
@@ -161,24 +159,8 @@ func TestResources_AllResourcesPresent(t *testing.T) {
 
 	ctx := context.Background()
 
-	config := containers.NewConfig().
-		WithPostgreSQL(&containers.PostgresConfig{
-			Image:    "postgres:15-alpine",
-			Database: "test_db",
-			Username: "test_user",
-			Password: "test_pass",
-		}).
-		WithMongoDB(&containers.MongoConfig{
-			Image:    "mongo:7.0",
-			Database: "test_db",
-		}).
-		Build()
-
-	manager, err := containers.GetManager(t, config)
-	require.NoError(t, err)
-
 	// Setup PostgreSQL
-	pg := manager.PostgreSQL()
+	pg := startPostgresContainer(ctx, t)
 	pgFactory := NewDefaultPostgreSQLFactory(nil)
 
 	connStr, err := pg.ConnectionString(ctx)
@@ -196,7 +178,7 @@ func TestResources_AllResourcesPresent(t *testing.T) {
 	}()
 
 	// Setup MongoDB
-	mongo := manager.MongoDB()
+	mongo := startMongoContainer(ctx, t)
 	mongoFactory := NewDefaultMongoDBFactory()
 
 	mongoURI, err := mongo.ConnectionString(ctx)

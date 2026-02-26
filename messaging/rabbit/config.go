@@ -55,7 +55,7 @@ type ConsumerConfig struct {
 
 // DefaultConfig retorna una configuración con valores por defecto
 func DefaultConfig() Config {
-	return Config{
+	return Config{ //nolint:gosec // G101: Default local dev URL with well-known guest credentials, not a hardcoded secret
 		URL: "amqp://guest:guest@localhost:5672/",
 		Exchange: ExchangeConfig{
 			Name:       "default_exchange",

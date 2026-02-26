@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// ScreenTemplateDTO represents a screen template data transfer object
 type ScreenTemplateDTO struct {
 	ID          string          `json:"id"`
 	Pattern     Pattern         `json:"pattern"`
@@ -17,6 +18,7 @@ type ScreenTemplateDTO struct {
 	UpdatedAt   time.Time       `json:"updated_at"`
 }
 
+// ScreenInstanceDTO represents a screen instance data transfer object
 type ScreenInstanceDTO struct {
 	ID                 string          `json:"id"`
 	ScreenKey          string          `json:"screen_key"`
@@ -32,6 +34,7 @@ type ScreenInstanceDTO struct {
 	UpdatedAt          time.Time       `json:"updated_at"`
 }
 
+// CombinedScreenDTO represents the combined template and instance data for a screen
 type CombinedScreenDTO struct {
 	ScreenID        string          `json:"screenId"`
 	ScreenKey       string          `json:"screenKey"`
@@ -45,6 +48,7 @@ type CombinedScreenDTO struct {
 	UpdatedAt       time.Time       `json:"updatedAt"`
 }
 
+// ResourceScreenDTO represents the association between a resource and a screen
 type ResourceScreenDTO struct {
 	ResourceID  string `json:"resource_id"`
 	ResourceKey string `json:"resource_key"`

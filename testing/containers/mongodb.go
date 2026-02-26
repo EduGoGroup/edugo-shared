@@ -22,6 +22,12 @@ type MongoDBContainer struct {
 	config    *MongoConfig
 }
 
+// CreateMongoDB crea y configura un container de MongoDB de forma independiente.
+// A diferencia de GetManager, no usa el patrón singleton y permite crear containers individuales.
+func CreateMongoDB(ctx context.Context, cfg *MongoConfig) (*MongoDBContainer, error) {
+	return createMongoDB(ctx, cfg)
+}
+
 // createMongoDB crea y configura un container de MongoDB
 func createMongoDB(ctx context.Context, cfg *MongoConfig) (*MongoDBContainer, error) {
 	if cfg == nil {

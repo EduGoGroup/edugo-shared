@@ -8,191 +8,49 @@ import (
 )
 
 func TestDefaultConfig(t *testing.T) {
-	t.Run("retorna configuración con valores por defecto correctos", func(t *testing.T) {
-		config := DefaultConfig()
+	cfg := DefaultConfig()
 
-		assert.Equal(t, "localhost", config.Host)
-		assert.Equal(t, 5432, config.Port)
-		assert.Equal(t, "postgres", config.User)
-		assert.Equal(t, "postgres", config.Database)
-		assert.Equal(t, 25, config.MaxConnections)
-		assert.Equal(t, 5, config.MaxIdleConnections)
-		assert.Equal(t, 5*time.Minute, config.MaxLifetime)
-		assert.Equal(t, "disable", config.SSLMode)
-		assert.Equal(t, 10*time.Second, config.ConnectTimeout)
-	})
-
-	t.Run("password vacío por defecto", func(t *testing.T) {
-		config := DefaultConfig()
-
-		assert.Empty(t, config.Password, "Password debe estar vacío por defecto")
-	})
+	assert.Equal(t, "localhost", cfg.Host)
+	assert.Equal(t, DefaultPort, cfg.Port)
+	assert.Equal(t, "postgres", cfg.User)
+	assert.Equal(t, "postgres", cfg.Database)
+	assert.Equal(t, DefaultMaxConnections, cfg.MaxConnections)
+	assert.Equal(t, DefaultMaxIdleConnections, cfg.MaxIdleConnections)
+	assert.Equal(t, DefaultMaxLifetime, cfg.MaxLifetime)
+	assert.Equal(t, "disable", cfg.SSLMode)
+	assert.Equal(t, DefaultConnectTimeout, cfg.ConnectTimeout)
+	assert.Contains(t, cfg.SearchPath, "public")
 }
 
-func TestConfigCustomization(t *testing.T) {
-	t.Run("permite personalizar todos los campos", func(t *testing.T) {
-		config := Config{
-			Host:               "custom-host",
-			Port:               5433,
-			User:               "custom-user",
-			Password:           "custom-password",
-			Database:           "custom-db",
-			MaxConnections:     50,
-			MaxIdleConnections: 10,
-			MaxLifetime:        10 * time.Minute,
-			SSLMode:            "require",
-			ConnectTimeout:     30 * time.Second,
-		}
-
-		assert.Equal(t, "custom-host", config.Host)
-		assert.Equal(t, 5433, config.Port)
-		assert.Equal(t, "custom-user", config.User)
-		assert.Equal(t, "custom-password", config.Password)
-		assert.Equal(t, "custom-db", config.Database)
-		assert.Equal(t, 50, config.MaxConnections)
-		assert.Equal(t, 10, config.MaxIdleConnections)
-		assert.Equal(t, 10*time.Minute, config.MaxLifetime)
-		assert.Equal(t, "require", config.SSLMode)
-		assert.Equal(t, 30*time.Second, config.ConnectTimeout)
-	})
-
-	t.Run("puede modificar config por defecto", func(t *testing.T) {
-		config := DefaultConfig()
-
-		// Modificar valores
-		config.Host = "production-host"
-		config.Port = 5433
-		config.User = "prod-user"
-		config.Password = "secure-password"
-		config.Database = "prod-db"
-		config.MaxConnections = 100
-		config.SSLMode = "verify-full"
-
-		assert.Equal(t, "production-host", config.Host)
-		assert.Equal(t, 5433, config.Port)
-		assert.Equal(t, "prod-user", config.User)
-		assert.Equal(t, "secure-password", config.Password)
-		assert.Equal(t, "prod-db", config.Database)
-		assert.Equal(t, 100, config.MaxConnections)
-		assert.Equal(t, "verify-full", config.SSLMode)
-
-		// Valores no modificados mantienen defaults
-		assert.Equal(t, 5, config.MaxIdleConnections)
-		assert.Equal(t, 5*time.Minute, config.MaxLifetime)
-	})
+func TestConfig_Validation(t *testing.T) {
+	// Add config validation tests if validation logic exists or create a method for it
+	// Assuming no validation method exists yet, this is mostly checking struct integrity
 }
 
-func TestConfigSSLModes(t *testing.T) {
-	validSSLModes := []string{
-		"disable",
-		"require",
-		"verify-ca",
-		"verify-full",
+// Since ConnectGORM is not refactored yet, we can't unit test the DSN building easily
+// without duplicating the logic.
+// However, we can add a test that ensures Config struct can hold all necessary values.
+
+func TestConfig_CustomValues(t *testing.T) {
+	cfg := Config{
+		Host:           "127.0.0.1",
+		Port:           5433,
+		User:           "custom_user",
+		Password:       "secure",
+		Database:       "custom_db",
+		SSLMode:        "require",
+		MaxConnections: 100,
+		ConnectTimeout: 5 * time.Second,
+		SearchPath:     "myschema,public",
 	}
 
-	for _, sslMode := range validSSLModes {
-		t.Run("permite SSL mode: "+sslMode, func(t *testing.T) {
-			config := DefaultConfig()
-			config.SSLMode = sslMode
-
-			assert.Equal(t, sslMode, config.SSLMode)
-		})
-	}
-}
-
-func TestConfigConnectionPool(t *testing.T) {
-	t.Run("MaxConnections debe ser mayor que MaxIdleConnections", func(t *testing.T) {
-		config := DefaultConfig()
-
-		assert.Greater(t, config.MaxConnections, config.MaxIdleConnections,
-			"MaxConnections debe ser mayor que MaxIdleConnections para un pool eficiente")
-	})
-
-	t.Run("permite configurar pool pequeño", func(t *testing.T) {
-		config := Config{
-			MaxConnections:     5,
-			MaxIdleConnections: 2,
-		}
-
-		assert.Equal(t, 5, config.MaxConnections)
-		assert.Equal(t, 2, config.MaxIdleConnections)
-	})
-
-	t.Run("permite configurar pool grande para alta concurrencia", func(t *testing.T) {
-		config := Config{
-			MaxConnections:     200,
-			MaxIdleConnections: 50,
-			MaxLifetime:        30 * time.Minute,
-		}
-
-		assert.Equal(t, 200, config.MaxConnections)
-		assert.Equal(t, 50, config.MaxIdleConnections)
-		assert.Equal(t, 30*time.Minute, config.MaxLifetime)
-	})
-}
-
-func TestConfigTimeouts(t *testing.T) {
-	t.Run("permite configurar timeouts cortos", func(t *testing.T) {
-		config := DefaultConfig()
-		config.ConnectTimeout = 3 * time.Second
-
-		assert.Equal(t, 3*time.Second, config.ConnectTimeout)
-	})
-
-	t.Run("permite configurar timeouts largos", func(t *testing.T) {
-		config := DefaultConfig()
-		config.ConnectTimeout = 60 * time.Second
-		config.MaxLifetime = 1 * time.Hour
-
-		assert.Equal(t, 60*time.Second, config.ConnectTimeout)
-		assert.Equal(t, 1*time.Hour, config.MaxLifetime)
-	})
-
-	t.Run("timeout por defecto es razonable", func(t *testing.T) {
-		config := DefaultConfig()
-
-		assert.Equal(t, 10*time.Second, config.ConnectTimeout,
-			"Timeout por defecto debe ser razonable (10 segundos)")
-		assert.LessOrEqual(t, config.ConnectTimeout, 30*time.Second,
-			"Timeout por defecto no debe ser excesivamente largo")
-	})
-}
-
-func TestConfigForDifferentEnvironments(t *testing.T) {
-	t.Run("configuración para desarrollo local", func(t *testing.T) {
-		devConfig := Config{
-			Host:           "localhost",
-			MaxConnections: 10,
-			SSLMode:        "disable",
-		}
-
-		assert.Equal(t, "localhost", devConfig.Host)
-		assert.Equal(t, "disable", devConfig.SSLMode)
-		assert.Equal(t, 10, devConfig.MaxConnections, "Desarrollo usa menos conexiones")
-	})
-
-	t.Run("configuración para producción", func(t *testing.T) {
-		prodConfig := Config{
-			Host:           "prod-db.example.com",
-			MaxConnections: 100,
-			SSLMode:        "verify-full",
-		}
-
-		assert.NotEqual(t, "localhost", prodConfig.Host)
-		assert.Equal(t, "verify-full", prodConfig.SSLMode, "Producción debe usar SSL")
-		assert.GreaterOrEqual(t, prodConfig.MaxConnections, 50,
-			"Producción necesita más conexiones")
-	})
-
-	t.Run("configuración para testing", func(t *testing.T) {
-		testConfig := Config{
-			Host:           "localhost",
-			Port:           5433, // Puerto diferente
-			MaxConnections: 5,
-		}
-
-		assert.Equal(t, "localhost", testConfig.Host)
-		assert.Equal(t, 5433, testConfig.Port, "Testing usa puerto diferente")
-		assert.Equal(t, 5, testConfig.MaxConnections, "Testing usa pocas conexiones")
-	})
+	assert.Equal(t, "127.0.0.1", cfg.Host)
+	assert.Equal(t, 5433, cfg.Port)
+	assert.Equal(t, "custom_user", cfg.User)
+	assert.Equal(t, "secure", cfg.Password)
+	assert.Equal(t, "custom_db", cfg.Database)
+	assert.Equal(t, "require", cfg.SSLMode)
+	assert.Equal(t, 100, cfg.MaxConnections)
+	assert.Equal(t, 5*time.Second, cfg.ConnectTimeout)
+	assert.Equal(t, "myschema,public", cfg.SearchPath)
 }

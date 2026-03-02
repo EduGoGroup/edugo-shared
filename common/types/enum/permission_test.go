@@ -207,6 +207,10 @@ func TestAllPermissions_MapIntegrity(t *testing.T) {
 			// Gestión de permisos
 			PermissionPermissionsMgmtRead,
 			PermissionPermissionsMgmtUpdate,
+			// Vínculos guardian-estudiante
+			PermissionGuardianRelationsRead,
+			PermissionGuardianRelationsApprove,
+			PermissionGuardianRelationsRequest,
 		}
 
 		// Verificar que cada constante está en AllPermissions

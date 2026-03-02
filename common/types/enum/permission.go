@@ -98,6 +98,13 @@ const (
 	PermissionResourcesUpdate = PermissionPermissionsMgmtUpdate
 )
 
+// Permisos de vínculos guardian-estudiante
+const (
+	PermissionGuardianRelationsRead    Permission = "guardian_relations:read"
+	PermissionGuardianRelationsApprove Permission = "guardian_relations:approve"
+	PermissionGuardianRelationsRequest Permission = "guardian_relations:request"
+)
+
 // String retorna la representación en string del permiso
 func (p Permission) String() string {
 	return string(p)
@@ -167,6 +174,10 @@ var AllPermissions = map[Permission]bool{
 	// Gestión de permisos
 	PermissionPermissionsMgmtRead:   true,
 	PermissionPermissionsMgmtUpdate: true,
+	// Vínculos guardian-estudiante
+	PermissionGuardianRelationsRead:    true,
+	PermissionGuardianRelationsApprove: true,
+	PermissionGuardianRelationsRequest: true,
 }
 
 // AllPermissionsSlice retorna todos los permisos como slice

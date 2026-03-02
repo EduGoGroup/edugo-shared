@@ -34,7 +34,9 @@ func TestConnectRedis_PingFailure(t *testing.T) {
 	client, err := ConnectRedis(RedisConfig{URL: "redis://127.0.0.1:1/0"})
 	if err == nil {
 		if client != nil {
-			_ = client.Close()
+			if closeErr := client.Close(); closeErr != nil {
+				t.Fatalf("unexpected close error: %v", closeErr)
+			}
 		}
 		t.Fatal("expected ping failure error")
 	}
@@ -46,7 +48,9 @@ func TestConnectRedis_PingFailure(t *testing.T) {
 func TestCacheService_Get_ReturnsRedisError(t *testing.T) {
 	client := newUnavailableRedisClient()
 	t.Cleanup(func() {
-		_ = client.Close()
+		if err := client.Close(); err != nil {
+			t.Errorf("closing redis client: %v", err)
+		}
 	})
 
 	service := NewCacheService(client)
@@ -61,7 +65,9 @@ func TestCacheService_Get_ReturnsRedisError(t *testing.T) {
 func TestCacheService_Set_MarshalError(t *testing.T) {
 	client := newUnavailableRedisClient()
 	t.Cleanup(func() {
-		_ = client.Close()
+		if err := client.Close(); err != nil {
+			t.Errorf("closing redis client: %v", err)
+		}
 	})
 
 	service := NewCacheService(client)
@@ -78,7 +84,9 @@ func TestCacheService_Set_MarshalError(t *testing.T) {
 func TestCacheService_Set_ReturnsRedisError(t *testing.T) {
 	client := newUnavailableRedisClient()
 	t.Cleanup(func() {
-		_ = client.Close()
+		if err := client.Close(); err != nil {
+			t.Errorf("closing redis client: %v", err)
+		}
 	})
 
 	service := NewCacheService(client)
@@ -92,7 +100,9 @@ func TestCacheService_Set_ReturnsRedisError(t *testing.T) {
 func TestCacheService_Delete_NoKeys(t *testing.T) {
 	client := newUnavailableRedisClient()
 	t.Cleanup(func() {
-		_ = client.Close()
+		if err := client.Close(); err != nil {
+			t.Errorf("closing redis client: %v", err)
+		}
 	})
 
 	service := NewCacheService(client)
@@ -105,7 +115,9 @@ func TestCacheService_Delete_NoKeys(t *testing.T) {
 func TestCacheService_Delete_WithKeys_ReturnsRedisError(t *testing.T) {
 	client := newUnavailableRedisClient()
 	t.Cleanup(func() {
-		_ = client.Close()
+		if err := client.Close(); err != nil {
+			t.Errorf("closing redis client: %v", err)
+		}
 	})
 
 	service := NewCacheService(client)
@@ -119,7 +131,9 @@ func TestCacheService_Delete_WithKeys_ReturnsRedisError(t *testing.T) {
 func TestCacheService_DeleteByPattern_ScanError(t *testing.T) {
 	client := newUnavailableRedisClient()
 	t.Cleanup(func() {
-		_ = client.Close()
+		if err := client.Close(); err != nil {
+			t.Errorf("closing redis client: %v", err)
+		}
 	})
 
 	service := NewCacheService(client)

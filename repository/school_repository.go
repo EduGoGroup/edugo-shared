@@ -50,22 +50,25 @@ func (r *postgresSchoolRepository) Delete(ctx context.Context, id uuid.UUID) err
 	return r.db.WithContext(ctx).Delete(&entities.School{}, "id = ?", id).Error
 }
 
-func (r *postgresSchoolRepository) List(ctx context.Context, filters ListFilters) ([]*entities.School, error) {
-	query := r.db.WithContext(ctx).Model(&entities.School{})
+func (r *postgresSchoolRepository) List(ctx context.Context, filters ListFilters) ([]*entities.School, int, error) {
+	baseQuery := r.db.WithContext(ctx).Model(&entities.School{})
 	if filters.IsActive != nil {
-		query = query.Where("is_active = ?", *filters.IsActive)
+		baseQuery = baseQuery.Where("is_active = ?", *filters.IsActive)
 	}
-	query = filters.ApplySearch(query)
-	query = query.Order("created_at DESC")
-	if filters.Limit > 0 {
-		query = query.Limit(filters.Limit)
+	baseQuery = filters.ApplySearch(baseQuery)
+
+	var total int64
+	if err := baseQuery.Count(&total).Error; err != nil {
+		return nil, 0, err
 	}
-	if filters.Offset > 0 {
-		query = query.Offset(filters.Offset)
-	}
+
+	query := baseQuery.Order("created_at DESC")
+	query = filters.ApplyPagination(query)
 	var schools []*entities.School
-	err := query.Find(&schools).Error
-	return schools, err
+	if err := query.Find(&schools).Error; err != nil {
+		return nil, 0, err
+	}
+	return schools, int(total), nil
 }
 
 func (r *postgresSchoolRepository) ExistsByCode(ctx context.Context, code string) (bool, error) {

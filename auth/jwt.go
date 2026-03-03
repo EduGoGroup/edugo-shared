@@ -36,6 +36,9 @@ type Claims struct {
 	Email         string       `json:"email"`
 	ActiveContext *UserContext `json:"active_context"`
 	TokenUse      string       `json:"token_use,omitempty"`
+	// SchoolID se incluye en refresh tokens para preservar el contexto de escuela
+	// seleccionado por el usuario a través de toda la vida útil del token.
+	SchoolID string `json:"school_id,omitempty"`
 	jwt.RegisteredClaims
 }
 
@@ -159,9 +162,11 @@ func (m *JWTManager) ValidateToken(tokenString string) (*Claims, error) {
 	return claims, nil
 }
 
-// GenerateMinimalToken genera un JWT con claims mínimos (sin ActiveContext).
-// Diseñado para refresh tokens que solo necesitan identificar al usuario.
-func (m *JWTManager) GenerateMinimalToken(userID, email string, expiresIn time.Duration) (string, time.Time, error) {
+// GenerateMinimalToken genera un JWT con claims mínimos para refresh tokens.
+// Incluye schoolID para preservar el contexto de escuela activo del usuario,
+// permitiendo que el backend reconstruya el contexto correcto al refrescar.
+// schoolID puede ser vacío para usuarios sin contexto de escuela (ej. super_admin sin escuela asignada).
+func (m *JWTManager) GenerateMinimalToken(userID, email, schoolID string, expiresIn time.Duration) (string, time.Time, error) {
 	if userID == "" {
 		return "", time.Time{}, errors.NewValidationError("userID no puede estar vacío")
 	}
@@ -180,6 +185,7 @@ func (m *JWTManager) GenerateMinimalToken(userID, email string, expiresIn time.D
 		Email:         email,
 		ActiveContext: nil,
 		TokenUse:      "refresh",
+		SchoolID:      schoolID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ID:        uuid.New().String(),
 			Issuer:    m.issuer,

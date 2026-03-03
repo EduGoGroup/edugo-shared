@@ -56,7 +56,7 @@ func (r *postgresUserRepository) Delete(ctx context.Context, id uuid.UUID) error
 	return r.db.WithContext(ctx).Delete(&entities.User{}, "id = ?", id).Error
 }
 
-func (r *postgresUserRepository) List(ctx context.Context, filters ListFilters) ([]*entities.User, int, error) {
+func (r *postgresUserRepository) List(ctx context.Context, filters ListFilters) ([]*entities.User, int64, error) {
 	baseQuery := r.db.WithContext(ctx).Model(&entities.User{})
 	if filters.IsActive != nil {
 		baseQuery = baseQuery.Where("is_active = ?", *filters.IsActive)
@@ -74,5 +74,5 @@ func (r *postgresUserRepository) List(ctx context.Context, filters ListFilters) 
 	if err := query.Find(&users).Error; err != nil {
 		return nil, 0, err
 	}
-	return users, int(total), nil
+	return users, total, nil
 }

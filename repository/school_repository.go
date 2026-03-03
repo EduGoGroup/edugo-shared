@@ -50,7 +50,7 @@ func (r *postgresSchoolRepository) Delete(ctx context.Context, id uuid.UUID) err
 	return r.db.WithContext(ctx).Delete(&entities.School{}, "id = ?", id).Error
 }
 
-func (r *postgresSchoolRepository) List(ctx context.Context, filters ListFilters) ([]*entities.School, int, error) {
+func (r *postgresSchoolRepository) List(ctx context.Context, filters ListFilters) ([]*entities.School, int64, error) {
 	baseQuery := r.db.WithContext(ctx).Model(&entities.School{})
 	if filters.IsActive != nil {
 		baseQuery = baseQuery.Where("is_active = ?", *filters.IsActive)
@@ -68,7 +68,7 @@ func (r *postgresSchoolRepository) List(ctx context.Context, filters ListFilters
 	if err := query.Find(&schools).Error; err != nil {
 		return nil, 0, err
 	}
-	return schools, int(total), nil
+	return schools, total, nil
 }
 
 func (r *postgresSchoolRepository) ExistsByCode(ctx context.Context, code string) (bool, error) {

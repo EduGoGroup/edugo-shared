@@ -31,7 +31,7 @@ func (r *postgresMembershipRepository) FindByID(ctx context.Context, id uuid.UUI
 	return &m, nil
 }
 
-func (r *postgresMembershipRepository) FindByUser(ctx context.Context, userID uuid.UUID, filters ListFilters) ([]*entities.Membership, int, error) {
+func (r *postgresMembershipRepository) FindByUser(ctx context.Context, userID uuid.UUID, filters ListFilters) ([]*entities.Membership, int64, error) {
 	baseQuery := r.db.WithContext(ctx).Model(&entities.Membership{}).Where("user_id = ? AND is_active = true", userID)
 	baseQuery = filters.ApplySearch(baseQuery)
 
@@ -46,10 +46,10 @@ func (r *postgresMembershipRepository) FindByUser(ctx context.Context, userID uu
 	if err := query.Find(&memberships).Error; err != nil {
 		return nil, 0, err
 	}
-	return memberships, int(total), nil
+	return memberships, total, nil
 }
 
-func (r *postgresMembershipRepository) FindByUnit(ctx context.Context, unitID uuid.UUID, filters ListFilters) ([]*entities.Membership, int, error) {
+func (r *postgresMembershipRepository) FindByUnit(ctx context.Context, unitID uuid.UUID, filters ListFilters) ([]*entities.Membership, int64, error) {
 	baseQuery := r.db.WithContext(ctx).Model(&entities.Membership{}).Where("academic_unit_id = ? AND is_active = true", unitID)
 	baseQuery = filters.ApplySearch(baseQuery)
 
@@ -64,10 +64,10 @@ func (r *postgresMembershipRepository) FindByUnit(ctx context.Context, unitID uu
 	if err := query.Find(&memberships).Error; err != nil {
 		return nil, 0, err
 	}
-	return memberships, int(total), nil
+	return memberships, total, nil
 }
 
-func (r *postgresMembershipRepository) FindByUnitAndRole(ctx context.Context, unitID uuid.UUID, role string, activeOnly bool, filters ListFilters) ([]*entities.Membership, int, error) {
+func (r *postgresMembershipRepository) FindByUnitAndRole(ctx context.Context, unitID uuid.UUID, role string, activeOnly bool, filters ListFilters) ([]*entities.Membership, int64, error) {
 	baseQuery := r.db.WithContext(ctx).Model(&entities.Membership{}).Where("academic_unit_id = ? AND role = ?", unitID, role)
 	if activeOnly {
 		baseQuery = baseQuery.Where("is_active = true")
@@ -79,13 +79,13 @@ func (r *postgresMembershipRepository) FindByUnitAndRole(ctx context.Context, un
 		return nil, 0, err
 	}
 
-	query := baseQuery
+	query := baseQuery.Order("created_at DESC")
 	query = filters.ApplyPagination(query)
 	var memberships []*entities.Membership
 	if err := query.Find(&memberships).Error; err != nil {
 		return nil, 0, err
 	}
-	return memberships, int(total), nil
+	return memberships, total, nil
 }
 
 func (r *postgresMembershipRepository) FindByUserAndSchool(ctx context.Context, userID, schoolID uuid.UUID) (*entities.Membership, error) {

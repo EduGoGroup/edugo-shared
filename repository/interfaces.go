@@ -98,21 +98,33 @@ func (f ListFilters) ApplySearch(query *gorm.DB) *gorm.DB {
 }
 
 // ApplyPagination applies LIMIT and OFFSET to the query when Limit > 0.
+// OFFSET is only sent to the database when the calculated offset is greater
+// than zero, avoiding unnecessary "OFFSET 0" noise in the generated SQL and
+// guarding against accidental negative values.
 func (f *ListFilters) ApplyPagination(db *gorm.DB) *gorm.DB {
 	if f.Limit > 0 {
 		db = db.Limit(f.Limit)
-		db = db.Offset(f.GetOffset())
+		offset := f.GetOffset()
+		if offset > 0 {
+			db = db.Offset(offset)
+		}
 	}
 	return db
 }
 
-// GetOffset returns the calculated offset. If Page > 1 and Limit > 0, the
-// offset is derived from (Page-1)*Limit; otherwise it falls back to Offset.
+// GetOffset returns the calculated offset.
+// When Page >= 1 the offset is always derived from the page number
+// ((Page-1)*Limit), so Page=1 yields 0. This avoids ambiguity when both
+// Page and Offset are set. The Offset field is only used as a fallback when
+// Page is not set (Page < 1).
 func (f *ListFilters) GetOffset() int {
-	if f.Page > 1 && f.Limit > 0 {
+	if f.Page >= 1 {
 		return (f.Page - 1) * f.Limit
 	}
-	return f.Offset
+	if f.Offset > 0 {
+		return f.Offset
+	}
+	return 0
 }
 
 // UserRepository defines persistence operations for User
@@ -123,16 +135,16 @@ type UserRepository interface {
 	ExistsByEmail(ctx context.Context, email string) (bool, error)
 	Update(ctx context.Context, user *entities.User) error
 	Delete(ctx context.Context, id uuid.UUID) error
-	List(ctx context.Context, filters ListFilters) ([]*entities.User, int, error)
+	List(ctx context.Context, filters ListFilters) ([]*entities.User, int64, error)
 }
 
 // MembershipRepository defines persistence operations for Membership
 type MembershipRepository interface {
 	Create(ctx context.Context, membership *entities.Membership) error
 	FindByID(ctx context.Context, id uuid.UUID) (*entities.Membership, error)
-	FindByUser(ctx context.Context, userID uuid.UUID, filters ListFilters) ([]*entities.Membership, int, error)
-	FindByUnit(ctx context.Context, unitID uuid.UUID, filters ListFilters) ([]*entities.Membership, int, error)
-	FindByUnitAndRole(ctx context.Context, unitID uuid.UUID, role string, activeOnly bool, filters ListFilters) ([]*entities.Membership, int, error)
+	FindByUser(ctx context.Context, userID uuid.UUID, filters ListFilters) ([]*entities.Membership, int64, error)
+	FindByUnit(ctx context.Context, unitID uuid.UUID, filters ListFilters) ([]*entities.Membership, int64, error)
+	FindByUnitAndRole(ctx context.Context, unitID uuid.UUID, role string, activeOnly bool, filters ListFilters) ([]*entities.Membership, int64, error)
 	FindByUserAndSchool(ctx context.Context, userID, schoolID uuid.UUID) (*entities.Membership, error)
 	Update(ctx context.Context, membership *entities.Membership) error
 	Delete(ctx context.Context, id uuid.UUID) error
@@ -145,6 +157,6 @@ type SchoolRepository interface {
 	FindByCode(ctx context.Context, code string) (*entities.School, error)
 	Update(ctx context.Context, school *entities.School) error
 	Delete(ctx context.Context, id uuid.UUID) error
-	List(ctx context.Context, filters ListFilters) ([]*entities.School, int, error)
+	List(ctx context.Context, filters ListFilters) ([]*entities.School, int64, error)
 	ExistsByCode(ctx context.Context, code string) (bool, error)
 }

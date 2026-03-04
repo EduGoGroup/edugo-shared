@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/EduGoGroup/edugo-shared/audit"
+	"github.com/EduGoGroup/edugo-shared/auth"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -185,4 +186,90 @@ func TestSingularize(t *testing.T) {
 			assert.Equal(t, tc.esperado, resultado)
 		})
 	}
+}
+
+func TestAuditMiddleware_ConContextoUsuario(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	logger := &capturingLogger{}
+	router := gin.New()
+	router.Use(func(c *gin.Context) {
+		c.Set(ContextKeyUserID, "user-abc")
+		c.Set(ContextKeyEmail, "user@edugo.com")
+		c.Set(ContextKeyRole, "teacher")
+		c.Next()
+	})
+	router.Use(AuditMiddleware(logger))
+	router.POST("/api/v1/schools", func(c *gin.Context) {
+		c.JSON(200, gin.H{})
+	})
+
+	req, err := http.NewRequest("POST", "/api/v1/schools", nil)
+	require.NoError(t, err)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	require.Len(t, logger.events, 1)
+	assert.Equal(t, "user-abc", logger.events[0].ActorID)
+	assert.Equal(t, "user@edugo.com", logger.events[0].ActorEmail)
+	assert.Equal(t, "teacher", logger.events[0].ActorRole)
+}
+
+func TestAuditMiddleware_ConClaimsYSchoolID(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	logger := &capturingLogger{}
+	router := gin.New()
+	router.Use(func(c *gin.Context) {
+		c.Set(ContextKeyClaims, &auth.Claims{
+			ActiveContext: &auth.UserContext{
+				SchoolID:       "school-123",
+				AcademicUnitID: "unit-456",
+				RoleName:       "admin",
+			},
+		})
+		c.Next()
+	})
+	router.Use(AuditMiddleware(logger))
+	router.POST("/api/v1/roles", func(c *gin.Context) {
+		c.JSON(200, gin.H{})
+	})
+
+	req, err := http.NewRequest("POST", "/api/v1/roles", nil)
+	require.NoError(t, err)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	require.Len(t, logger.events, 1)
+	require.NotNil(t, logger.events[0].Metadata)
+	assert.Equal(t, "school-123", logger.events[0].Metadata["school_id"])
+	assert.Equal(t, "unit-456", logger.events[0].Metadata["unit_id"])
+}
+
+func TestAuditMiddleware_ConClaimsSinActiveContext(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	logger := &capturingLogger{}
+	router := gin.New()
+	router.Use(func(c *gin.Context) {
+		c.Set(ContextKeyClaims, &auth.Claims{ActiveContext: nil})
+		c.Next()
+	})
+	router.Use(AuditMiddleware(logger))
+	router.DELETE("/api/v1/users/123", func(c *gin.Context) {
+		c.JSON(200, gin.H{})
+	})
+
+	req, err := http.NewRequest("DELETE", "/api/v1/users/123", nil)
+	require.NoError(t, err)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	require.Len(t, logger.events, 1)
+	assert.Nil(t, logger.events[0].Metadata)
+}
+
+func TestMethodToAction_Default(t *testing.T) {
+	assert.Equal(t, "connect", methodToAction("CONNECT"))
+	assert.Equal(t, "trace", methodToAction("TRACE"))
 }

@@ -129,7 +129,7 @@ func NewValidationError(message string) *AppError {
 func NewValidationErrorWithFields(message string, fields map[string]string) *AppError {
 	appErr := New(ErrorCodeValidation, message)
 	for k, v := range fields {
-		appErr.WithField(k, v)
+		appErr = appErr.WithField(k, v)
 	}
 	return appErr
 }

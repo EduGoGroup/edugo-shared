@@ -1,14 +1,15 @@
-package audit
+package postgres
 
 import (
 	"context"
 	"time"
 
+	"github.com/EduGoGroup/edugo-shared/audit"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
-// auditEventDB es el modelo GORM para audit.events
+// auditEventDB es el modelo GORM para la tabla audit.events.
 type auditEventDB struct {
 	ID             string                 `gorm:"column:id;primaryKey;default:gen_random_uuid()"`
 	ActorID        string                 `gorm:"column:actor_id;not null"`
@@ -39,7 +40,7 @@ func (auditEventDB) TableName() string {
 	return "audit.events"
 }
 
-// PostgresAuditLogger implementa AuditLogger usando PostgreSQL mediante GORM.
+// PostgresAuditLogger implementa audit.AuditLogger usando PostgreSQL mediante GORM.
 // Persiste los eventos en la tabla audit.events.
 type PostgresAuditLogger struct {
 	db          *gorm.DB
@@ -48,17 +49,19 @@ type PostgresAuditLogger struct {
 
 // NewPostgresAuditLogger crea un nuevo PostgresAuditLogger para el servicio indicado.
 // El parámetro serviceName identifica el servicio que registra el evento
-// (por ejemplo: "iam-platform", "admin-api", "mobile-api", "worker").
+// (por ejemplo: "iam-platform", "admin-api", "mobile-api").
 func NewPostgresAuditLogger(db *gorm.DB, serviceName string) *PostgresAuditLogger {
 	return &PostgresAuditLogger{db: db, serviceName: serviceName}
 }
 
-func (l *PostgresAuditLogger) Log(ctx context.Context, event AuditEvent) error {
+// Log persiste un AuditEvent en la base de datos.
+// Aplica valores por defecto de Severity y Category si no están definidos.
+func (l *PostgresAuditLogger) Log(ctx context.Context, event audit.AuditEvent) error {
 	if event.Severity == "" {
-		event.Severity = SeverityInfo
+		event.Severity = audit.SeverityInfo
 	}
 	if event.Category == "" {
-		event.Category = CategoryData
+		event.Category = audit.CategoryData
 	}
 	event.ServiceName = l.serviceName
 
@@ -66,8 +69,10 @@ func (l *PostgresAuditLogger) Log(ctx context.Context, event AuditEvent) error {
 	return l.db.WithContext(ctx).Create(&record).Error
 }
 
-func (l *PostgresAuditLogger) LogFromGin(c *gin.Context, action, resourceType, resourceID string, opts ...AuditOption) error {
-	event := AuditEvent{
+// LogFromGin es un método de conveniencia que extrae los datos del contexto Gin
+// y delega en Log. No forma parte de la interfaz audit.AuditLogger.
+func (l *PostgresAuditLogger) LogFromGin(c *gin.Context, action, resourceType, resourceID string, opts ...audit.AuditOption) error {
+	event := audit.AuditEvent{
 		Action:         action,
 		ResourceType:   resourceType,
 		ResourceID:     resourceID,
@@ -78,15 +83,14 @@ func (l *PostgresAuditLogger) LogFromGin(c *gin.Context, action, resourceType, r
 		ActorIP:        c.ClientIP(),
 		ActorUserAgent: c.GetHeader("User-Agent"),
 		StatusCode:     c.Writer.Status(),
-		Severity:       SeverityInfo,
-		Category:       CategoryData,
+		Severity:       audit.SeverityInfo,
+		Category:       audit.CategoryData,
 	}
 
 	for _, opt := range opts {
 		opt(&event)
 	}
 
-	// Extraer datos del JWT usando las context keys del middleware
 	if userID, exists := c.Get("user_id"); exists {
 		if v, ok := userID.(string); ok {
 			event.ActorID = v
@@ -106,7 +110,7 @@ func (l *PostgresAuditLogger) LogFromGin(c *gin.Context, action, resourceType, r
 	return l.Log(c.Request.Context(), event)
 }
 
-func toDBModel(event AuditEvent) auditEventDB {
+func toDBModel(event audit.AuditEvent) auditEventDB {
 	r := auditEventDB{
 		ActorID:      event.ActorID,
 		ActorEmail:   event.ActorEmail,

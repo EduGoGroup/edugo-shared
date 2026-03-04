@@ -28,6 +28,7 @@ jobs:
           - messaging/events
           - screenconfig
           - audit
+          - audit/postgres
           - auth
           - lifecycle
           - middleware/gin
@@ -91,6 +92,7 @@ jobs:
           - messaging/events
           - screenconfig
           - audit
+          - audit/postgres
           - auth
           - lifecycle
           - middleware/gin

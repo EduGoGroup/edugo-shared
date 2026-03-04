@@ -87,10 +87,20 @@ const (
 	PermissionScreensRead Permission = "screens:read"
 )
 
+// Permisos de roles
+const (
+	PermissionRolesCreate Permission = "roles:create"
+	PermissionRolesRead   Permission = "roles:read"
+	PermissionRolesUpdate Permission = "roles:update"
+	PermissionRolesDelete Permission = "roles:delete"
+)
+
 // Gestión de permisos
 const (
 	PermissionPermissionsMgmtRead   Permission = "permissions_mgmt:read"
+	PermissionPermissionsMgmtCreate Permission = "permissions_mgmt:create"
 	PermissionPermissionsMgmtUpdate Permission = "permissions_mgmt:update"
+	PermissionPermissionsMgmtDelete Permission = "permissions_mgmt:delete"
 
 	// Deprecated: usar PermissionPermissionsMgmtRead
 	PermissionResourcesRead = PermissionPermissionsMgmtRead
@@ -98,11 +108,40 @@ const (
 	PermissionResourcesUpdate = PermissionPermissionsMgmtUpdate
 )
 
+// Permisos de membresías
+const (
+	PermissionMembershipsCreate Permission = "memberships:create"
+	PermissionMembershipsRead   Permission = "memberships:read"
+	PermissionMembershipsUpdate Permission = "memberships:update"
+	PermissionMembershipsDelete Permission = "memberships:delete"
+)
+
+// Permisos de materias
+const (
+	PermissionSubjectsCreate Permission = "subjects:create"
+	PermissionSubjectsRead   Permission = "subjects:read"
+	PermissionSubjectsUpdate Permission = "subjects:update"
+	PermissionSubjectsDelete Permission = "subjects:delete"
+)
+
 // Permisos de vínculos guardian-estudiante
 const (
 	PermissionGuardianRelationsRead    Permission = "guardian_relations:read"
 	PermissionGuardianRelationsApprove Permission = "guardian_relations:approve"
 	PermissionGuardianRelationsRequest Permission = "guardian_relations:request"
+	PermissionGuardianRelationsManage  Permission = "guardian_relations:manage"
+)
+
+// Permisos adicionales de evaluaciones
+const (
+	PermissionAssessmentsTake    Permission = "assessments:take"
+	PermissionAssessmentsArchive Permission = "assessments:archive"
+)
+
+// Permisos de auditoría
+const (
+	PermissionAuditRead   Permission = "audit:read"
+	PermissionAuditExport Permission = "audit:export"
 )
 
 // String retorna la representación en string del permiso
@@ -171,13 +210,37 @@ var AllPermissions = map[Permission]bool{
 	PermissionScreenInstancesDelete: true,
 	// Screens
 	PermissionScreensRead: true,
+	// Roles
+	PermissionRolesCreate: true,
+	PermissionRolesRead:   true,
+	PermissionRolesUpdate: true,
+	PermissionRolesDelete: true,
 	// Gestión de permisos
 	PermissionPermissionsMgmtRead:   true,
+	PermissionPermissionsMgmtCreate: true,
 	PermissionPermissionsMgmtUpdate: true,
+	PermissionPermissionsMgmtDelete: true,
+	// Membresías
+	PermissionMembershipsCreate: true,
+	PermissionMembershipsRead:   true,
+	PermissionMembershipsUpdate: true,
+	PermissionMembershipsDelete: true,
+	// Materias
+	PermissionSubjectsCreate: true,
+	PermissionSubjectsRead:   true,
+	PermissionSubjectsUpdate: true,
+	PermissionSubjectsDelete: true,
 	// Vínculos guardian-estudiante
 	PermissionGuardianRelationsRead:    true,
 	PermissionGuardianRelationsApprove: true,
 	PermissionGuardianRelationsRequest: true,
+	PermissionGuardianRelationsManage:  true,
+	// Evaluaciones adicionales
+	PermissionAssessmentsTake:    true,
+	PermissionAssessmentsArchive: true,
+	// Auditoría
+	PermissionAuditRead:   true,
+	PermissionAuditExport: true,
 }
 
 // AllPermissionsSlice retorna todos los permisos como slice

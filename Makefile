@@ -9,7 +9,7 @@ MODULE_NAME = github.com/EduGoGroup/edugo-shared
 # Nivel 1: dependen de nivel 0
 # Nivel 2: dependen de nivel 0-1
 # Nivel 3: dependen de multiples niveles
-MODULES_L0 = common logger config testing messaging/events screenconfig
+MODULES_L0 = common logger config testing messaging/events screenconfig audit
 MODULES_L1 = auth lifecycle
 MODULES_L2 = middleware/gin database/postgres database/mongodb messaging/rabbit
 MODULES_L3 = bootstrap

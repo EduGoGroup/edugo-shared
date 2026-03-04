@@ -39,13 +39,16 @@ func (auditEventDB) TableName() string {
 	return "audit.events"
 }
 
-// PostgresAuditLogger implements AuditLogger using PostgreSQL
+// PostgresAuditLogger implementa AuditLogger usando PostgreSQL mediante GORM.
+// Persiste los eventos en la tabla audit.events.
 type PostgresAuditLogger struct {
 	db          *gorm.DB
 	serviceName string
 }
 
-// NewPostgresAuditLogger creates a new PostgresAuditLogger
+// NewPostgresAuditLogger crea un nuevo PostgresAuditLogger para el servicio indicado.
+// El parámetro serviceName identifica el servicio que registra el evento
+// (por ejemplo: "iam-platform", "admin-api", "mobile-api", "worker").
 func NewPostgresAuditLogger(db *gorm.DB, serviceName string) *PostgresAuditLogger {
 	return &PostgresAuditLogger{db: db, serviceName: serviceName}
 }

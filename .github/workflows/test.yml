@@ -28,6 +28,7 @@ jobs:
           - testing
           - messaging/events
           - screenconfig
+          - audit
           - auth
           - lifecycle
           - middleware/gin

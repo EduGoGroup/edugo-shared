@@ -125,6 +125,15 @@ func NewValidationError(message string) *AppError {
 	return New(ErrorCodeValidation, message)
 }
 
+// NewValidationErrorWithFields crea un error de validación con detalle por campo
+func NewValidationErrorWithFields(message string, fields map[string]string) *AppError {
+	appErr := New(ErrorCodeValidation, message)
+	for k, v := range fields {
+		appErr = appErr.WithField(k, v)
+	}
+	return appErr
+}
+
 // NewNotFoundError crea un error de recurso no encontrado
 func NewNotFoundError(resource string) *AppError {
 	return New(ErrorCodeNotFound, fmt.Sprintf("%s not found", resource)).

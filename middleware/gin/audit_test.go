@@ -69,8 +69,8 @@ func TestAuditMiddleware_AccionCorrecta(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	casos := []struct {
-		metodo  string
-		accion  string
+		metodo string
+		accion string
 	}{
 		{"POST", "create"},
 		{"PUT", "update"},
@@ -102,9 +102,9 @@ func TestAuditMiddleware_ExtraeRecursoDelPath(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	casos := []struct {
-		path             string
-		recursoEsperado  string
-		idEsperado       string
+		path            string
+		recursoEsperado string
+		idEsperado      string
 	}{
 		{"/api/v1/roles/123", "role", "123"},
 		{"/api/v1/memberships", "membership", ""},
@@ -136,9 +136,9 @@ func TestAuditMiddleware_ExtraeRecursoDelPath(t *testing.T) {
 
 func TestExtractResourceFromPath(t *testing.T) {
 	casos := []struct {
-		path             string
-		recursoEsperado  string
-		idEsperado       string
+		path            string
+		recursoEsperado string
+		idEsperado      string
 	}{
 		{"/api/v1/roles/123", "role", "123"},
 		{"/api/v1/memberships", "membership", ""},

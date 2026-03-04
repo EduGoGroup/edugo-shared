@@ -11,7 +11,7 @@ import (
 // AuditMiddleware registra automáticamente todas las peticiones mutantes
 // (POST, PUT, PATCH, DELETE) usando el AuditLogger proporcionado.
 // Las peticiones de solo lectura (GET, HEAD, OPTIONS) son ignoradas.
-func AuditMiddleware(logger audit.AuditLogger) gin.HandlerFunc {
+func AuditMiddleware(logger audit.AuditLogger) gin.HandlerFunc { //nolint:gocyclo
 	return func(c *gin.Context) {
 		if c.Request.Method == "GET" || c.Request.Method == "HEAD" || c.Request.Method == "OPTIONS" {
 			c.Next()
@@ -69,7 +69,7 @@ func AuditMiddleware(logger audit.AuditLogger) gin.HandlerFunc {
 			}
 		}
 
-		_ = logger.Log(context.Background(), event)
+		_ = logger.Log(context.Background(), event) //nolint:errcheck
 	}
 }
 

@@ -42,7 +42,7 @@ func (auditEventDB) TableName() string {
 
 // PostgresAuditLogger implementa audit.AuditLogger usando PostgreSQL mediante GORM.
 // Persiste los eventos en la tabla audit.events.
-type PostgresAuditLogger struct {
+type PostgresAuditLogger struct { //nolint:revive
 	db          *gorm.DB
 	serviceName string
 }

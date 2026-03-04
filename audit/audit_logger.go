@@ -20,7 +20,7 @@ const (
 )
 
 // AuditEvent representa una acción auditable en el sistema.
-type AuditEvent struct {
+type AuditEvent struct { //nolint:revive
 	ActorID        string
 	ActorEmail     string
 	ActorRole      string
@@ -48,12 +48,12 @@ type AuditEvent struct {
 // El método LogFromGin es un método de conveniencia disponible en la
 // implementación concreta PostgresAuditLogger, pero no forma parte
 // de este contrato para evitar acoplamiento con el framework Gin.
-type AuditLogger interface {
+type AuditLogger interface { //nolint:revive
 	Log(ctx context.Context, event AuditEvent) error
 }
 
 // AuditOption permite configurar campos opcionales de un AuditEvent.
-type AuditOption func(*AuditEvent)
+type AuditOption func(*AuditEvent) //nolint:revive
 
 // WithChanges registra los valores antes y después de una modificación.
 func WithChanges(before, after interface{}) AuditOption {

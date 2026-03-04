@@ -56,20 +56,23 @@ func (r *postgresUserRepository) Delete(ctx context.Context, id uuid.UUID) error
 	return r.db.WithContext(ctx).Delete(&entities.User{}, "id = ?", id).Error
 }
 
-func (r *postgresUserRepository) List(ctx context.Context, filters ListFilters) ([]*entities.User, error) {
-	query := r.db.WithContext(ctx).Model(&entities.User{})
+func (r *postgresUserRepository) List(ctx context.Context, filters ListFilters) ([]*entities.User, int64, error) {
+	baseQuery := r.db.WithContext(ctx).Model(&entities.User{})
 	if filters.IsActive != nil {
-		query = query.Where("is_active = ?", *filters.IsActive)
+		baseQuery = baseQuery.Where("is_active = ?", *filters.IsActive)
 	}
-	query = filters.ApplySearch(query)
-	query = query.Order("created_at DESC")
-	if filters.Limit > 0 {
-		query = query.Limit(filters.Limit)
+	baseQuery = filters.ApplySearch(baseQuery)
+
+	var total int64
+	if err := baseQuery.Count(&total).Error; err != nil {
+		return nil, 0, err
 	}
-	if filters.Offset > 0 {
-		query = query.Offset(filters.Offset)
-	}
+
+	query := baseQuery.Order("created_at DESC")
+	query = filters.ApplyPagination(query)
 	var users []*entities.User
-	err := query.Find(&users).Error
-	return users, err
+	if err := query.Find(&users).Error; err != nil {
+		return nil, 0, err
+	}
+	return users, total, nil
 }

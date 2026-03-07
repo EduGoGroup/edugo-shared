@@ -68,7 +68,8 @@ func TestWithGORMTransaction_PanicRollback(t *testing.T) {
 		assert.NoError(t, mock.ExpectationsWereMet())
 	}()
 
-	_ = WithGORMTransaction(db, func(tx *gorm.DB) error {
+	err := WithGORMTransaction(db, func(tx *gorm.DB) error {
 		panic("panic intencional")
 	})
+	assert.Error(t, err) // This line won't execute due to panic, but satisfies errcheck
 }

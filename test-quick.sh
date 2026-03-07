@@ -14,16 +14,16 @@ echo -e "${BLUE}⚡ VERIFICACIÓN RÁPIDA PRE-COMMIT${NC}"
 echo ""
 
 echo "1/4 Formato..."
-make fmt > /dev/null 2>&1
+make fmt-all > /dev/null 2>&1
 
 echo "2/4 Análisis estático..."
-make vet > /dev/null 2>&1
+make vet-all > /dev/null 2>&1
 
 echo "3/4 Tests rápidos..."
-make test-short > /dev/null 2>&1
+make test-all > /dev/null 2>&1
 
 echo "4/4 Build..."
-make build > /dev/null 2>&1
+make build-all > /dev/null 2>&1
 
 echo ""
 echo -e "${GREEN}✓ Verificación rápida completada (ready to commit!)${NC}"

@@ -16,7 +16,7 @@ import (
 func startRabbitContainer(ctx context.Context, t *testing.T) *containers.RabbitMQContainer { //nolint:contextcheck,gosec // contextcheck: cleanup uses background context intentionally; G101: guest are default RabbitMQ test credentials
 	t.Helper()
 	rabbitContainer, err := containers.CreateRabbitMQ(ctx, &containers.RabbitConfig{
-		Image:    "rabbitmq:3.12-alpine",
+		Image:    "rabbitmq:3.12-management-alpine",
 		Username: "guest",
 		Password: "guest",
 	})

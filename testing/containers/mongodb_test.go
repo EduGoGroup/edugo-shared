@@ -16,7 +16,7 @@ func TestMongoDBContainer_Integration(t *testing.T) {
 
 	ctx := context.Background()
 	cfg := &MongoConfig{
-		Image:    "mongo:7.0",
+		Image:    "mongo:7",
 		Database: "test_db",
 	}
 

@@ -27,7 +27,7 @@ type PostgresConfig struct {
 // MongoConfig configura el container de MongoDB.
 // Permite especificar la imagen Docker, nombre de base de datos y autenticación opcional.
 type MongoConfig struct {
-	Image    string // Imagen Docker (default: "mongo:7.0")
+	Image    string // Imagen Docker (default: "mongo:7")
 	Database string // Nombre de la base de datos (default: "edugo_test")
 	Username string // Usuario (default: "")
 	Password string //nolint:gosec // G117: Test container password field, not a hardcoded secret
@@ -90,7 +90,7 @@ func (b *ConfigBuilder) WithMongoDB(cfg *MongoConfig) *ConfigBuilder {
 	}
 	// Aplicar defaults
 	if cfg.Image == "" {
-		cfg.Image = "mongo:7.0"
+		cfg.Image = "mongo:7"
 	}
 	if cfg.Database == "" {
 		cfg.Database = "edugo_test"

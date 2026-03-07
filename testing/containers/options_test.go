@@ -107,7 +107,7 @@ func TestConfigBuilder_WithMongoDB_Defaults(t *testing.T) {
 	require.NotNil(t, config.MongoConfig)
 
 	// Verificar defaults
-	assert.Equal(t, "mongo:7.0", config.MongoConfig.Image)
+	assert.Equal(t, "mongo:7", config.MongoConfig.Image)
 	assert.Equal(t, "edugo_test", config.MongoConfig.Database)
 	assert.Empty(t, config.MongoConfig.Username, "MongoDB sin auth por defecto")
 	assert.Empty(t, config.MongoConfig.Password, "MongoDB sin auth por defecto")
@@ -383,7 +383,7 @@ func TestConfigBuilder_AllDefaultsCombined(t *testing.T) {
 	assert.Equal(t, "5432", config.PostgresConfig.Port)
 
 	// MongoDB defaults
-	assert.Equal(t, "mongo:7.0", config.MongoConfig.Image)
+	assert.Equal(t, "mongo:7", config.MongoConfig.Image)
 	assert.Equal(t, "edugo_test", config.MongoConfig.Database)
 	assert.Empty(t, config.MongoConfig.Username)
 	assert.Empty(t, config.MongoConfig.Password)
@@ -504,7 +504,7 @@ func TestConfigBuilder_ComplexScenario(t *testing.T) {
 
 	// MongoDB defaults
 	assert.True(t, config.UseMongoDB)
-	assert.Equal(t, "mongo:7.0", config.MongoConfig.Image)
+	assert.Equal(t, "mongo:7", config.MongoConfig.Image)
 	assert.Equal(t, "edugo_test", config.MongoConfig.Database)
 
 	// RabbitMQ no habilitado

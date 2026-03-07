@@ -17,7 +17,7 @@ func TestRabbitMQContainer_Integration(t *testing.T) {
 
 	ctx := context.Background()
 	cfg := &RabbitConfig{
-		Image:    "rabbitmq:3.12-alpine",
+		Image:    "rabbitmq:3.12-management-alpine",
 		Username: "test_user",
 		Password: "test_pass",
 	}

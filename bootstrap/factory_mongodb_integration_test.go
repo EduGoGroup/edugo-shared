@@ -17,7 +17,7 @@ import (
 func startMongoContainer(ctx context.Context, t *testing.T) *containers.MongoDBContainer { //nolint:contextcheck // Cleanup uses background context intentionally to avoid cancelled context during teardown
 	t.Helper()
 	mongoContainer, err := containers.CreateMongoDB(ctx, &containers.MongoConfig{
-		Image:    "mongo:7.0",
+		Image:    "mongo:7",
 		Database: "test_db",
 	})
 	require.NoError(t, err, "Error creando container MongoDB")

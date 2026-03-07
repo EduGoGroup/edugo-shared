@@ -138,6 +138,14 @@ const (
 	PermissionAssessmentsArchive Permission = "assessments:archive"
 )
 
+// Permisos de tipos de concepto
+const (
+	PermissionConceptTypesCreate Permission = "concept_types:create"
+	PermissionConceptTypesRead   Permission = "concept_types:read"
+	PermissionConceptTypesUpdate Permission = "concept_types:update"
+	PermissionConceptTypesDelete Permission = "concept_types:delete"
+)
+
 // Permisos de auditoría
 const (
 	PermissionAuditRead   Permission = "audit:read"
@@ -238,6 +246,11 @@ var AllPermissions = map[Permission]bool{
 	// Evaluaciones adicionales
 	PermissionAssessmentsTake:    true,
 	PermissionAssessmentsArchive: true,
+	// Tipos de concepto
+	PermissionConceptTypesCreate: true,
+	PermissionConceptTypesRead:   true,
+	PermissionConceptTypesUpdate: true,
+	PermissionConceptTypesDelete: true,
 	// Auditoría
 	PermissionAuditRead:   true,
 	PermissionAuditExport: true,

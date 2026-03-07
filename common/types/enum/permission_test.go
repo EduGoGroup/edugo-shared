@@ -235,6 +235,11 @@ func TestAllPermissions_MapIntegrity(t *testing.T) {
 			// Auditoría
 			PermissionAuditRead,
 			PermissionAuditExport,
+			// Tipos de concepto
+			PermissionConceptTypesCreate,
+			PermissionConceptTypesRead,
+			PermissionConceptTypesUpdate,
+			PermissionConceptTypesDelete,
 		}
 
 		// Verificar que cada constante está en AllPermissions

@@ -1,6 +1,6 @@
 # Umbrales de Cobertura por Módulo - edugo-shared
-# Última actualización: 2025-11-23
-# Actualizado por: Validación y limpieza de tests unitarios
+# Última actualización: 2026-03-08
+# Actualizado por: Fase 3 de operación modular
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # FORMATO
@@ -27,6 +27,16 @@ auth:
   actions:
     - "Agregar tests para casos de ValidateToken no cubiertos"
     - "Tests para casos edge de ExtractUserID y ExtractRole"
+
+audit:
+  threshold: 90
+  current: 100.0
+  target: 100
+  status: "✅ Excelente"
+  priority: "Mantener"
+  notes: "Contrato pequeno y totalmente cubierto por tests locales del logger de auditoria."
+  actions:
+    - "Mantener cobertura total"
 
 config:
   threshold: 75
@@ -55,6 +65,27 @@ logger:
     - "Fase 4: fields.go agregado (solo constantes, no requiere tests)"
     - "Futuro: Agregar tests directos para logrus_logger.go"
     - "Objetivo: 59% → 75% (agregar ~10 tests para wrapper)"
+
+cache/redis:
+  threshold: 75
+  current: 80.0
+  target: 85
+  status: "✅ Cumple"
+  priority: "Mantener"
+  notes: "El cache JSON generico y el cliente Redis ya tienen cobertura funcional util para operaciones basicas."
+  actions:
+    - "Agregar casos de expiracion y serializacion fallida"
+
+audit/postgres:
+  threshold: 0
+  current: 0.0
+  target: 50
+  status: "⚠️ Sin cobertura automatica"
+  priority: "Alta"
+  notes: "El modulo compila y entra a CI/release, pero hoy no tiene tests propios dentro del modulo."
+  actions:
+    - "Agregar tests unitarios del adapter de auditoria"
+    - "Evaluar test de integracion con PostgreSQL o sqlmock"
 
 lifecycle:
   threshold: 85
@@ -132,6 +163,17 @@ database/mongodb:
     - "Futuro: Tests de HealthCheck() con mocks"
     - "Objetivo: 13.6% → 80% (requiere ~12h con mocks)"
 
+repository:
+  threshold: 15
+  current: 19.6
+  target: 50
+  status: "⚠️ Cobertura baja - centrada en filtros"
+  priority: "Alta"
+  notes: "La cobertura actual protege builders y filtros de listado, pero sigue faltando CRUD e integracion del modulo."
+  actions:
+    - "Agregar tests CRUD sobre repositorios compartidos"
+    - "Agregar validacion de integracion con entidades de infraestructura"
+
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # MÓDULOS DE INTEGRACIÓN (Variada Prioridad)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -146,6 +188,16 @@ middleware/gin:
   actions:
     - "Cubrir el 1.5% restante"
     - "Mantener cobertura alta"
+
+messaging/events:
+  threshold: 80
+  current: 86.7
+  target: 90
+  status: "✅ Cumple"
+  priority: "Mantener"
+  notes: "Los eventos versionados estan cubiertos y validan la forma minima del contrato compartido."
+  actions:
+    - "Agregar casos nuevos cuando se introduzcan eventos adicionales"
 
 messaging/rabbit:
   threshold: 30
@@ -186,6 +238,16 @@ testing:
     - "Futuro: Agregar config_unit_test.go para builder pattern"
     - "Futuro: Considerar refactor de manager.go para facilitar tests unitarios"
     - "Objetivo: 21% → 55% (requiere ~8-10h de trabajo)"
+
+screenconfig:
+  threshold: 90
+  current: 90.2
+  target: 95
+  status: "✅ Excelente"
+  priority: "Mantener"
+  notes: "La transformacion y validacion de configuracion dinamica ya tiene cobertura alta en los casos observables."
+  actions:
+    - "Mantener la matriz de casos cuando cambien slots o permisos"
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # MÓDULOS CON PROBLEMAS
@@ -244,15 +306,15 @@ improvement_plan:
 
 metrics:
   modules_meeting_threshold:
-    current: 8
-    target: 12
+    current: 16
+    target: 16
 
   modules_excellent:
-    current: 4 # auth, logger, lifecycle, middleware/gin
-    target: 7
+    current: 7 # audit, auth, cache/redis, lifecycle, messaging/events, middleware/gin, screenconfig
+    target: 8
 
   modules_critical:
-    current: 1 # messaging/rabbit
+    current: 0
     target: 0
 
   modules_with_errors:

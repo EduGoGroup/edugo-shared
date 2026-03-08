@@ -1,21 +1,14 @@
 # EduGo Shared - Makefile raiz (multi-modulo)
-# Orquesta operaciones en todos los modulos independientes
+# Orquesta operaciones y releases en todos los modulos independientes.
 
-# Variables
 MODULE_NAME = github.com/EduGoGroup/edugo-shared
+MODULES_L0 := $(shell ./scripts/list-modules.sh --set level-0 | tr '\n' ' ')
+MODULES_L1 := $(shell ./scripts/list-modules.sh --set level-1 | tr '\n' ' ')
+MODULES_L2 := $(shell ./scripts/list-modules.sh --set level-2 | tr '\n' ' ')
+MODULES_L3 := $(shell ./scripts/list-modules.sh --set level-3 | tr '\n' ' ')
+MODULES := $(shell ./scripts/list-modules.sh --set all | tr '\n' ' ')
+INTEGRATION_MODULES := $(shell ./scripts/list-modules.sh --set integration | tr '\n' ' ')
 
-# Todos los modulos en orden de dependencias
-# Nivel 0: sin dependencias internas
-# Nivel 1: dependen de nivel 0
-# Nivel 2: dependen de nivel 0-1
-# Nivel 3: dependen de multiples niveles
-MODULES_L0 = common logger config testing messaging/events screenconfig audit
-MODULES_L1 = auth lifecycle audit/postgres
-MODULES_L2 = middleware/gin database/postgres database/mongodb messaging/rabbit
-MODULES_L3 = bootstrap
-MODULES = $(MODULES_L0) $(MODULES_L1) $(MODULES_L2) $(MODULES_L3)
-
-# Colores para output
 RED = \033[0;31m
 GREEN = \033[0;32m
 YELLOW = \033[0;33m
@@ -30,12 +23,8 @@ help: ## Mostrar ayuda de comandos disponibles
 	@echo ""
 	@echo "$(YELLOW)Modulos: $(MODULES)$(NC)"
 
-# ============================================================================
-# Comandos multi-modulo
-# ============================================================================
-
 .PHONY: build-all
-build-all: ## Verificar que todos los modulos compilan (librerias, sin binario)
+build-all: ## Verificar que todos los modulos compilan
 	@echo "$(BLUE)Compilando todos los modulos...$(NC)"
 	@for module in $(MODULES); do \
 		echo "$(YELLOW)Building $$module...$(NC)"; \
@@ -56,12 +45,12 @@ test-all: ## Ejecutar tests unitarios en todos los modulos
 	@echo "$(GREEN)Todos los modulos pasaron los tests$(NC)"
 
 .PHONY: test-integration-all
-test-integration-all: ## Ejecutar tests de integracion en todos los modulos
-	@echo "$(BLUE)Ejecutando tests de integracion en todos los modulos...$(NC)"
+test-integration-all: ## Ejecutar tests de integracion en modulos que los usan
+	@echo "$(BLUE)Ejecutando tests de integracion...$(NC)"
 	@export INTEGRATION_TESTS=true; \
-	for module in $(MODULES); do \
+	for module in $(INTEGRATION_MODULES); do \
 		echo "$(YELLOW)Integration Testing $$module...$(NC)"; \
-		(cd $$module && go test -v -cover ./...) || echo "$(RED)  $$module integration tests failed$(NC)"; \
+		(cd $$module && go test -v -cover ./...) || exit 1; \
 		echo ""; \
 	done
 	@echo "$(GREEN)Ejecucion de tests de integracion completada$(NC)"
@@ -127,27 +116,23 @@ deps-all: ## Actualizar dependencias en todos los modulos
 	@echo "$(GREEN)Todos los modulos actualizados$(NC)"
 
 .PHONY: check-all
-check-all: fmt-all vet-all lint-all test-all ## Validacion completa de todos los modulos
+check-all: fmt-all vet-all lint-all test-all build-all ## Validacion completa de todos los modulos
 	@echo "$(GREEN)Validacion completa exitosa$(NC)"
 
 .PHONY: ci
-ci: fmt-all vet-all test-race-all ## Pipeline CI completo
+ci: fmt-all vet-all test-race-all build-all ## Pipeline CI completo
 	@echo "$(GREEN)Pipeline CI completado$(NC)"
-
-# ============================================================================
-# Comandos paralelos (reduce tiempos locales usando background jobs)
-# ============================================================================
 
 .PHONY: build-parallel
 build-parallel: ## Compilar todos los modulos en paralelo
 	@echo "$(BLUE)Compilando todos los modulos en paralelo...$(NC)"
 	@PIDS=""; FAILED=0; \
 	for module in $(MODULES); do \
-		(cd $$module && go build ./... && echo "$(GREEN)  ✓ $$module$(NC)") & \
+		(cd $$module && go build ./... && echo "$(GREEN)  $$module$(NC)") & \
 		PIDS="$$PIDS $$!"; \
 	done; \
 	for pid in $$PIDS; do wait $$pid || FAILED=1; done; \
-	if [ $$FAILED -ne 0 ]; then echo "$(RED)Algún modulo falló al compilar$(NC)"; exit 1; fi
+	if [ $$FAILED -ne 0 ]; then echo "$(RED)Algun modulo fallo al compilar$(NC)"; exit 1; fi
 	@echo "$(GREEN)Todos los modulos compilados$(NC)"
 
 .PHONY: test-parallel
@@ -155,7 +140,7 @@ test-parallel: ## Tests unitarios en paralelo por nivel de dependencia
 	@echo "$(BLUE)Tests en paralelo (nivel 0)...$(NC)"
 	@PIDS=""; FAILED=0; \
 	for module in $(MODULES_L0); do \
-		(cd $$module && go test -short ./... && echo "$(GREEN)  ✓ $$module$(NC)" || echo "$(RED)  ✗ $$module$(NC)") & \
+		(cd $$module && go test -short ./... && echo "$(GREEN)  $$module$(NC)" || echo "$(RED)  $$module$(NC)") & \
 		PIDS="$$PIDS $$!"; \
 	done; \
 	for pid in $$PIDS; do wait $$pid || FAILED=1; done; \
@@ -163,7 +148,7 @@ test-parallel: ## Tests unitarios en paralelo por nivel de dependencia
 	@echo "$(BLUE)Tests en paralelo (nivel 1)...$(NC)"
 	@PIDS=""; FAILED=0; \
 	for module in $(MODULES_L1); do \
-		(cd $$module && go test -short ./... && echo "$(GREEN)  ✓ $$module$(NC)" || echo "$(RED)  ✗ $$module$(NC)") & \
+		(cd $$module && go test -short ./... && echo "$(GREEN)  $$module$(NC)" || echo "$(RED)  $$module$(NC)") & \
 		PIDS="$$PIDS $$!"; \
 	done; \
 	for pid in $$PIDS; do wait $$pid || FAILED=1; done; \
@@ -171,7 +156,7 @@ test-parallel: ## Tests unitarios en paralelo por nivel de dependencia
 	@echo "$(BLUE)Tests en paralelo (nivel 2)...$(NC)"
 	@PIDS=""; FAILED=0; \
 	for module in $(MODULES_L2); do \
-		(cd $$module && go test -short ./... && echo "$(GREEN)  ✓ $$module$(NC)" || echo "$(RED)  ✗ $$module$(NC)") & \
+		(cd $$module && go test -short ./... && echo "$(GREEN)  $$module$(NC)" || echo "$(RED)  $$module$(NC)") & \
 		PIDS="$$PIDS $$!"; \
 	done; \
 	for pid in $$PIDS; do wait $$pid || FAILED=1; done; \
@@ -179,7 +164,7 @@ test-parallel: ## Tests unitarios en paralelo por nivel de dependencia
 	@echo "$(BLUE)Tests en paralelo (nivel 3)...$(NC)"
 	@PIDS=""; FAILED=0; \
 	for module in $(MODULES_L3); do \
-		(cd $$module && go test -short ./... && echo "$(GREEN)  ✓ $$module$(NC)" || echo "$(RED)  ✗ $$module$(NC)") & \
+		(cd $$module && go test -short ./... && echo "$(GREEN)  $$module$(NC)" || echo "$(RED)  $$module$(NC)") & \
 		PIDS="$$PIDS $$!"; \
 	done; \
 	for pid in $$PIDS; do wait $$pid || FAILED=1; done; \
@@ -191,11 +176,11 @@ lint-parallel: ## Lint en todos los modulos en paralelo
 	@echo "$(BLUE)Linting todos los modulos en paralelo...$(NC)"
 	@PIDS=""; FAILED=0; \
 	for module in $(MODULES); do \
-		(cd $$module && golangci-lint run ./... && echo "$(GREEN)  ✓ $$module$(NC)" || echo "$(RED)  ✗ $$module$(NC)") & \
+		(cd $$module && golangci-lint run ./... && echo "$(GREEN)  $$module$(NC)" || echo "$(RED)  $$module$(NC)") & \
 		PIDS="$$PIDS $$!"; \
 	done; \
 	for pid in $$PIDS; do wait $$pid || FAILED=1; done; \
-	if [ $$FAILED -ne 0 ]; then echo "$(RED)Algún modulo falló el linter$(NC)"; exit 1; fi
+	if [ $$FAILED -ne 0 ]; then echo "$(RED)Algun modulo fallo el linter$(NC)"; exit 1; fi
 	@echo "$(GREEN)Todos los modulos pasaron el linter$(NC)"
 
 .PHONY: test-integration-parallel
@@ -203,26 +188,38 @@ test-integration-parallel: ## Tests de integracion en paralelo (requiere Docker)
 	@echo "$(BLUE)Tests de integracion en paralelo...$(NC)"
 	@export INTEGRATION_TESTS=true; \
 	PIDS=""; FAILED=0; \
-	for module in $(MODULES); do \
-		(cd $$module && go test -v -cover ./... && echo "$(GREEN)  ✓ $$module$(NC)" || echo "$(RED)  ✗ $$module$(NC)") & \
+	for module in $(INTEGRATION_MODULES); do \
+		(cd $$module && go test -v -cover ./... && echo "$(GREEN)  $$module$(NC)" || echo "$(RED)  $$module$(NC)") & \
 		PIDS="$$PIDS $$!"; \
 	done; \
 	for pid in $$PIDS; do wait $$pid || FAILED=1; done; \
-	if [ $$FAILED -ne 0 ]; then echo "$(RED)Algún modulo falló los tests de integración$(NC)"; exit 1; fi
+	if [ $$FAILED -ne 0 ]; then echo "$(RED)Algun modulo fallo los tests de integracion$(NC)"; exit 1; fi
 	@echo "$(GREEN)Ejecucion de tests de integracion completada$(NC)"
+
+.PHONY: changelog-module
+changelog-module: ## Actualizar changelog de un modulo (MODULE=path VERSION=vX.Y.Z)
+	@if [ -z "$(MODULE)" ] || [ -z "$(VERSION)" ]; then \
+		echo "$(RED)Uso: make changelog-module MODULE=cache/redis VERSION=v0.1.0$(NC)"; \
+		exit 1; \
+	fi
+	@$(MAKE) -C $(MODULE) changelog VERSION=$(VERSION)
+
+.PHONY: release-module
+release-module: ## Crear y empujar tag de release para un modulo (MODULE=path VERSION=vX.Y.Z)
+	@if [ -z "$(MODULE)" ] || [ -z "$(VERSION)" ]; then \
+		echo "$(RED)Uso: make release-module MODULE=cache/redis VERSION=v0.1.0$(NC)"; \
+		exit 1; \
+	fi
+	@$(MAKE) -C $(MODULE) release VERSION=$(VERSION)
 
 .PHONY: clean-all
 clean-all: ## Limpiar archivos generados en todos los modulos
 	@echo "$(BLUE)Limpiando todos los modulos...$(NC)"
 	@for module in $(MODULES); do \
-		(cd $$module && rm -rf build && go clean -testcache); \
+		(cd $$module && rm -rf build coverage && go clean -testcache); \
 	done
 	@rm -rf build coverage
 	@echo "$(GREEN)Limpieza completada$(NC)"
-
-# ============================================================================
-# Herramientas
-# ============================================================================
 
 .PHONY: install-tools
 install-tools: ## Instalar herramientas de desarrollo
@@ -238,19 +235,5 @@ version: ## Mostrar versiones de herramientas
 	@if command -v golangci-lint >/dev/null 2>&1; then \
 		echo "golangci-lint: $$(golangci-lint version 2>&1 | head -1)"; \
 	else \
-		echo "golangci-lint: $(RED)no instalado$(NC)"; \
+		echo "golangci-lint: no instalado"; \
 	fi
-
-# ============================================================================
-# Pre-commit Hooks
-# ============================================================================
-
-.PHONY: setup-hooks
-setup-hooks: ## Configurar pre-commit hooks
-	@./scripts/setup-hooks.sh
-
-.PHONY: test-hooks
-test-hooks: ## Probar pre-commit hooks manualmente
-	@.githooks/pre-commit
-
-.DEFAULT_GOAL := help

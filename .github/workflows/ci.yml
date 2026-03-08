@@ -1,44 +1,42 @@
 name: CI Pipeline
 
-# Se ejecuta en PRs (flujo ideal) y push a main (red de seguridad)
 on:
   pull_request:
     branches: [main, dev]
   push:
-    branches: [main] # Red de seguridad por si alguien hace push directo
+    branches: [main]
 
 env:
-  GO_VERSION: "1.25"
+  GO_VERSION: '1.25'
 
 jobs:
-  # ============================================================================
-  # Tests unitarios — todos los módulos en paralelo
-  # ============================================================================
+  prepare-modules:
+    name: Prepare Module Matrix
+    runs-on: ubuntu-latest
+    outputs:
+      all: ${{ steps.modules.outputs.all }}
+      integration: ${{ steps.modules.outputs.integration }}
+    steps:
+      - name: Checkout codigo
+        uses: actions/checkout@v4
+
+      - name: Exportar modulos
+        id: modules
+        run: |
+          echo "all=$(./scripts/list-modules.sh --set all --format json)" >> "$GITHUB_OUTPUT"
+          echo "integration=$(./scripts/list-modules.sh --set integration --format json)" >> "$GITHUB_OUTPUT"
+
   test:
     name: Test ${{ matrix.module }}
     runs-on: ubuntu-latest
+    needs: prepare-modules
     strategy:
       fail-fast: false
       matrix:
-        module:
-          - common
-          - logger
-          - config
-          - testing
-          - messaging/events
-          - screenconfig
-          - audit
-          - audit/postgres
-          - auth
-          - lifecycle
-          - middleware/gin
-          - database/postgres
-          - database/mongodb
-          - messaging/rabbit
-          - bootstrap
+        module: ${{ fromJson(needs.prepare-modules.outputs.all) }}
 
     steps:
-      - name: Checkout código
+      - name: Checkout codigo
         uses: actions/checkout@v4
 
       - name: Setup Go
@@ -52,9 +50,9 @@ jobs:
         working-directory: ${{ matrix.module }}
         run: |
           if ! gofmt -l . | grep -q .; then
-            echo "✓ Código formateado correctamente"
+            echo "Codigo formateado correctamente"
           else
-            echo "✗ Código no está formateado:"
+            echo "Codigo no esta formateado:"
             gofmt -l .
             exit 1
           fi
@@ -63,7 +61,7 @@ jobs:
         working-directory: ${{ matrix.module }}
         run: go mod download
 
-      - name: Análisis estático (go vet)
+      - name: Analisis estatico (go vet)
         working-directory: ${{ matrix.module }}
         run: go vet ./...
 
@@ -75,34 +73,17 @@ jobs:
         working-directory: ${{ matrix.module }}
         run: go build -v ./...
 
-  # ============================================================================
-  # Lint — todos los módulos en paralelo
-  # ============================================================================
   lint:
     name: Lint ${{ matrix.module }}
     runs-on: ubuntu-latest
+    needs: prepare-modules
     strategy:
       fail-fast: false
       matrix:
-        module:
-          - common
-          - logger
-          - config
-          - testing
-          - messaging/events
-          - screenconfig
-          - audit
-          - audit/postgres
-          - auth
-          - lifecycle
-          - middleware/gin
-          - database/postgres
-          - database/mongodb
-          - messaging/rabbit
-          - bootstrap
+        module: ${{ fromJson(needs.prepare-modules.outputs.all) }}
 
     steps:
-      - name: Checkout código
+      - name: Checkout codigo
         uses: actions/checkout@v4
 
       - name: Setup Go
@@ -123,25 +104,17 @@ jobs:
           working-directory: ${{ matrix.module }}
           args: --timeout=5m
 
-  # ============================================================================
-  # Tests de integración — módulos con Docker/TestContainers en paralelo
-  # ubuntu-latest incluye Docker, compatible con testcontainers-go
-  # ============================================================================
   integration:
     name: Integration ${{ matrix.module }}
     runs-on: ubuntu-latest
+    needs: prepare-modules
     strategy:
       fail-fast: false
       matrix:
-        module:
-          - testing
-          - database/postgres
-          - database/mongodb
-          - messaging/rabbit
-          - bootstrap
+        module: ${{ fromJson(needs.prepare-modules.outputs.integration) }}
 
     steps:
-      - name: Checkout código
+      - name: Checkout codigo
         uses: actions/checkout@v4
 
       - name: Setup Go
@@ -155,8 +128,8 @@ jobs:
         working-directory: ${{ matrix.module }}
         run: go mod download
 
-      - name: Ejecutar tests de integración
+      - name: Ejecutar tests de integracion
         working-directory: ${{ matrix.module }}
         env:
-          INTEGRATION_TESTS: "true"
+          INTEGRATION_TESTS: 'true'
         run: go test -v -cover -timeout 10m ./...

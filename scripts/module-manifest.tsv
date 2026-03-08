@@ -1,0 +1,18 @@
+# module|level|integration|coverage_validation
+common|0|false|false
+logger|0|false|true
+config|0|false|true
+testing|0|true|true
+messaging/events|0|false|true
+screenconfig|0|false|true
+audit|0|false|true
+cache/redis|0|false|true
+repository|0|false|true
+auth|1|false|true
+lifecycle|1|false|true
+audit/postgres|1|false|true
+middleware/gin|2|false|true
+database/postgres|2|true|true
+database/mongodb|2|true|true
+messaging/rabbit|2|true|true
+bootstrap|3|true|true

@@ -1,6 +1,6 @@
 module github.com/EduGoGroup/edugo-shared/cache/redis
 
-go 1.25
+go 1.24
 
 require github.com/redis/go-redis/v9 v9.18.0
 

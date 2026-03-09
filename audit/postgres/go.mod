@@ -1,10 +1,10 @@
 module github.com/EduGoGroup/edugo-shared/audit/postgres
 
-go 1.25
+go 1.25.0
 
 require (
 	github.com/EduGoGroup/edugo-shared/audit v0.0.0-00010101000000-000000000000
-	github.com/gin-gonic/gin v1.12.0
+	github.com/gin-gonic/gin v1.11.0
 	gorm.io/gorm v1.31.1
 )
 
@@ -33,7 +33,6 @@ require (
 	github.com/quic-go/quic-go v0.59.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.3.1 // indirect
-	go.mongodb.org/mongo-driver/v2 v2.5.0 // indirect
 	golang.org/x/arch v0.22.0 // indirect
 	golang.org/x/crypto v0.48.0 // indirect
 	golang.org/x/net v0.51.0 // indirect

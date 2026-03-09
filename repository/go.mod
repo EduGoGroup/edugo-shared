@@ -1,6 +1,6 @@
 module github.com/EduGoGroup/edugo-shared/repository
 
-go 1.25
+go 1.24
 
 require (
 	github.com/EduGoGroup/edugo-infrastructure/postgres v0.60.0

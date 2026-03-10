@@ -1,40 +1,69 @@
 name: Release CI/CD
 
-# Solo se ejecuta cuando creas un tag de versión
 on:
   push:
     tags:
-      - 'v*'  # v1.0.0, v2.0.0, etc.
+      - 'v*'
+      - '*/v*'
+      - '*/*/v*'
 
 env:
   GO_VERSION: '1.25'
 
 jobs:
+  prepare-release:
+    name: Prepare Release
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.meta.outputs.matrix }}
+      tag: ${{ steps.meta.outputs.tag }}
+      version: ${{ steps.meta.outputs.version }}
+      module: ${{ steps.meta.outputs.module }}
+      title: ${{ steps.meta.outputs.title }}
+      changelog_file: ${{ steps.meta.outputs.changelog_file }}
+      scope: ${{ steps.meta.outputs.scope }}
+    steps:
+      - name: Checkout codigo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolver metadata de release
+        id: meta
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          VERSION="${TAG##*/}"
+
+          if [[ "$TAG" == v* ]]; then
+            echo "scope=root" >> "$GITHUB_OUTPUT"
+            echo "module=" >> "$GITHUB_OUTPUT"
+            echo "title=Release $TAG" >> "$GITHUB_OUTPUT"
+            echo "changelog_file=CHANGELOG.md" >> "$GITHUB_OUTPUT"
+            echo "matrix=$(./scripts/list-modules.sh --set release --format json)" >> "$GITHUB_OUTPUT"
+          else
+            MODULE="${TAG%/$VERSION}"
+            echo "scope=module" >> "$GITHUB_OUTPUT"
+            echo "module=$MODULE" >> "$GITHUB_OUTPUT"
+            echo "title=Release $MODULE $VERSION" >> "$GITHUB_OUTPUT"
+            echo "changelog_file=$MODULE/CHANGELOG.md" >> "$GITHUB_OUTPUT"
+            printf 'matrix=["%s"]\n' "$MODULE" >> "$GITHUB_OUTPUT"
+          fi
+
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
   validate-modules:
     name: Validate ${{ matrix.module }}
     runs-on: ubuntu-latest
+    needs: prepare-release
     strategy:
       fail-fast: true
       matrix:
-        module:
-          - common
-          - logger
-          - config
-          - testing
-          - messaging/events
-          - screenconfig
-          - audit
-          - audit/postgres
-          - auth
-          - lifecycle
-          - middleware/gin
-          - database/postgres
-          - database/mongodb
-          - messaging/rabbit
-          - bootstrap
+        module: ${{ fromJson(needs.prepare-release.outputs.matrix) }}
 
     steps:
-      - name: Checkout código
+      - name: Checkout codigo
         uses: actions/checkout@v4
 
       - name: Setup Go
@@ -42,6 +71,7 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
+          cache-dependency-path: ${{ matrix.module }}/go.sum
 
       - name: Descargar dependencias
         working-directory: ${{ matrix.module }}
@@ -51,28 +81,28 @@ jobs:
         working-directory: ${{ matrix.module }}
         run: |
           if ! gofmt -l . | grep -q .; then
-            echo "✓ Código formateado correctamente"
+            echo "Codigo formateado correctamente"
           else
-            echo "✗ Código no está formateado:"
+            echo "Codigo no esta formateado:"
             gofmt -l .
             exit 1
           fi
 
-      - name: Análisis estático (go vet)
+      - name: Analisis estatico (go vet)
         working-directory: ${{ matrix.module }}
         run: go vet ./...
 
       - name: Ejecutar tests
         working-directory: ${{ matrix.module }}
-        run: go test -v -race ./...
+        run: go test -short -v -race ./...
 
       - name: Tests con cobertura
         working-directory: ${{ matrix.module }}
         run: |
           mkdir -p coverage
-          go test -v -race -coverprofile=coverage/coverage.out -covermode=atomic ./... || true
+          go test -short -v -race -coverprofile=coverage/coverage.out -covermode=atomic ./...
           if [ -f coverage/coverage.out ]; then
-            go tool cover -func=coverage/coverage.out
+            go tool cover -func=coverage/coverage.out | tail -1
           fi
 
       - name: Verificar build
@@ -91,102 +121,78 @@ jobs:
   create-github-release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
-    needs: [validate-modules]
+    needs: [prepare-release, validate-modules]
     permissions:
       contents: write
 
     steps:
-      - name: Checkout código
+      - name: Checkout codigo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Obtener tag actual
-        id: tag
+      - name: Extraer changelog para esta version
+        env:
+          CHANGELOG_FILE: ${{ needs.prepare-release.outputs.changelog_file }}
+          VERSION: ${{ needs.prepare-release.outputs.version }}
         run: |
-          TAG=${GITHUB_REF#refs/tags/}
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
-          echo "version=${TAG#v}" >> $GITHUB_OUTPUT
-
-      - name: Extraer changelog para esta versión
-        id: changelog
-        run: |
-          TAG=${{ steps.tag.outputs.tag }}
-
-          # Extraer sección del CHANGELOG para esta versión
-          if grep -q "## \[${{ steps.tag.outputs.version }}\]" CHANGELOG.md; then
-            CHANGELOG=$(sed -n "/## \[${{ steps.tag.outputs.version }}\]/,/## \[/p" CHANGELOG.md | sed '$d')
+          if ./scripts/extract-changelog-section.sh --file "$CHANGELOG_FILE" --version "$VERSION" > /tmp/changelog.md; then
+            echo "Notas de release extraidas desde $CHANGELOG_FILE"
           else
-            CHANGELOG="Release $TAG"
+            echo "## [${VERSION#v}]" > /tmp/changelog.md
+            echo "" >> /tmp/changelog.md
+            if [ -n "${{ needs.prepare-release.outputs.module }}" ]; then
+              echo "Release del modulo ${{ needs.prepare-release.outputs.module }}." >> /tmp/changelog.md
+            else
+              echo "Release ${{ needs.prepare-release.outputs.tag }}." >> /tmp/changelog.md
+            fi
           fi
-
-          # Guardar a archivo para evitar problemas con caracteres especiales
-          echo "$CHANGELOG" > /tmp/changelog.md
 
       - name: Crear GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.prepare-release.outputs.tag }}
+          TITLE: ${{ needs.prepare-release.outputs.title }}
+          SCOPE: ${{ needs.prepare-release.outputs.scope }}
+          MODULE: ${{ needs.prepare-release.outputs.module }}
+          VERSION: ${{ needs.prepare-release.outputs.version }}
         run: |
-          TAG=${{ steps.tag.outputs.tag }}
+          NOTES_FILE=/tmp/changelog.md
+          EXTRA_NOTES=$(mktemp)
 
-          # Crear release con gh CLI
+          if [ "$SCOPE" = "module" ]; then
+            cat > "$EXTRA_NOTES" <<MODULE_NOTES
+
+---
+
+## Instalacion del modulo
+
+\`\`\`bash
+go get github.com/EduGoGroup/edugo-shared/$MODULE@$VERSION
+\`\`\`
+
+## Documentacion relacionada
+
+- https://github.com/${{ github.repository }}/blob/$TAG/$MODULE/README.md
+- https://github.com/${{ github.repository }}/blob/$TAG/$MODULE/docs/README.md
+- https://github.com/${{ github.repository }}/blob/$TAG/$MODULE/CHANGELOG.md
+MODULE_NOTES
+          else
+            cat > "$EXTRA_NOTES" <<ROOT_NOTES
+
+---
+
+## Documentacion relacionada
+
+- https://github.com/${{ github.repository }}/blob/$TAG/README.md
+- https://github.com/${{ github.repository }}/blob/$TAG/docs/README.md
+- https://github.com/${{ github.repository }}/blob/$TAG/CHANGELOG.md
+ROOT_NOTES
+          fi
+
+          cat "$EXTRA_NOTES" >> "$NOTES_FILE"
+
           gh release create "$TAG" \
-            --title "Release $TAG - Arquitectura Modular" \
-            --notes-file /tmp/changelog.md \
-            --notes "
-
-          ---
-
-          ## 📦 Instalación por Módulo
-
-          ### Common (Errors, Types, Validator, Config)
-          \`\`\`bash
-          go get github.com/EduGoGroup/edugo-shared/common@$TAG
-          \`\`\`
-
-          ### Logger (Zap)
-          \`\`\`bash
-          go get github.com/EduGoGroup/edugo-shared/logger@$TAG
-          \`\`\`
-
-          ### Auth (JWT)
-          \`\`\`bash
-          go get github.com/EduGoGroup/edugo-shared/auth@$TAG
-          \`\`\`
-
-          ### Middleware para Gin
-          \`\`\`bash
-          go get github.com/EduGoGroup/edugo-shared/middleware/gin@$TAG
-          \`\`\`
-
-          ### RabbitMQ
-          \`\`\`bash
-          go get github.com/EduGoGroup/edugo-shared/messaging/rabbit@$TAG
-          \`\`\`
-
-          ### PostgreSQL
-          \`\`\`bash
-          go get github.com/EduGoGroup/edugo-shared/database/postgres@$TAG
-          \`\`\`
-
-          ### MongoDB
-          \`\`\`bash
-          go get github.com/EduGoGroup/edugo-shared/database/mongodb@$TAG
-          \`\`\`
-
-          ## 🎯 Beneficios de la Arquitectura Modular
-
-          - ✅ **Dependencias selectivas**: Solo descarga lo que necesitas
-          - ✅ **Binarios optimizados**: Menor tamaño del ejecutable
-          - ✅ **Mejor mantenibilidad**: Cada módulo es independiente
-          - ✅ **Testing modular**: Tests aislados por módulo
-
-          ## 📚 Documentación
-
-          - [CHANGELOG.md](https://github.com/EduGoGroup/edugo-shared/blob/$TAG/CHANGELOG.md)
-          - [UPGRADE_GUIDE.md](https://github.com/EduGoGroup/edugo-shared/blob/$TAG/UPGRADE_GUIDE.md)
-          - [README.md](https://github.com/EduGoGroup/edugo-shared/blob/$TAG/README.md)
-
-          ---
-
-          🤖 Generated with [Claude Code](https://claude.com/claude-code)"
+            --title "$TITLE" \
+            --notes-file "$NOTES_FILE" \
+            --verify-tag

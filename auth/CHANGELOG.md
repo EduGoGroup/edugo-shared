@@ -1,0 +1,9 @@
+# Changelog
+
+Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/auth` deben registrarse aqui.
+
+## [Unreleased]
+
+### Added
+
+- Baseline de documentacion de fase 1 con `README.md`, `docs/README.md` y organizacion local por modulo.

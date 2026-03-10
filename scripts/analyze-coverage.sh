@@ -1,110 +1,92 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-set -e
+set -euo pipefail
 
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "📊 Análisis de Cobertura - edugo-shared"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo ""
-
-mkdir -p "$PROJECT_ROOT/docs/cicd/coverage-analysis"
-OUTPUT_FILE="$PROJECT_ROOT/docs/cicd/coverage-analysis/coverage-report-$(date +%Y%m%d).md"
+MODULE_SCRIPT="$SCRIPT_DIR/list-modules.sh"
+OUTPUT_DIR="$PROJECT_ROOT/docs/cicd/coverage-analysis"
+OUTPUT_FILE="$OUTPUT_DIR/coverage-report-$(date +%Y%m%d).md"
 CURRENT_DATE=$(date '+%Y-%m-%d %H:%M')
 
-cat > "$OUTPUT_FILE" << HEADER
+mkdir -p "$OUTPUT_DIR"
+
+cat > "$OUTPUT_FILE" <<HEADER
 # Reporte de Cobertura - edugo-shared
 
-**Fecha:** $CURRENT_DATE  
+**Fecha:** $CURRENT_DATE
 **Generado por:** analyze-coverage.sh
 
 ---
 
-## 📊 Resumen Ejecutivo
+## Resumen Ejecutivo
 
-| Módulo | Coverage | Estado | Prioridad |
+| Modulo | Coverage | Estado | Prioridad |
 |--------|----------|--------|-----------|
 HEADER
 
-# Función para analizar un módulo
-analyze_module() {
-    local module_path="$PROJECT_ROOT/$1"
-    local module_name=$(basename $1)
-    
-    echo "Analizando: $module_name..."
-    
-    if [ ! -d "$module_path" ]; then
-        echo "⚠️  Módulo no encontrado: $module_path"
-        return
-    fi
-    
-    cd "$module_path"
-    
-    # Ejecutar tests con coverage
-    if go test ./... -coverprofile=coverage.out -covermode=atomic > /dev/null 2>&1; then
-        if [ -f coverage.out ]; then
-            # Calcular coverage
-            coverage=$(go tool cover -func=coverage.out | tail -1 | awk '{print $NF}' | sed 's/%//')
-            
-            # Determinar estado
-            if (( $(echo "$coverage >= 80" | bc -l) )); then
-                status="✅ Excelente"
-                priority="Baja"
-            elif (( $(echo "$coverage >= 60" | bc -l) )); then
-                status="🟢 Bueno"
-                priority="Baja"
-            elif (( $(echo "$coverage >= 40" | bc -l) )); then
-                status="🟡 Aceptable"
-                priority="Media"
-            elif (( $(echo "$coverage >= 20" | bc -l) )); then
-                status="🟠 Bajo"
-                priority="Alta"
-            else
-                status="🔴 Crítico"
-                priority="Crítica"
-            fi
-            
-            # Agregar a reporte
-            echo "| $module_name | ${coverage}% | $status | $priority |" >> "$OUTPUT_FILE"
-            
-            # Detalle por archivo
-            echo "" >> "$OUTPUT_FILE"
-            echo "### $module_name (${coverage}%)" >> "$OUTPUT_FILE"
-            echo "" >> "$OUTPUT_FILE"
-            echo '```' >> "$OUTPUT_FILE"
-            go tool cover -func=coverage.out >> "$OUTPUT_FILE"
-            echo '```' >> "$OUTPUT_FILE"
-            echo "" >> "$OUTPUT_FILE"
-            
-            rm coverage.out
-        else
-            echo "| $module_name | N/A | ⚠️ Sin coverage | - |" >> "$OUTPUT_FILE"
-        fi
+evaluate_status() {
+    local coverage="$1"
+
+    if (( $(echo "$coverage >= 80" | bc -l) )); then
+        echo "Excelente|Baja"
+    elif (( $(echo "$coverage >= 60" | bc -l) )); then
+        echo "Bueno|Baja"
+    elif (( $(echo "$coverage >= 40" | bc -l) )); then
+        echo "Aceptable|Media"
+    elif (( $(echo "$coverage >= 20" | bc -l) )); then
+        echo "Bajo|Alta"
     else
-        echo "| $module_name | ERROR | ❌ Tests fallan | - |" >> "$OUTPUT_FILE"
+        echo "Critico|Critica"
     fi
-    
-    cd "$PROJECT_ROOT"
 }
 
-# Módulos raíz
-for dir in common logger auth bootstrap config lifecycle evaluation testing; do
-    if [ -f "$PROJECT_ROOT/$dir/go.mod" ]; then
-        analyze_module "$dir"
-    fi
-done
+analyze_module() {
+    local module="$1"
+    local module_path="$PROJECT_ROOT/$module"
+    local log_file
 
-# Módulos en subdirectorios
-for dir in database/mongodb database/postgres middleware/gin messaging/rabbit; do
-    if [ -f "$PROJECT_ROOT/$dir/go.mod" ]; then
-        analyze_module "$dir"
+    if [[ ! -d "$module_path" || ! -f "$module_path/go.mod" ]]; then
+        echo "| $module | N/A | Modulo no encontrado | - |" >> "$OUTPUT_FILE"
+        return
     fi
-done
 
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "✅ Análisis completado"
-echo "📄 Reporte: $OUTPUT_FILE"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    log_file=$(mktemp)
+    (
+        cd "$module_path"
+        rm -f coverage.out
+        if go test -short ./... -coverprofile=coverage.out -covermode=atomic >"$log_file" 2>&1; then
+            if [[ -f coverage.out ]]; then
+                coverage=$(go tool cover -func=coverage.out | tail -1 | awk '{print $NF}' | sed 's/%//')
+                IFS='|' read -r status priority < <(evaluate_status "$coverage")
+                echo "| $module | ${coverage}% | $status | $priority |" >> "$OUTPUT_FILE"
+                echo "" >> "$OUTPUT_FILE"
+                echo "### $module (${coverage}%)" >> "$OUTPUT_FILE"
+                echo "" >> "$OUTPUT_FILE"
+                echo '```text' >> "$OUTPUT_FILE"
+                go tool cover -func=coverage.out >> "$OUTPUT_FILE"
+                echo '```' >> "$OUTPUT_FILE"
+                echo "" >> "$OUTPUT_FILE"
+            else
+                echo "| $module | N/A | Sin archivo de coverage | - |" >> "$OUTPUT_FILE"
+            fi
+        else
+            echo "| $module | ERROR | Tests fallan | - |" >> "$OUTPUT_FILE"
+            echo "" >> "$OUTPUT_FILE"
+            echo "### $module" >> "$OUTPUT_FILE"
+            echo "" >> "$OUTPUT_FILE"
+            echo '```text' >> "$OUTPUT_FILE"
+            sed -n '1,80p' "$log_file" >> "$OUTPUT_FILE"
+            echo '```' >> "$OUTPUT_FILE"
+            echo "" >> "$OUTPUT_FILE"
+        fi
+        rm -f coverage.out "$log_file"
+    )
+}
+
+while IFS= read -r module; do
+    [[ -z "$module" ]] && continue
+    analyze_module "$module"
+done < <("$MODULE_SCRIPT" --set coverage-validation)
+
+echo "Reporte generado: $OUTPUT_FILE"

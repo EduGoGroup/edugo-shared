@@ -126,7 +126,10 @@ func TestGetOffset_NegativeOffset_ReturnsZero(t *testing.T) {
 
 // newDryRunDB creates a GORM DB in DryRun mode (no real database needed).
 func newDryRunDB() *gorm.DB {
-	db, _ := gorm.Open(nil, &gorm.Config{DryRun: true})
+	db, err := gorm.Open(nil, &gorm.Config{DryRun: true})
+	if err != nil {
+		panic("failed to create dry run DB")
+	}
 	return db
 }
 

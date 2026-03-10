@@ -1,0 +1,21 @@
+# Catalogo de modulos
+
+| Ruta | Categoria | Foco principal | Calidad actual | README | Docs |
+| --- | --- | --- | --- | --- | --- |
+| `audit` | Cross-cutting | Contrato y composicion de eventos auditables. | Tests unitarios propios; la persistencia concreta vive fuera del modulo. | [README](../../audit/README.md) | [Docs](../../audit/docs/README.md) |
+| `audit/postgres` | Cross-cutting Adapter | Persistencia de auditoria en PostgreSQL mediante GORM. | Compila, entra en CI/release y aun no tiene tests dedicados dentro del modulo. | [README](../../audit/postgres/README.md) | [Docs](../../audit/postgres/docs/README.md) |
+| `auth` | Security | JWT con contexto activo, passwords y refresh tokens. | Bateria fuerte de tests unitarios, benchmarks y casos concurrentes. | [README](../../auth/README.md) | [Docs](../../auth/docs/README.md) |
+| `bootstrap` | Runtime Orchestration | Inicializacion ordenada de recursos de infraestructura. | Cobertura combinada de tests unitarios e integracion con servicios reales. | [README](../../bootstrap/README.md) | [Docs](../../bootstrap/docs/README.md) |
+| `cache/redis` | Data Support | Conexion Redis y cache JSON generico. | Tests unitarios locales y participacion activa en la orquestacion raiz. | [README](../../cache/redis/README.md) | [Docs](../../cache/redis/docs/README.md) |
+| `common` | Foundation | Subpaquetes base: env, errores, validator, UUID y enums. | Modulo fundacional con subpaquetes cubiertos por tests unitarios. | [README](../../common/README.md) | [Docs](../../common/docs/README.md) |
+| `config` | Foundation | Carga de configuracion estructurada desde archivo y entorno. | Ciclo de pruebas unitarias estable sin dependencia de Docker. | [README](../../config/README.md) | [Docs](../../config/docs/README.md) |
+| `database/mongodb` | Data | Conexion MongoDB con timeouts y pool. | Suite mixta de pruebas unitarias e integracion con MongoDB real. | [README](../../database/mongodb/README.md) | [Docs](../../database/mongodb/docs/README.md) |
+| `database/postgres` | Data | Conexion PostgreSQL, pool y transacciones. | Cobertura mixta y guia de testing ya existente para integracion. | [README](../../database/postgres/README.md) | [Docs](../../database/postgres/docs/README.md) |
+| `lifecycle` | Runtime Orchestration | Startup ordenado y cleanup LIFO. | Suite unitaria enfocada en orden, errores y concurrencia basica. | [README](../../lifecycle/README.md) | [Docs](../../lifecycle/docs/README.md) |
+| `logger` | Foundation | Interfaz de logging estructurado y backends Zap/Logrus. | Tests unitarios estables sobre ambas implementaciones. | [README](../../logger/README.md) | [Docs](../../logger/docs/README.md) |
+| `messaging/events` | Transport Contract | Schemas de eventos de dominio compartidos. | Tests unitarios sobre construccion, serializacion y compatibilidad. | [README](../../messaging/events/README.md) | [Docs](../../messaging/events/docs/README.md) |
+| `messaging/rabbit` | Transport Runtime | Conexion, publish, consume y DLQ para RabbitMQ. | Suite combinada de unit tests e integracion sobre conexiones, publishing y consuming. | [README](../../messaging/rabbit/README.md) | [Docs](../../messaging/rabbit/docs/README.md) |
+| `middleware/gin` | Web | Auth, permisos, contexto y auditoria para Gin. | Suite unitaria consistente para auth, permisos y auditoria. | [README](../../middleware/gin/README.md) | [Docs](../../middleware/gin/docs/README.md) |
+| `repository` | Data Adapter | Repositorios GORM para entidades de usuarios, escuelas y membresias. | Cobertura actual centrada en helpers de filtros; falta validacion CRUD/integracion dentro del modulo. | [README](../../repository/README.md) | [Docs](../../repository/docs/README.md) |
+| `screenconfig` | UI Configuration | Transformaciones y validacion de configuracion dinamica de pantallas. | Cobertura unitaria alta sobre funciones puras y validaciones. | [README](../../screenconfig/README.md) | [Docs](../../screenconfig/docs/README.md) |
+| `testing` | Testing Infrastructure | Testcontainers reutilizables y helpers de integracion. | Suite mixta con pruebas unitarias y contenedores reales. | [README](../../testing/README.md) | [Docs](../../testing/docs/README.md) |

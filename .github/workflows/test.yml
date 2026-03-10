@@ -1,45 +1,36 @@
 name: Tests with Coverage
 
-# IMPORTANTE: Este workflow NO se ejecuta en push (solo PRs y manual)
-# Los "errores" en push son esperados - GitHub intenta ejecutar el workflow
-# pero falla inmediatamente (0s) porque no tiene trigger para push.
-# Esto es comportamiento normal y no afecta el flujo de trabajo.
 on:
-  workflow_dispatch:  # Manual desde GitHub UI
+  workflow_dispatch:
   pull_request:
-    branches: [ main, dev ]
+    branches: [main, dev]
 
 jobs:
-  # ============================================================================
-  # Coverage — todos los módulos en paralelo
-  # ============================================================================
+  prepare-modules:
+    name: Prepare Coverage Matrix
+    runs-on: ubuntu-latest
+    outputs:
+      all: ${{ steps.modules.outputs.all }}
+    steps:
+      - name: Checkout codigo
+        uses: actions/checkout@v4
+
+      - name: Exportar modulos
+        id: modules
+        run: echo "all=$(./scripts/list-modules.sh --set all --format json)" >> "$GITHUB_OUTPUT"
+
   test-coverage:
     name: Coverage ${{ matrix.module }}
     runs-on: ubuntu-latest
-    # Evitar ejecución en eventos push (solo workflow_dispatch y pull_request)
+    needs: prepare-modules
     if: github.event_name != 'push'
     strategy:
       fail-fast: false
       matrix:
-        module:
-          - common
-          - logger
-          - config
-          - testing
-          - messaging/events
-          - screenconfig
-          - audit
-          - audit/postgres
-          - auth
-          - lifecycle
-          - middleware/gin
-          - database/postgres
-          - database/mongodb
-          - messaging/rabbit
-          - bootstrap
+        module: ${{ fromJson(needs.prepare-modules.outputs.all) }}
 
     steps:
-      - name: Checkout código
+      - name: Checkout codigo
         uses: actions/checkout@v4
 
       - name: Setup Go
@@ -61,7 +52,7 @@ jobs:
 
           if [ -f coverage/coverage.out ]; then
             echo ""
-            echo "📊 Cobertura de ${{ matrix.module }}:"
+            echo "Cobertura de ${{ matrix.module }}:"
             go tool cover -func=coverage/coverage.out | tail -1
           fi
 
@@ -70,8 +61,7 @@ jobs:
         run: |
           MODULE="${{ matrix.module }}"
           SANITIZED=$(echo "$MODULE" | tr '/' '-')
-          echo "name=coverage-$SANITIZED" >> $GITHUB_OUTPUT
-          echo "📦 Nombre de artifact: coverage-$SANITIZED"
+          echo "name=coverage-$SANITIZED" >> "$GITHUB_OUTPUT"
 
       - name: Subir reporte de cobertura
         uses: actions/upload-artifact@v4
@@ -89,9 +79,6 @@ jobs:
           flags: ${{ matrix.module }}
           fail_ci_if_error: false
 
-  # ============================================================================
-  # Resumen de cobertura — agrega reportes de todos los módulos
-  # ============================================================================
   coverage-summary:
     name: Coverage Summary
     runs-on: ubuntu-latest
@@ -99,7 +86,7 @@ jobs:
     if: always()
 
     steps:
-      - name: Checkout código
+      - name: Checkout codigo
         uses: actions/checkout@v4
 
       - name: Setup Go
@@ -114,17 +101,15 @@ jobs:
 
       - name: Generate summary
         run: |
-          echo "# 📊 Resumen de Cobertura por Módulo" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Módulo | Cobertura |" >> $GITHUB_STEP_SUMMARY
-          echo "|--------|-----------|" >> $GITHUB_STEP_SUMMARY
+          echo "# Resumen de Cobertura por Modulo" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Modulo | Cobertura |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|--------|-----------|" >> "$GITHUB_STEP_SUMMARY"
 
           for dir in coverage-artifacts/coverage-*/; do
-            if [ -d "$dir" ]; then
+            if [ -d "$dir" ] && [ -f "$dir/coverage.out" ]; then
               module=$(basename "$dir" | sed 's/coverage-//')
-              if [ -f "$dir/coverage.out" ]; then
-                coverage=$(go tool cover -func="$dir/coverage.out" | tail -1 | awk '{print $NF}')
-                echo "| $module | $coverage |" >> $GITHUB_STEP_SUMMARY
-              fi
+              coverage=$(go tool cover -func="$dir/coverage.out" | tail -1 | awk '{print $NF}')
+              echo "| $module | $coverage |" >> "$GITHUB_STEP_SUMMARY"
             fi
           done

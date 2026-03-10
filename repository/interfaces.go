@@ -81,8 +81,8 @@ func (f ListFilters) ApplySearch(query *gorm.DB) *gorm.DB {
 	if f.Search == "" || len(f.SearchFields) == 0 {
 		return query
 	}
-	var conditions []string
-	var args []interface{}
+	conditions := make([]string, 0, len(f.SearchFields))
+	args := make([]interface{}, 0, len(f.SearchFields))
 	escaped := escapeLikePattern(f.Search)
 	for _, field := range f.SearchFields {
 		if !validFieldName.MatchString(field) {

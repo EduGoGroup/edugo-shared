@@ -1,6 +1,6 @@
 module github.com/EduGoGroup/edugo-shared/audit/postgres
 
-go 1.25
+go 1.25.0
 
 require (
 	github.com/EduGoGroup/edugo-shared/audit v0.0.0-00010101000000-000000000000

@@ -77,9 +77,9 @@ cache/redis:
     - "Agregar casos de expiracion y serializacion fallida"
 
 audit/postgres:
-  threshold: 0
-  current: 0.0
-  target: 50
+  threshold: 90
+  current: 97.8
+  target: 95
   status: "⚠️ Sin cobertura automatica"
   priority: "Alta"
   notes: "El modulo compila y entra a CI/release, pero hoy no tiene tests propios dentro del modulo."
@@ -164,9 +164,9 @@ database/mongodb:
     - "Objetivo: 13.6% → 80% (requiere ~12h con mocks)"
 
 repository:
-  threshold: 15
-  current: 19.6
-  target: 50
+  threshold: 75
+  current: 80.4
+  target: 80
   status: "⚠️ Cobertura baja - centrada en filtros"
   priority: "Alta"
   notes: "La cobertura actual protege builders y filtros de listado, pero sigue faltando CRUD e integracion del modulo."
@@ -254,7 +254,7 @@ screenconfig:
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 common:
-  threshold: 0
+  threshold: 90
   current: "95% estimado (con issue covdata)"
   target: 70
   status: "✅ Documentado (issue técnico de Go 1.25)"

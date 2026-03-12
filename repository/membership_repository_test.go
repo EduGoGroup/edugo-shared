@@ -46,7 +46,7 @@ func TestMembershipRepository_Create(t *testing.T) {
 			sqlmock.AnyArg(),
 			sqlmock.AnyArg(),
 		).
-		WillReturnRows(sqlmock.NewRows([]string{"metadata","withdrawn_at"}).AddRow("", nil))
+		WillReturnRows(sqlmock.NewRows([]string{"metadata", "withdrawn_at"}).AddRow("", nil))
 
 	err := repo.Create(context.Background(), m)
 	assert.NoError(t, err)

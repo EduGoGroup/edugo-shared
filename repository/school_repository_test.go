@@ -46,7 +46,7 @@ func TestSchoolRepository_Create(t *testing.T) {
 			sqlmock.AnyArg(),
 			sqlmock.AnyArg(),
 		).
-		WillReturnRows(sqlmock.NewRows([]string{"address","city","phone","email","metadata"}).AddRow("","","","",""))
+		WillReturnRows(sqlmock.NewRows([]string{"address", "city", "phone", "email", "metadata"}).AddRow("", "", "", "", ""))
 
 	err := repo.Create(context.Background(), school)
 	assert.NoError(t, err)
@@ -172,11 +172,11 @@ func TestSchoolRepository_List(t *testing.T) {
 
 	isActive := true
 	filters := ListFilters{
-		IsActive: &isActive,
-		Search:   "test",
+		IsActive:     &isActive,
+		Search:       "test",
 		SearchFields: []string{"code"},
-		Limit:    10,
-		Offset:   0,
+		Limit:        10,
+		Offset:       0,
 	}
 
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT count(*) FROM "academic"."schools" WHERE is_active = $1 AND code ILIKE $2 ESCAPE '\' AND "schools"."deleted_at" IS NULL`)).

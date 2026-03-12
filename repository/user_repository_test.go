@@ -180,11 +180,11 @@ func TestUserRepository_List(t *testing.T) {
 
 	isActive := true
 	filters := ListFilters{
-		IsActive: &isActive,
-		Search:   "test",
+		IsActive:     &isActive,
+		Search:       "test",
 		SearchFields: []string{"email"},
-		Limit:    10,
-		Offset:   0,
+		Limit:        10,
+		Offset:       0,
 	}
 
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT count(*) FROM "auth"."users" WHERE is_active = $1 AND email ILIKE $2 ESCAPE '\' AND "users"."deleted_at" IS NULL`)).

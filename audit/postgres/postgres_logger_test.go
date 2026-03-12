@@ -91,7 +91,8 @@ func TestLogFromGin(t *testing.T) {
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
 
-	req, _ := http.NewRequest("POST", "/test", nil)
+	req, err := http.NewRequest("POST", "/test", nil)
+	require.NoError(t, err)
 	req.Header.Set("X-Request-ID", "req-123")
 	req.Header.Set("User-Agent", "test-agent")
 	req.RemoteAddr = "127.0.0.1:1234"
@@ -128,7 +129,7 @@ func TestLogFromGin(t *testing.T) {
 		).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow("test-id"))
 
-	err := logger.LogFromGin(c, "test-action", "test-resource", "test-id")
+	err = logger.LogFromGin(c, "test-action", "test-resource", "test-id")
 	assert.NoError(t, err)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }

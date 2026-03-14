@@ -1,0 +1,15 @@
+Analizando la solicitud:
+El usuario pide un análisis completo y una implementación 360 de tests (unitarios, integración, testify, tablas, mocks)
+para incrementar la cobertura del repositorio y detectar bugs.
+
+De .coverage-thresholds.yml, hay varios módulos con poca cobertura que son prioritarios:
+- audit/postgres: 0% -> meta 50%
+- database/postgres: 5.9% -> meta 58%
+- database/mongodb: 13.6% -> meta 80%
+- repository: 19.6% -> meta 50%
+- testing: 21% -> meta 55%
+
+Dado el tiempo limitado y las instrucciones de priorizar un plan ejecutable, abordaré `audit/postgres` y `repository` con test unitarios exhaustivos usando go-sqlmock (ya que los test de integración con contenedores pueden fallar por problemas en el entorno, según la memoria).
+
+Para `audit/postgres`, crearé `postgres_logger_test.go` usando testify y sqlmock para probar Log y LogFromGin.
+Para `repository`, crearé tests unitarios para `membership_repository_test.go`, `school_repository_test.go` y `user_repository_test.go` usando sqlmock.

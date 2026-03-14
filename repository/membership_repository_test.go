@@ -12,7 +12,6 @@ import (
 	"gorm.io/gorm"
 )
 
-
 func TestMembershipRepository_Create(t *testing.T) {
 	db, mock := setupTestDB(t)
 	repo := NewPostgresMembershipRepository(db)

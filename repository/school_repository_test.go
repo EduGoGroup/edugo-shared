@@ -143,7 +143,7 @@ func TestSchoolRepository_FindByID(t *testing.T) {
 			got, err := repo.FindByID(context.Background(), schoolID)
 			if tt.wantErr != nil {
 				assert.Error(t, err)
-				if tt.wantErr == ErrNotFound {
+				if errors.Is(tt.wantErr, ErrNotFound) {
 					assert.Equal(t, ErrNotFound, err)
 				}
 			} else {
@@ -214,7 +214,7 @@ func TestSchoolRepository_FindByCode(t *testing.T) {
 			got, err := repo.FindByCode(context.Background(), code)
 			if tt.wantErr != nil {
 				assert.Error(t, err)
-				if tt.wantErr == ErrNotFound {
+				if errors.Is(tt.wantErr, ErrNotFound) {
 					assert.Equal(t, ErrNotFound, err)
 				}
 			} else {
@@ -415,7 +415,7 @@ func TestSchoolRepository_List(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Count Error",
+			name:    "Count Error",
 			filters: ListFilters{},
 			mock: func() {
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT count(*) FROM "academic"."schools" WHERE "schools"."deleted_at" IS NULL`)).
@@ -425,7 +425,7 @@ func TestSchoolRepository_List(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "Find Error",
+			name:    "Find Error",
 			filters: ListFilters{},
 			mock: func() {
 				countRows := sqlmock.NewRows([]string{"count"}).AddRow(1)

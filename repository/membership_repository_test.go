@@ -142,7 +142,7 @@ func TestMembershipRepository_FindByID(t *testing.T) {
 			got, err := repo.FindByID(context.Background(), membershipID)
 			if tt.wantErr != nil {
 				assert.Error(t, err)
-				if tt.wantErr == ErrNotFound {
+				if errors.Is(tt.wantErr, ErrNotFound) {
 					assert.Equal(t, ErrNotFound, err)
 				}
 			} else {
@@ -188,7 +188,7 @@ func TestMembershipRepository_FindByUser(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "DB Error",
+			name:    "DB Error",
 			filters: ListFilters{},
 			mock: func() {
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT count(*) FROM "academic"."memberships" WHERE user_id = $1 AND is_active = true`)).
@@ -249,7 +249,7 @@ func TestMembershipRepository_FindByUnit(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "DB Error",
+			name:    "DB Error",
 			filters: ListFilters{},
 			mock: func() {
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT count(*) FROM "academic"."memberships" WHERE academic_unit_id = $1 AND is_active = true`)).
@@ -420,7 +420,7 @@ func TestMembershipRepository_FindByUserAndSchool(t *testing.T) {
 			got, err := repo.FindByUserAndSchool(context.Background(), userID, schoolID)
 			if tt.wantErr != nil {
 				assert.Error(t, err)
-				if tt.wantErr == ErrNotFound {
+				if errors.Is(tt.wantErr, ErrNotFound) {
 					assert.Equal(t, ErrNotFound, err)
 				}
 			} else {

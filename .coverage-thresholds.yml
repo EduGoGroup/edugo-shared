@@ -164,15 +164,14 @@ database/mongodb:
     - "Objetivo: 13.6% → 80% (requiere ~12h con mocks)"
 
 repository:
-  threshold: 15
-  current: 19.6
-  target: 50
-  status: "⚠️ Cobertura baja - centrada en filtros"
-  priority: "Alta"
-  notes: "La cobertura actual protege builders y filtros de listado, pero sigue faltando CRUD e integracion del modulo."
+  threshold: 90
+  current: 97.9
+  target: 95
+  status: "✅ Excelente"
+  priority: "Mantener"
+  notes: "Cobertura incrementada sustancialmente agregando pruebas CRUD exhaustivas con sqlmock."
   actions:
-    - "Agregar tests CRUD sobre repositorios compartidos"
-    - "Agregar validacion de integracion con entidades de infraestructura"
+    - "Mantener cobertura alta y extender si se agregan más entidades"
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # MÓDULOS DE INTEGRACIÓN (Variada Prioridad)

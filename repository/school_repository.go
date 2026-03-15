@@ -52,9 +52,7 @@ func (r *postgresSchoolRepository) Delete(ctx context.Context, id uuid.UUID) err
 
 func (r *postgresSchoolRepository) List(ctx context.Context, filters ListFilters) ([]*entities.School, int64, error) {
 	baseQuery := r.db.WithContext(ctx).Model(&entities.School{})
-	if filters.IsActive != nil {
-		baseQuery = baseQuery.Where("is_active = ?", *filters.IsActive)
-	}
+	baseQuery = filters.ApplyIsActive(baseQuery)
 	baseQuery = filters.ApplySearch(baseQuery)
 
 	var total int64

@@ -323,6 +323,96 @@ func TestApplyPagination_WithOffset(t *testing.T) {
 }
 
 // ---------------------------------------------------------------------------
+// ApplyIsActive
+// ---------------------------------------------------------------------------
+
+func TestApplyIsActive_Nil(t *testing.T) {
+	db := newDryRunDB()
+	f := ListFilters{IsActive: nil}
+	result := f.ApplyIsActive(db)
+	if result != db {
+		t.Error("ApplyIsActive with nil should return the same query")
+	}
+}
+
+func TestApplyIsActive_True(t *testing.T) {
+	db := newDryRunDB()
+	isActive := true
+	f := ListFilters{IsActive: &isActive}
+	result := f.ApplyIsActive(db)
+	if result == db {
+		t.Error("ApplyIsActive with true should modify the query")
+	}
+}
+
+func TestApplyIsActive_False(t *testing.T) {
+	db := newDryRunDB()
+	isActive := false
+	f := ListFilters{IsActive: &isActive}
+	result := f.ApplyIsActive(db)
+	if result == db {
+		t.Error("ApplyIsActive with false should modify the query")
+	}
+}
+
+// ---------------------------------------------------------------------------
+// ApplyFieldFilters
+// ---------------------------------------------------------------------------
+
+func TestApplyFieldFilters_Empty(t *testing.T) {
+	db := newDryRunDB()
+	f := ListFilters{}
+	result := f.ApplyFieldFilters(db, []string{"status"})
+	if result != db {
+		t.Error("ApplyFieldFilters with no field filters should return the same query")
+	}
+}
+
+func TestApplyFieldFilters_SingleValue(t *testing.T) {
+	db := newDryRunDB()
+	f := ListFilters{
+		FieldFilters: map[string][]string{"status": {"active"}},
+	}
+	result := f.ApplyFieldFilters(db, []string{"status"})
+	if result == db {
+		t.Error("ApplyFieldFilters with single value should modify the query")
+	}
+}
+
+func TestApplyFieldFilters_MultiValue(t *testing.T) {
+	db := newDryRunDB()
+	f := ListFilters{
+		FieldFilters: map[string][]string{"status": {"active", "pending"}},
+	}
+	result := f.ApplyFieldFilters(db, []string{"status"})
+	if result == db {
+		t.Error("ApplyFieldFilters with multiple values should modify the query")
+	}
+}
+
+func TestApplyFieldFilters_NotAllowed(t *testing.T) {
+	db := newDryRunDB()
+	f := ListFilters{
+		FieldFilters: map[string][]string{"secret": {"value"}},
+	}
+	result := f.ApplyFieldFilters(db, []string{"status"})
+	if result != db {
+		t.Error("ApplyFieldFilters with non-allowed field should return the same query")
+	}
+}
+
+func TestApplyFieldFilters_InvalidFieldName(t *testing.T) {
+	db := newDryRunDB()
+	f := ListFilters{
+		FieldFilters: map[string][]string{"bad;field": {"value"}},
+	}
+	result := f.ApplyFieldFilters(db, []string{"bad;field"})
+	if result != db {
+		t.Error("ApplyFieldFilters with invalid field name should return the same query")
+	}
+}
+
+// ---------------------------------------------------------------------------
 // ilikEscapeClause constant
 // ---------------------------------------------------------------------------
 

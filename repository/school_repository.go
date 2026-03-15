@@ -24,7 +24,7 @@ func (r *postgresSchoolRepository) FindByID(ctx context.Context, id uuid.UUID) (
 	var s entities.School
 	if err := r.db.WithContext(ctx).First(&s, "id = ?", id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
+			return nil, ErrNotFound
 		}
 		return nil, err
 	}
@@ -35,7 +35,7 @@ func (r *postgresSchoolRepository) FindByCode(ctx context.Context, code string) 
 	var s entities.School
 	if err := r.db.WithContext(ctx).Where("code = ?", code).First(&s).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
+			return nil, ErrNotFound
 		}
 		return nil, err
 	}

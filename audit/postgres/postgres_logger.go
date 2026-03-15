@@ -9,6 +9,13 @@ import (
 	"gorm.io/gorm"
 )
 
+// Default actor values used when the audit event does not carry actor information.
+const (
+	defaultActorID    = "00000000-0000-0000-0000-000000000000"
+	defaultActorEmail = "system"
+	defaultActorRole  = "unknown"
+)
+
 // auditEventDB es el modelo GORM para la tabla audit.events.
 type auditEventDB struct {
 	ID             string                 `gorm:"column:id;primaryKey;default:gen_random_uuid()"`
@@ -64,6 +71,16 @@ func (l *PostgresAuditLogger) Log(ctx context.Context, event audit.AuditEvent) e
 		event.Category = audit.CategoryData
 	}
 	event.ServiceName = l.serviceName
+
+	if event.ActorID == "" {
+		event.ActorID = defaultActorID
+	}
+	if event.ActorEmail == "" {
+		event.ActorEmail = defaultActorEmail
+	}
+	if event.ActorRole == "" {
+		event.ActorRole = defaultActorRole
+	}
 
 	record := toDBModel(event)
 	return l.db.WithContext(ctx).Create(&record).Error

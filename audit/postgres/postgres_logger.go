@@ -65,6 +65,16 @@ func (l *PostgresAuditLogger) Log(ctx context.Context, event audit.AuditEvent) e
 	}
 	event.ServiceName = l.serviceName
 
+	if event.ActorID == "" {
+		event.ActorID = "00000000-0000-0000-0000-000000000000"
+	}
+	if event.ActorEmail == "" {
+		event.ActorEmail = "system"
+	}
+	if event.ActorRole == "" {
+		event.ActorRole = "unknown"
+	}
+
 	record := toDBModel(event)
 	return l.db.WithContext(ctx).Create(&record).Error
 }

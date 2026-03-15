@@ -24,7 +24,7 @@ func (r *postgresUserRepository) FindByID(ctx context.Context, id uuid.UUID) (*e
 	var u entities.User
 	if err := r.db.WithContext(ctx).First(&u, "id = ?", id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, gorm.ErrRecordNotFound
+			return nil, nil
 		}
 		return nil, err
 	}
@@ -35,7 +35,7 @@ func (r *postgresUserRepository) FindByEmail(ctx context.Context, email string) 
 	var u entities.User
 	if err := r.db.WithContext(ctx).Where("email = ?", email).First(&u).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, gorm.ErrRecordNotFound
+			return nil, nil
 		}
 		return nil, err
 	}

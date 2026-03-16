@@ -58,9 +58,7 @@ func (r *postgresUserRepository) Delete(ctx context.Context, id uuid.UUID) error
 
 func (r *postgresUserRepository) List(ctx context.Context, filters ListFilters) ([]*entities.User, int64, error) {
 	baseQuery := r.db.WithContext(ctx).Model(&entities.User{})
-	if filters.IsActive != nil {
-		baseQuery = baseQuery.Where("is_active = ?", *filters.IsActive)
-	}
+	baseQuery = filters.ApplyIsActive(baseQuery)
 	baseQuery = filters.ApplySearch(baseQuery)
 
 	var total int64

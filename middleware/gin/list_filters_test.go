@@ -22,8 +22,36 @@ func TestParseListFilters_EmptyRequest(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if filters.IsActive != nil || filters.Limit != 0 || filters.Page != 0 || filters.Search != "" {
-		t.Error("empty request should produce zero-value filters")
+	if filters.IsActive == nil || !*filters.IsActive {
+		t.Error("empty request should default IsActive to true")
+	}
+	if filters.Limit != 50 {
+		t.Errorf("empty request should default Limit to 50, got %d", filters.Limit)
+	}
+	if filters.Page != 0 || filters.Search != "" {
+		t.Error("empty request should have zero-value Page and Search")
+	}
+}
+
+func TestParseListFilters_LimitCappedAt200(t *testing.T) {
+	c := setupGinContext("limit=500")
+	filters, err := ParseListFilters(c)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if filters.Limit != 200 {
+		t.Errorf("limit should be capped at 200, got %d", filters.Limit)
+	}
+}
+
+func TestParseListFilters_ExplicitIsActiveFalse(t *testing.T) {
+	c := setupGinContext("is_active=false")
+	filters, err := ParseListFilters(c)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if filters.IsActive == nil || *filters.IsActive {
+		t.Error("explicit is_active=false should be preserved")
 	}
 }
 

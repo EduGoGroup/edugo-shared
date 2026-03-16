@@ -15,6 +15,10 @@ import (
 // limit, search, and search_fields. Any extra field names supplied in
 // extraFields are also parsed (comma-split) into FieldFilters.
 //
+// Defensive defaults: when no ?limit= is provided, Limit defaults to 50.
+// Values above 200 are capped to 200. When no ?is_active= is provided,
+// IsActive defaults to true (active-only) to preserve backward compatibility.
+//
 // Returns a *commonerrors.AppError (HTTP 400) on validation failure, which is
 // compatible with the ErrorHandler middleware.
 func ParseListFilters(c *gin.Context, extraFields ...string) (sharedrepo.ListFilters, error) {
@@ -79,6 +83,12 @@ func ParseListFilters(c *gin.Context, extraFields ...string) (sharedrepo.ListFil
 		if len(fieldFilters) > 0 {
 			filters.FieldFilters = fieldFilters
 		}
+	}
+
+	// Default is_active to true (active-only) when not explicitly provided
+	if filters.IsActive == nil {
+		defaultActive := true
+		filters.IsActive = &defaultActive
 	}
 
 	// Default and cap limit to protect against unbounded queries

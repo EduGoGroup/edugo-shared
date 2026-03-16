@@ -10,6 +10,11 @@ import (
 	sharedrepo "github.com/EduGoGroup/edugo-shared/repository"
 )
 
+const (
+	defaultLimit = 50
+	maxLimit     = 200
+)
+
 // ParseListFilters extracts standard list filter parameters from the Gin
 // request query string into a ListFilters value. It handles is_active, page,
 // limit, search, and search_fields. Any extra field names supplied in
@@ -24,80 +29,101 @@ import (
 func ParseListFilters(c *gin.Context, extraFields ...string) (sharedrepo.ListFilters, error) {
 	var filters sharedrepo.ListFilters
 
-	if isActiveStr := c.Query("is_active"); isActiveStr != "" {
-		isActive, err := strconv.ParseBool(isActiveStr)
-		if err != nil {
-			return filters, commonerrors.NewValidationError("invalid is_active parameter")
-		}
-		filters.IsActive = &isActive
+	if err := parseIsActive(c, &filters); err != nil {
+		return filters, err
 	}
-
-	if limitStr := c.Query("limit"); limitStr != "" {
-		limit, err := strconv.Atoi(limitStr)
-		if err != nil || limit <= 0 {
-			return filters, commonerrors.NewValidationError("limit must be a positive integer")
-		}
-		filters.Limit = limit
+	if err := parseLimit(c, &filters); err != nil {
+		return filters, err
 	}
-
-	if pageStr := c.Query("page"); pageStr != "" {
-		page, err := strconv.Atoi(pageStr)
-		if err != nil || page <= 0 {
-			return filters, commonerrors.NewValidationError("page must be a positive integer")
-		}
-		filters.Page = page
+	if err := parsePage(c, &filters); err != nil {
+		return filters, err
 	}
-
-	if search := c.Query("search"); search != "" {
-		filters.Search = search
-		if fields := c.Query("search_fields"); fields != "" {
-			rawFields := strings.Split(fields, ",")
-			cleanFields := make([]string, 0, len(rawFields))
-			for _, f := range rawFields {
-				if f = strings.TrimSpace(f); f != "" {
-					cleanFields = append(cleanFields, f)
-				}
-			}
-			if len(cleanFields) > 0 {
-				filters.SearchFields = cleanFields
-			}
-		}
-	}
-
-	if len(extraFields) > 0 {
-		fieldFilters := make(map[string][]string)
-		for _, field := range extraFields {
-			if v := c.Query(field); v != "" {
-				parts := strings.Split(v, ",")
-				clean := make([]string, 0, len(parts))
-				for _, p := range parts {
-					if p = strings.TrimSpace(p); p != "" {
-						clean = append(clean, p)
-					}
-				}
-				if len(clean) > 0 {
-					fieldFilters[field] = clean
-				}
-			}
-		}
-		if len(fieldFilters) > 0 {
-			filters.FieldFilters = fieldFilters
-		}
-	}
-
-	// Default is_active to true (active-only) when not explicitly provided
-	if filters.IsActive == nil {
-		defaultActive := true
-		filters.IsActive = &defaultActive
-	}
-
-	// Default and cap limit to protect against unbounded queries
-	if filters.Limit == 0 {
-		filters.Limit = 50
-	}
-	if filters.Limit > 200 {
-		filters.Limit = 200
-	}
+	parseSearch(c, &filters)
+	parseExtraFields(c, &filters, extraFields)
+	applyDefaults(&filters)
 
 	return filters, nil
+}
+
+func parseIsActive(c *gin.Context, f *sharedrepo.ListFilters) error {
+	if s := c.Query("is_active"); s != "" {
+		v, err := strconv.ParseBool(s)
+		if err != nil {
+			return commonerrors.NewValidationError("invalid is_active parameter")
+		}
+		f.IsActive = &v
+	}
+	return nil
+}
+
+func parseLimit(c *gin.Context, f *sharedrepo.ListFilters) error {
+	if s := c.Query("limit"); s != "" {
+		v, err := strconv.Atoi(s)
+		if err != nil || v <= 0 {
+			return commonerrors.NewValidationError("limit must be a positive integer")
+		}
+		f.Limit = v
+	}
+	return nil
+}
+
+func parsePage(c *gin.Context, f *sharedrepo.ListFilters) error {
+	if s := c.Query("page"); s != "" {
+		v, err := strconv.Atoi(s)
+		if err != nil || v <= 0 {
+			return commonerrors.NewValidationError("page must be a positive integer")
+		}
+		f.Page = v
+	}
+	return nil
+}
+
+func parseSearch(c *gin.Context, f *sharedrepo.ListFilters) {
+	if search := c.Query("search"); search != "" {
+		f.Search = search
+		f.SearchFields = splitClean(c.Query("search_fields"))
+	}
+}
+
+func parseExtraFields(c *gin.Context, f *sharedrepo.ListFilters, extra []string) {
+	if len(extra) == 0 {
+		return
+	}
+	fieldFilters := make(map[string][]string)
+	for _, field := range extra {
+		if vals := splitClean(c.Query(field)); len(vals) > 0 {
+			fieldFilters[field] = vals
+		}
+	}
+	if len(fieldFilters) > 0 {
+		f.FieldFilters = fieldFilters
+	}
+}
+
+func applyDefaults(f *sharedrepo.ListFilters) {
+	if f.IsActive == nil {
+		defaultActive := true
+		f.IsActive = &defaultActive
+	}
+	if f.Limit == 0 {
+		f.Limit = defaultLimit
+	}
+	if f.Limit > maxLimit {
+		f.Limit = maxLimit
+	}
+}
+
+// splitClean splits s by comma and returns non-empty trimmed values.
+func splitClean(s string) []string {
+	if s == "" {
+		return nil
+	}
+	parts := strings.Split(s, ",")
+	clean := make([]string, 0, len(parts))
+	for _, p := range parts {
+		if p = strings.TrimSpace(p); p != "" {
+			clean = append(clean, p)
+		}
+	}
+	return clean
 }

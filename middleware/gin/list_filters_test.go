@@ -12,7 +12,11 @@ func setupGinContext(queryString string) *gin.Context {
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
-	c.Request, _ = http.NewRequest("GET", "/?"+queryString, nil)
+	req, err := http.NewRequest("GET", "/?"+queryString, nil)
+	if err != nil {
+		panic(err)
+	}
+	c.Request = req
 	return c
 }
 

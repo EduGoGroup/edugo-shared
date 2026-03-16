@@ -32,7 +32,8 @@ func (r *postgresMembershipRepository) FindByID(ctx context.Context, id uuid.UUI
 }
 
 func (r *postgresMembershipRepository) FindByUser(ctx context.Context, userID uuid.UUID, filters ListFilters) ([]*entities.Membership, int64, error) {
-	baseQuery := r.db.WithContext(ctx).Model(&entities.Membership{}).Where("user_id = ? AND is_active = true", userID)
+	baseQuery := r.db.WithContext(ctx).Model(&entities.Membership{}).Where("user_id = ?", userID)
+	baseQuery = filters.ApplyIsActive(baseQuery)
 	baseQuery = filters.ApplySearch(baseQuery)
 
 	var total int64
@@ -50,7 +51,8 @@ func (r *postgresMembershipRepository) FindByUser(ctx context.Context, userID uu
 }
 
 func (r *postgresMembershipRepository) FindByUnit(ctx context.Context, unitID uuid.UUID, filters ListFilters) ([]*entities.Membership, int64, error) {
-	baseQuery := r.db.WithContext(ctx).Model(&entities.Membership{}).Where("academic_unit_id = ? AND is_active = true", unitID)
+	baseQuery := r.db.WithContext(ctx).Model(&entities.Membership{}).Where("academic_unit_id = ?", unitID)
+	baseQuery = filters.ApplyIsActive(baseQuery)
 	baseQuery = filters.ApplySearch(baseQuery)
 
 	var total int64

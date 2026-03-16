@@ -56,6 +56,10 @@ type ListFilters struct {
 	// Use snake_case column names as they appear in the database schema,
 	// e.g. []string{"first_name", "last_name", "email"}.
 	SearchFields []string
+	// FieldFilters holds generic key→values filters parsed from query parameters.
+	// Each key is a database column name; values are the filter operands.
+	// Use ApplyFieldFilters to apply them with a whitelist of allowed columns.
+	FieldFilters map[string][]string
 }
 
 // escapeLikePattern escapes PostgreSQL ILIKE special characters in s so they
@@ -95,6 +99,39 @@ func (f ListFilters) ApplySearch(query *gorm.DB) *gorm.DB {
 		return query
 	}
 	return query.Where(strings.Join(conditions, " OR "), args...)
+}
+
+// ApplyIsActive adds a WHERE is_active = ? clause when IsActive is non-nil.
+func (f ListFilters) ApplyIsActive(query *gorm.DB) *gorm.DB {
+	if f.IsActive != nil {
+		return query.Where("is_active = ?", *f.IsActive)
+	}
+	return query
+}
+
+// ApplyFieldFilters applies generic column filters from FieldFilters.
+// Only columns present in allowedFields (whitelist) and matching the safe name
+// pattern are applied. A single value produces WHERE col = ?; multiple values
+// produce WHERE col IN (?).
+func (f ListFilters) ApplyFieldFilters(query *gorm.DB, allowedFields []string) *gorm.DB {
+	if len(f.FieldFilters) == 0 {
+		return query
+	}
+	allowed := make(map[string]bool, len(allowedFields))
+	for _, field := range allowedFields {
+		allowed[field] = true
+	}
+	for field, values := range f.FieldFilters {
+		if !allowed[field] || !validFieldName.MatchString(field) {
+			continue
+		}
+		if len(values) == 1 {
+			query = query.Where(field+" = ?", values[0])
+		} else if len(values) > 1 {
+			query = query.Where(field+" IN ?", values)
+		}
+	}
+	return query
 }
 
 // ApplyPagination applies LIMIT and OFFSET to the query when Limit > 0.

@@ -32,18 +32,21 @@ func (r *postgresMembershipRepository) FindByID(ctx context.Context, id uuid.UUI
 }
 
 func (r *postgresMembershipRepository) FindByUser(ctx context.Context, userID uuid.UUID, filters ListFilters) ([]*entities.Membership, int64, error) {
-	baseQuery := r.db.WithContext(ctx).Model(&entities.Membership{}).Where("user_id = ?", userID)
-	baseQuery = filters.ApplyIsActive(baseQuery)
-	baseQuery = filters.ApplySearch(baseQuery)
+	buildBase := func() *gorm.DB {
+		q := r.db.WithContext(ctx).Model(&entities.Membership{}).Where("user_id = ?", userID)
+		q = filters.ApplyIsActive(q)
+		q = filters.ApplySearch(q)
+		return q
+	}
 
 	var total int64
-	if err := baseQuery.Count(&total).Error; err != nil {
+	if err := buildBase().Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 
-	query := baseQuery.Order("created_at DESC")
-	query = filters.ApplyPagination(query)
 	var memberships []*entities.Membership
+	query := buildBase().Order("created_at DESC")
+	query = filters.ApplyPagination(query)
 	if err := query.Find(&memberships).Error; err != nil {
 		return nil, 0, err
 	}
@@ -51,18 +54,21 @@ func (r *postgresMembershipRepository) FindByUser(ctx context.Context, userID uu
 }
 
 func (r *postgresMembershipRepository) FindByUnit(ctx context.Context, unitID uuid.UUID, filters ListFilters) ([]*entities.Membership, int64, error) {
-	baseQuery := r.db.WithContext(ctx).Model(&entities.Membership{}).Where("academic_unit_id = ?", unitID)
-	baseQuery = filters.ApplyIsActive(baseQuery)
-	baseQuery = filters.ApplySearch(baseQuery)
+	buildBase := func() *gorm.DB {
+		q := r.db.WithContext(ctx).Model(&entities.Membership{}).Where("academic_unit_id = ?", unitID)
+		q = filters.ApplyIsActive(q)
+		q = filters.ApplySearch(q)
+		return q
+	}
 
 	var total int64
-	if err := baseQuery.Count(&total).Error; err != nil {
+	if err := buildBase().Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 
-	query := baseQuery.Order("created_at DESC")
-	query = filters.ApplyPagination(query)
 	var memberships []*entities.Membership
+	query := buildBase().Order("created_at DESC")
+	query = filters.ApplyPagination(query)
 	if err := query.Find(&memberships).Error; err != nil {
 		return nil, 0, err
 	}
@@ -70,20 +76,23 @@ func (r *postgresMembershipRepository) FindByUnit(ctx context.Context, unitID uu
 }
 
 func (r *postgresMembershipRepository) FindByUnitAndRole(ctx context.Context, unitID uuid.UUID, role string, activeOnly bool, filters ListFilters) ([]*entities.Membership, int64, error) {
-	baseQuery := r.db.WithContext(ctx).Model(&entities.Membership{}).Where("academic_unit_id = ? AND role = ?", unitID, role)
-	if activeOnly {
-		baseQuery = baseQuery.Where("is_active = true")
+	buildBase := func() *gorm.DB {
+		q := r.db.WithContext(ctx).Model(&entities.Membership{}).Where("academic_unit_id = ? AND role = ?", unitID, role)
+		if activeOnly {
+			q = q.Where("is_active = true")
+		}
+		q = filters.ApplySearch(q)
+		return q
 	}
-	baseQuery = filters.ApplySearch(baseQuery)
 
 	var total int64
-	if err := baseQuery.Count(&total).Error; err != nil {
+	if err := buildBase().Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 
-	query := baseQuery.Order("created_at DESC")
-	query = filters.ApplyPagination(query)
 	var memberships []*entities.Membership
+	query := buildBase().Order("created_at DESC")
+	query = filters.ApplyPagination(query)
 	if err := query.Find(&memberships).Error; err != nil {
 		return nil, 0, err
 	}

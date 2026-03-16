@@ -51,18 +51,21 @@ func (r *postgresSchoolRepository) Delete(ctx context.Context, id uuid.UUID) err
 }
 
 func (r *postgresSchoolRepository) List(ctx context.Context, filters ListFilters) ([]*entities.School, int64, error) {
-	baseQuery := r.db.WithContext(ctx).Model(&entities.School{})
-	baseQuery = filters.ApplyIsActive(baseQuery)
-	baseQuery = filters.ApplySearch(baseQuery)
+	buildBase := func() *gorm.DB {
+		q := r.db.WithContext(ctx).Model(&entities.School{})
+		q = filters.ApplyIsActive(q)
+		q = filters.ApplySearch(q)
+		return q
+	}
 
 	var total int64
-	if err := baseQuery.Count(&total).Error; err != nil {
+	if err := buildBase().Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 
-	query := baseQuery.Order("created_at DESC")
-	query = filters.ApplyPagination(query)
 	var schools []*entities.School
+	query := buildBase().Order("created_at DESC")
+	query = filters.ApplyPagination(query)
 	if err := query.Find(&schools).Error; err != nil {
 		return nil, 0, err
 	}

@@ -57,18 +57,21 @@ func (r *postgresUserRepository) Delete(ctx context.Context, id uuid.UUID) error
 }
 
 func (r *postgresUserRepository) List(ctx context.Context, filters ListFilters) ([]*entities.User, int64, error) {
-	baseQuery := r.db.WithContext(ctx).Model(&entities.User{})
-	baseQuery = filters.ApplyIsActive(baseQuery)
-	baseQuery = filters.ApplySearch(baseQuery)
+	buildBase := func() *gorm.DB {
+		q := r.db.WithContext(ctx).Model(&entities.User{})
+		q = filters.ApplyIsActive(q)
+		q = filters.ApplySearch(q)
+		return q
+	}
 
 	var total int64
-	if err := baseQuery.Count(&total).Error; err != nil {
+	if err := buildBase().Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 
-	query := baseQuery.Order("created_at DESC")
-	query = filters.ApplyPagination(query)
 	var users []*entities.User
+	query := buildBase().Order("created_at DESC")
+	query = filters.ApplyPagination(query)
 	if err := query.Find(&users).Error; err != nil {
 		return nil, 0, err
 	}

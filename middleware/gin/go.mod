@@ -3,10 +3,10 @@ module github.com/EduGoGroup/edugo-shared/middleware/gin
 go 1.25.0
 
 require (
-	github.com/EduGoGroup/edugo-shared/audit v0.0.0-00010101000000-000000000000
-	github.com/EduGoGroup/edugo-shared/auth v0.51.0
-	github.com/EduGoGroup/edugo-shared/common v0.51.0
-	github.com/EduGoGroup/edugo-shared/repository v0.0.0-00010101000000-000000000000
+	github.com/EduGoGroup/edugo-shared/audit v0.1.0
+	github.com/EduGoGroup/edugo-shared/auth v0.52.0
+	github.com/EduGoGroup/edugo-shared/common v0.54.0
+	github.com/EduGoGroup/edugo-shared/repository v0.4.2
 	github.com/gin-gonic/gin v1.12.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/stretchr/testify v1.11.1
@@ -17,7 +17,7 @@ replace github.com/EduGoGroup/edugo-shared/audit => ../../audit
 replace github.com/EduGoGroup/edugo-shared/repository => ../../repository
 
 require (
-	github.com/EduGoGroup/edugo-infrastructure/postgres v0.62.1 // indirect
+	github.com/EduGoGroup/edugo-infrastructure/postgres v0.62.2 // indirect
 	github.com/bytedance/gopkg v0.1.3 // indirect
 	github.com/bytedance/sonic v1.15.0 // indirect
 	github.com/bytedance/sonic/loader v0.5.0 // indirect
@@ -28,7 +28,7 @@ require (
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.30.1 // indirect
-	github.com/goccy/go-json v0.10.5 // indirect
+	github.com/goccy/go-json v0.10.6 // indirect
 	github.com/goccy/go-yaml v1.19.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
@@ -46,10 +46,10 @@ require (
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.3.1 // indirect
 	go.mongodb.org/mongo-driver/v2 v2.5.0 // indirect
-	golang.org/x/arch v0.24.0 // indirect
-	golang.org/x/crypto v0.48.0 // indirect
-	golang.org/x/net v0.51.0 // indirect
-	golang.org/x/sys v0.41.0 // indirect
+	golang.org/x/arch v0.25.0 // indirect
+	golang.org/x/crypto v0.49.0 // indirect
+	golang.org/x/net v0.52.0 // indirect
+	golang.org/x/sys v0.42.0 // indirect
 	golang.org/x/text v0.35.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

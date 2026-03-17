@@ -156,38 +156,41 @@ jobs:
           SCOPE: ${{ needs.prepare-release.outputs.scope }}
           MODULE: ${{ needs.prepare-release.outputs.module }}
           VERSION: ${{ needs.prepare-release.outputs.version }}
+          REPO: ${{ github.repository }}
         run: |
           NOTES_FILE=/tmp/changelog.md
           EXTRA_NOTES=$(mktemp)
 
+          # Nota: se usan echo en lugar de heredoc para evitar el conflicto
+          # entre la indentación YAML y los delimitadores de heredoc bash.
           if [ "$SCOPE" = "module" ]; then
-            cat > "$EXTRA_NOTES" <<MODULE_NOTES
-
----
-
-## Instalacion del modulo
-
-\`\`\`bash
-go get github.com/EduGoGroup/edugo-shared/$MODULE@$VERSION
-\`\`\`
-
-## Documentacion relacionada
-
-- https://github.com/${{ github.repository }}/blob/$TAG/$MODULE/README.md
-- https://github.com/${{ github.repository }}/blob/$TAG/$MODULE/docs/README.md
-- https://github.com/${{ github.repository }}/blob/$TAG/$MODULE/CHANGELOG.md
-MODULE_NOTES
+            {
+              echo ""
+              echo "---"
+              echo ""
+              echo "## Instalacion del modulo"
+              echo ""
+              echo '```bash'
+              echo "go get github.com/EduGoGroup/edugo-shared/$MODULE@$VERSION"
+              echo '```'
+              echo ""
+              echo "## Documentacion relacionada"
+              echo ""
+              echo "- https://github.com/$REPO/blob/$TAG/$MODULE/README.md"
+              echo "- https://github.com/$REPO/blob/$TAG/$MODULE/docs/README.md"
+              echo "- https://github.com/$REPO/blob/$TAG/$MODULE/CHANGELOG.md"
+            } > "$EXTRA_NOTES"
           else
-            cat > "$EXTRA_NOTES" <<ROOT_NOTES
-
----
-
-## Documentacion relacionada
-
-- https://github.com/${{ github.repository }}/blob/$TAG/README.md
-- https://github.com/${{ github.repository }}/blob/$TAG/docs/README.md
-- https://github.com/${{ github.repository }}/blob/$TAG/CHANGELOG.md
-ROOT_NOTES
+            {
+              echo ""
+              echo "---"
+              echo ""
+              echo "## Documentacion relacionada"
+              echo ""
+              echo "- https://github.com/$REPO/blob/$TAG/README.md"
+              echo "- https://github.com/$REPO/blob/$TAG/docs/README.md"
+              echo "- https://github.com/$REPO/blob/$TAG/CHANGELOG.md"
+            } > "$EXTRA_NOTES"
           fi
 
           cat "$EXTRA_NOTES" >> "$NOTES_FILE"

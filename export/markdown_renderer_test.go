@@ -18,30 +18,30 @@ func TestMarkdownRenderer_Render(t *testing.T) {
 
 	tests := []struct {
 		name         string
-		doc          ExportDocument
+		doc          Document
 		wantContains []string
 		wantMIME     string
 	}{
 		{
 			name: "documento completo con todas las secciones",
-			doc: ExportDocument{
-				Header: ExportHeader{
+			doc: Document{
+				Header: Header{
 					Title:       "Reporte de Notas",
 					Subtitle:    "Periodo 2026-Q1",
 					GeneratedAt: fixedTime,
 					GeneratedBy: "admin@edugo.test",
 				},
-				Sections: []ExportSection{
+				Sections: []Section{
 					{
 						Title: "Matematicas",
-						Rows: []ExportRow{
+						Rows: []Row{
 							{Label: "Carlos Mendoza", Value: "95"},
 							{Label: "Sofia Herrera", Value: "88"},
 						},
 						Note: "Promedio general: 91.5",
 					},
 				},
-				Footer: ExportFooter{Text: "Generado por EduGo"},
+				Footer: Footer{Text: "Generado por EduGo"},
 			},
 			wantContains: []string{
 				"# Reporte de Notas",
@@ -57,15 +57,15 @@ func TestMarkdownRenderer_Render(t *testing.T) {
 		},
 		{
 			name: "sin subtitle ni footer ni note",
-			doc: ExportDocument{
-				Header: ExportHeader{
+			doc: Document{
+				Header: Header{
 					Title:       "Reporte Simple",
 					GeneratedAt: fixedTime,
 				},
-				Sections: []ExportSection{
+				Sections: []Section{
 					{
 						Title: "Datos",
-						Rows: []ExportRow{
+						Rows: []Row{
 							{Label: "Total", Value: "100"},
 						},
 					},
@@ -80,8 +80,8 @@ func TestMarkdownRenderer_Render(t *testing.T) {
 		},
 		{
 			name: "sin secciones",
-			doc: ExportDocument{
-				Header: ExportHeader{
+			doc: Document{
+				Header: Header{
 					Title:       "Documento Vacio",
 					GeneratedAt: fixedTime,
 				},
@@ -94,12 +94,12 @@ func TestMarkdownRenderer_Render(t *testing.T) {
 		},
 		{
 			name: "seccion sin rows pero con note",
-			doc: ExportDocument{
-				Header: ExportHeader{
+			doc: Document{
+				Header: Header{
 					Title:       "Con Nota",
 					GeneratedAt: fixedTime,
 				},
-				Sections: []ExportSection{
+				Sections: []Section{
 					{
 						Title: "Observaciones",
 						Note:  "Sin datos disponibles",
@@ -139,15 +139,15 @@ func TestMarkdownRenderer_Render_OmitsEmptyOptionalFields(t *testing.T) {
 	fixedTime := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
 	r := &MarkdownRenderer{}
 
-	doc := ExportDocument{
-		Header: ExportHeader{
+	doc := Document{
+		Header: Header{
 			Title:       "Test",
 			GeneratedAt: fixedTime,
 		},
-		Sections: []ExportSection{
+		Sections: []Section{
 			{
 				Title: "Section 1",
-				Rows:  []ExportRow{{Label: "A", Value: "1"}},
+				Rows:  []Row{{Label: "A", Value: "1"}},
 			},
 		},
 	}
@@ -158,9 +158,9 @@ func TestMarkdownRenderer_Render_OmitsEmptyOptionalFields(t *testing.T) {
 	}
 	output := string(got)
 
-	// Subtitle should not appear
-	if strings.Contains(output, "_ _") || strings.Count(output, "\n_") > 0 && strings.Contains(output, "_\n\n**") {
-		// Subtitle is rendered as _subtitle_ so check there is no empty italic
+	// Subtitle should not appear as empty italic
+	if strings.Contains(output, "_ _") || (strings.Count(output, "\n_") > 0 && strings.Contains(output, "_\n\n**")) {
+		t.Error("Render() should not render empty subtitle")
 	}
 
 	// Footer separator should not appear when footer is empty

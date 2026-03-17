@@ -5,16 +5,16 @@ import (
 	"fmt"
 )
 
-// MarkdownRenderer renderiza un ExportDocument como Markdown.
+// MarkdownRenderer renderiza un Document como Markdown.
 type MarkdownRenderer struct{}
 
 // Extension devuelve la extensión de archivo para el formato Markdown ("md").
 func (r *MarkdownRenderer) Extension() string { return "md" }
 
-// Render convierte un ExportDocument a bytes en formato Markdown.
+// Render convierte un Document a bytes en formato Markdown.
 // Devuelve el contenido renderizado, el MIME type "text/markdown" y un error (siempre nil).
 // Los campos opcionales (Subtitle, Note, Footer) se omiten si están vacíos.
-func (r *MarkdownRenderer) Render(doc ExportDocument) ([]byte, string, error) {
+func (r *MarkdownRenderer) Render(doc Document) ([]byte, string, error) {
 	var buf bytes.Buffer
 	fmt.Fprintf(&buf, "# %s\n\n", doc.Header.Title)
 	if doc.Header.Subtitle != "" {

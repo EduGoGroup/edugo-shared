@@ -5,6 +5,7 @@ config|0|false|true
 testing|0|true|true
 messaging/events|0|false|true
 screenconfig|0|false|true
+export|0|false|true
 audit|0|false|true
 cache/redis|0|false|true
 repository|0|false|true

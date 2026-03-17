@@ -4,6 +4,9 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/middleware/g
 
 ## [Unreleased]
 
+## [0.51.4] - 2026-03-17
+
 ### Added
 
 - Baseline de documentacion de fase 1 con `README.md`, `docs/README.md` y organizacion local por modulo.
+

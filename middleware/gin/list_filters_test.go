@@ -26,8 +26,8 @@ func TestParseListFilters_EmptyRequest(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if filters.IsActive == nil || !*filters.IsActive {
-		t.Error("empty request should default IsActive to true")
+	if filters.IsActive != nil {
+		t.Error("empty request should leave IsActive nil (show all)")
 	}
 	if filters.Limit != 50 {
 		t.Errorf("empty request should default Limit to 50, got %d", filters.Limit)

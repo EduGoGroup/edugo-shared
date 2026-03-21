@@ -23,7 +23,8 @@ const (
 // Defensive defaults: when no ?limit= is provided, Limit defaults to 50.
 // Values above 200 are capped to 200. When no ?is_active= is provided,
 // IsActive remains nil, meaning "show all" (repositories handle nil via
-// ApplyIsActive).
+// ApplyIsActive). Clients that need the previous active-only behavior
+// should explicitly send ?is_active=true.
 //
 // Returns a *commonerrors.AppError (HTTP 400) on validation failure, which is
 // compatible with the ErrorHandler middleware.

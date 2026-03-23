@@ -187,6 +187,13 @@ type MembershipRepository interface {
 	Delete(ctx context.Context, id uuid.UUID) error
 }
 
+// MembershipAdminRepository extends MembershipRepository with admin-specific queries.
+// Use this in services that manage memberships at the school level (e.g. admin API).
+type MembershipAdminRepository interface {
+	MembershipRepository
+	FindBySchool(ctx context.Context, schoolID uuid.UUID, filters ListFilters) ([]*entities.Membership, int64, error)
+}
+
 // SchoolRepository defines persistence operations for School
 type SchoolRepository interface {
 	Create(ctx context.Context, school *entities.School) error

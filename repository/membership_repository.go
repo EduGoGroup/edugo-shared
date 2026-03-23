@@ -75,6 +75,28 @@ func (r *postgresMembershipRepository) FindByUnit(ctx context.Context, unitID uu
 	return memberships, total, nil
 }
 
+func (r *postgresMembershipRepository) FindBySchool(ctx context.Context, schoolID uuid.UUID, filters ListFilters) ([]*entities.Membership, int64, error) {
+	buildBase := func() *gorm.DB {
+		q := r.db.WithContext(ctx).Model(&entities.Membership{}).Where("school_id = ?", schoolID)
+		q = filters.ApplyIsActive(q)
+		q = filters.ApplySearch(q)
+		return q
+	}
+
+	var total int64
+	if err := buildBase().Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	var memberships []*entities.Membership
+	query := buildBase().Order("created_at DESC")
+	query = filters.ApplyPagination(query)
+	if err := query.Find(&memberships).Error; err != nil {
+		return nil, 0, err
+	}
+	return memberships, total, nil
+}
+
 func (r *postgresMembershipRepository) FindByUnitAndRole(ctx context.Context, unitID uuid.UUID, role string, activeOnly bool, filters ListFilters) ([]*entities.Membership, int64, error) {
 	buildBase := func() *gorm.DB {
 		q := r.db.WithContext(ctx).Model(&entities.Membership{}).Where("academic_unit_id = ? AND role = ?", unitID, role)

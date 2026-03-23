@@ -16,6 +16,11 @@ func NewPostgresMembershipRepository(db *gorm.DB) MembershipRepository {
 	return &postgresMembershipRepository{db: db}
 }
 
+// NewPostgresMembershipAdminRepository crea una instancia con operaciones de administración extendidas.
+func NewPostgresMembershipAdminRepository(db *gorm.DB) MembershipAdminRepository {
+	return &postgresMembershipRepository{db: db}
+}
+
 func (r *postgresMembershipRepository) Create(ctx context.Context, m *entities.Membership) error {
 	return r.db.WithContext(ctx).Create(m).Error
 }

@@ -181,11 +181,17 @@ type MembershipRepository interface {
 	FindByID(ctx context.Context, id uuid.UUID) (*entities.Membership, error)
 	FindByUser(ctx context.Context, userID uuid.UUID, filters ListFilters) ([]*entities.Membership, int64, error)
 	FindByUnit(ctx context.Context, unitID uuid.UUID, filters ListFilters) ([]*entities.Membership, int64, error)
-	FindBySchool(ctx context.Context, schoolID uuid.UUID, filters ListFilters) ([]*entities.Membership, int64, error)
 	FindByUnitAndRole(ctx context.Context, unitID uuid.UUID, role string, activeOnly bool, filters ListFilters) ([]*entities.Membership, int64, error)
 	FindByUserAndSchool(ctx context.Context, userID, schoolID uuid.UUID) (*entities.Membership, error)
 	Update(ctx context.Context, membership *entities.Membership) error
 	Delete(ctx context.Context, id uuid.UUID) error
+}
+
+// MembershipAdminRepository extends MembershipRepository with admin-specific queries.
+// Use this in services that manage memberships at the school level (e.g. admin API).
+type MembershipAdminRepository interface {
+	MembershipRepository
+	FindBySchool(ctx context.Context, schoolID uuid.UUID, filters ListFilters) ([]*entities.Membership, int64, error)
 }
 
 // SchoolRepository defines persistence operations for School

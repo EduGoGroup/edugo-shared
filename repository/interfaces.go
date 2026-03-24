@@ -194,6 +194,21 @@ type MembershipAdminRepository interface {
 	FindBySchool(ctx context.Context, schoolID uuid.UUID, filters ListFilters) ([]*entities.Membership, int64, error)
 }
 
+// MembershipSubjectRepository defines persistence operations for MembershipSubject
+type MembershipSubjectRepository interface {
+	AssignSubjects(ctx context.Context, membershipID uuid.UUID, subjectIDs []uuid.UUID) error
+	RemoveAllByMembership(ctx context.Context, membershipID uuid.UUID) error
+	GetByMembership(ctx context.Context, membershipID uuid.UUID) ([]entities.MembershipSubject, error)
+	GetBySubject(ctx context.Context, subjectID uuid.UUID) ([]entities.MembershipSubject, error)
+}
+
+// AcademicUnitRepository defines read-only operations for AcademicUnit.
+// Used by IAM platform to resolve unit names and list units per school.
+type AcademicUnitRepository interface {
+	FindByID(ctx context.Context, id uuid.UUID) (*entities.AcademicUnit, error)
+	FindBySchoolID(ctx context.Context, schoolID uuid.UUID, filters ListFilters) ([]*entities.AcademicUnit, int64, error)
+}
+
 // SchoolRepository defines persistence operations for School
 type SchoolRepository interface {
 	Create(ctx context.Context, school *entities.School) error

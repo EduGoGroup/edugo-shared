@@ -182,6 +182,11 @@ const (
 	PermissionAuditExport Permission = "audit:export"
 )
 
+// Permisos de contexto
+const (
+	PermissionContextBrowseUnits Permission = "context:browse_units"
+)
+
 // String retorna la representación en string del permiso
 func (p Permission) String() string {
 	return string(p)
@@ -302,6 +307,8 @@ var AllPermissions = map[Permission]bool{
 	// Auditoría
 	PermissionAuditRead:   true,
 	PermissionAuditExport: true,
+	// Contexto
+	PermissionContextBrowseUnits: true,
 }
 
 // AllPermissionsSlice retorna todos los permisos como slice

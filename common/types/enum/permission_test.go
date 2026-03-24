@@ -240,6 +240,44 @@ func TestAllPermissions_MapIntegrity(t *testing.T) {
 			PermissionConceptTypesRead,
 			PermissionConceptTypesUpdate,
 			PermissionConceptTypesDelete,
+			// Horarios
+			PermissionSchedulesCreate,
+			PermissionSchedulesRead,
+			PermissionSchedulesUpdate,
+			PermissionSchedulesDelete,
+			// Anuncios
+			PermissionAnnouncementsCreate,
+			PermissionAnnouncementsRead,
+			PermissionAnnouncementsUpdate,
+			PermissionAnnouncementsDelete,
+			// Eventos de calendario
+			PermissionCalendarEventsCreate,
+			PermissionCalendarEventsRead,
+			PermissionCalendarEventsUpdate,
+			PermissionCalendarEventsDelete,
+			// Asistencia
+			PermissionAttendanceCreate,
+			PermissionAttendanceRead,
+			// Períodos académicos
+			PermissionPeriodsCreate,
+			PermissionPeriodsRead,
+			PermissionPeriodsUpdate,
+			PermissionPeriodsDelete,
+			// Grados
+			PermissionGradesCreate,
+			PermissionGradesRead,
+			PermissionGradesUpdate,
+			PermissionGradesDelete,
+			// Reportes
+			PermissionReportsCreate,
+			PermissionReportsRead,
+			PermissionReportsUpdate,
+			PermissionReportsDelete,
+			// Contexto
+			PermissionContextBrowseSchools,
+			PermissionContextBrowseUnits,
+			// Períodos especiales
+			PermissionPeriodsActivate,
 		}
 
 		// Verificar que cada constante está en AllPermissions

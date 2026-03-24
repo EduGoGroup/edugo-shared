@@ -146,10 +146,75 @@ const (
 	PermissionConceptTypesDelete Permission = "concept_types:delete"
 )
 
+// Permisos de horarios
+const (
+	PermissionSchedulesCreate Permission = "schedules:create"
+	PermissionSchedulesRead   Permission = "schedules:read"
+	PermissionSchedulesUpdate Permission = "schedules:update"
+	PermissionSchedulesDelete Permission = "schedules:delete"
+)
+
+// Permisos de anuncios
+const (
+	PermissionAnnouncementsCreate Permission = "announcements:create"
+	PermissionAnnouncementsRead   Permission = "announcements:read"
+	PermissionAnnouncementsUpdate Permission = "announcements:update"
+	PermissionAnnouncementsDelete Permission = "announcements:delete"
+)
+
+// Permisos de eventos de calendario
+const (
+	PermissionCalendarEventsCreate Permission = "calendar_events:create"
+	PermissionCalendarEventsRead   Permission = "calendar_events:read"
+	PermissionCalendarEventsUpdate Permission = "calendar_events:update"
+	PermissionCalendarEventsDelete Permission = "calendar_events:delete"
+)
+
+// Permisos de asistencia
+const (
+	PermissionAttendanceCreate Permission = "attendance:create"
+	PermissionAttendanceRead   Permission = "attendance:read"
+)
+
 // Permisos de auditoría
 const (
 	PermissionAuditRead   Permission = "audit:read"
 	PermissionAuditExport Permission = "audit:export"
+)
+
+// Permisos de períodos académicos
+const (
+	PermissionPeriodsCreate Permission = "periods:create"
+	PermissionPeriodsRead   Permission = "periods:read"
+	PermissionPeriodsUpdate Permission = "periods:update"
+	PermissionPeriodsDelete Permission = "periods:delete"
+)
+
+// Permisos de grados
+const (
+	PermissionGradesCreate Permission = "grades:create"
+	PermissionGradesRead   Permission = "grades:read"
+	PermissionGradesUpdate Permission = "grades:update"
+	PermissionGradesDelete Permission = "grades:delete"
+)
+
+// Permisos de reportes
+const (
+	PermissionReportsCreate Permission = "reports:create"
+	PermissionReportsRead   Permission = "reports:read"
+	PermissionReportsUpdate Permission = "reports:update"
+	PermissionReportsDelete Permission = "reports:delete"
+)
+
+// Permisos de contexto
+const (
+	PermissionContextBrowseSchools Permission = "context:browse_schools"
+	PermissionContextBrowseUnits   Permission = "context:browse_units"
+)
+
+// Permisos especiales de períodos
+const (
+	PermissionPeriodsActivate Permission = "periods:activate"
 )
 
 // String retorna la representación en string del permiso
@@ -251,9 +316,47 @@ var AllPermissions = map[Permission]bool{
 	PermissionConceptTypesRead:   true,
 	PermissionConceptTypesUpdate: true,
 	PermissionConceptTypesDelete: true,
+	// Horarios
+	PermissionSchedulesCreate: true,
+	PermissionSchedulesRead:   true,
+	PermissionSchedulesUpdate: true,
+	PermissionSchedulesDelete: true,
+	// Anuncios
+	PermissionAnnouncementsCreate: true,
+	PermissionAnnouncementsRead:   true,
+	PermissionAnnouncementsUpdate: true,
+	PermissionAnnouncementsDelete: true,
+	// Eventos de calendario
+	PermissionCalendarEventsCreate: true,
+	PermissionCalendarEventsRead:   true,
+	PermissionCalendarEventsUpdate: true,
+	PermissionCalendarEventsDelete: true,
+	// Asistencia
+	PermissionAttendanceCreate: true,
+	PermissionAttendanceRead:   true,
 	// Auditoría
 	PermissionAuditRead:   true,
 	PermissionAuditExport: true,
+	// Períodos académicos
+	PermissionPeriodsCreate: true,
+	PermissionPeriodsRead:   true,
+	PermissionPeriodsUpdate: true,
+	PermissionPeriodsDelete: true,
+	// Grados
+	PermissionGradesCreate: true,
+	PermissionGradesRead:   true,
+	PermissionGradesUpdate: true,
+	PermissionGradesDelete: true,
+	// Reportes
+	PermissionReportsCreate: true,
+	PermissionReportsRead:   true,
+	PermissionReportsUpdate: true,
+	PermissionReportsDelete: true,
+	// Contexto
+	PermissionContextBrowseSchools: true,
+	PermissionContextBrowseUnits:   true,
+	// Períodos especiales
+	PermissionPeriodsActivate: true,
 }
 
 // AllPermissionsSlice retorna todos los permisos como slice

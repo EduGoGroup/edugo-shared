@@ -182,9 +182,39 @@ const (
 	PermissionAuditExport Permission = "audit:export"
 )
 
+// Permisos de períodos académicos
+const (
+	PermissionPeriodsCreate Permission = "periods:create"
+	PermissionPeriodsRead   Permission = "periods:read"
+	PermissionPeriodsUpdate Permission = "periods:update"
+	PermissionPeriodsDelete Permission = "periods:delete"
+)
+
+// Permisos de grados
+const (
+	PermissionGradesCreate Permission = "grades:create"
+	PermissionGradesRead   Permission = "grades:read"
+	PermissionGradesUpdate Permission = "grades:update"
+	PermissionGradesDelete Permission = "grades:delete"
+)
+
+// Permisos de reportes
+const (
+	PermissionReportsCreate Permission = "reports:create"
+	PermissionReportsRead   Permission = "reports:read"
+	PermissionReportsUpdate Permission = "reports:update"
+	PermissionReportsDelete Permission = "reports:delete"
+)
+
 // Permisos de contexto
 const (
-	PermissionContextBrowseUnits Permission = "context:browse_units"
+	PermissionContextBrowseSchools Permission = "context:browse_schools"
+	PermissionContextBrowseUnits   Permission = "context:browse_units"
+)
+
+// Permisos especiales de períodos
+const (
+	PermissionPeriodsActivate Permission = "periods:activate"
 )
 
 // String retorna la representación en string del permiso
@@ -307,8 +337,26 @@ var AllPermissions = map[Permission]bool{
 	// Auditoría
 	PermissionAuditRead:   true,
 	PermissionAuditExport: true,
+	// Períodos académicos
+	PermissionPeriodsCreate: true,
+	PermissionPeriodsRead:   true,
+	PermissionPeriodsUpdate: true,
+	PermissionPeriodsDelete: true,
+	// Grados
+	PermissionGradesCreate: true,
+	PermissionGradesRead:   true,
+	PermissionGradesUpdate: true,
+	PermissionGradesDelete: true,
+	// Reportes
+	PermissionReportsCreate: true,
+	PermissionReportsRead:   true,
+	PermissionReportsUpdate: true,
+	PermissionReportsDelete: true,
 	// Contexto
-	PermissionContextBrowseUnits: true,
+	PermissionContextBrowseSchools: true,
+	PermissionContextBrowseUnits:   true,
+	// Períodos especiales
+	PermissionPeriodsActivate: true,
 }
 
 // AllPermissionsSlice retorna todos los permisos como slice

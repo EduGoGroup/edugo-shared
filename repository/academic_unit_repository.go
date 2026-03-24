@@ -11,7 +11,7 @@ import (
 
 type postgresAcademicUnitRepository struct{ db *gorm.DB }
 
-// NewPostgresAcademicUnitRepository creates a read-only repository for academic units.
+// NewPostgresAcademicUnitRepository crea un repositorio de solo lectura para unidades académicas.
 func NewPostgresAcademicUnitRepository(db *gorm.DB) AcademicUnitRepository {
 	return &postgresAcademicUnitRepository{db: db}
 }

@@ -146,6 +146,36 @@ const (
 	PermissionConceptTypesDelete Permission = "concept_types:delete"
 )
 
+// Permisos de horarios
+const (
+	PermissionSchedulesCreate Permission = "schedules:create"
+	PermissionSchedulesRead   Permission = "schedules:read"
+	PermissionSchedulesUpdate Permission = "schedules:update"
+	PermissionSchedulesDelete Permission = "schedules:delete"
+)
+
+// Permisos de anuncios
+const (
+	PermissionAnnouncementsCreate Permission = "announcements:create"
+	PermissionAnnouncementsRead   Permission = "announcements:read"
+	PermissionAnnouncementsUpdate Permission = "announcements:update"
+	PermissionAnnouncementsDelete Permission = "announcements:delete"
+)
+
+// Permisos de eventos de calendario
+const (
+	PermissionCalendarEventsCreate Permission = "calendar_events:create"
+	PermissionCalendarEventsRead   Permission = "calendar_events:read"
+	PermissionCalendarEventsUpdate Permission = "calendar_events:update"
+	PermissionCalendarEventsDelete Permission = "calendar_events:delete"
+)
+
+// Permisos de asistencia
+const (
+	PermissionAttendanceCreate Permission = "attendance:create"
+	PermissionAttendanceRead   Permission = "attendance:read"
+)
+
 // Permisos de auditoría
 const (
 	PermissionAuditRead   Permission = "audit:read"
@@ -251,6 +281,24 @@ var AllPermissions = map[Permission]bool{
 	PermissionConceptTypesRead:   true,
 	PermissionConceptTypesUpdate: true,
 	PermissionConceptTypesDelete: true,
+	// Horarios
+	PermissionSchedulesCreate: true,
+	PermissionSchedulesRead:   true,
+	PermissionSchedulesUpdate: true,
+	PermissionSchedulesDelete: true,
+	// Anuncios
+	PermissionAnnouncementsCreate: true,
+	PermissionAnnouncementsRead:   true,
+	PermissionAnnouncementsUpdate: true,
+	PermissionAnnouncementsDelete: true,
+	// Eventos de calendario
+	PermissionCalendarEventsCreate: true,
+	PermissionCalendarEventsRead:   true,
+	PermissionCalendarEventsUpdate: true,
+	PermissionCalendarEventsDelete: true,
+	// Asistencia
+	PermissionAttendanceCreate: true,
+	PermissionAttendanceRead:   true,
 	// Auditoría
 	PermissionAuditRead:   true,
 	PermissionAuditExport: true,

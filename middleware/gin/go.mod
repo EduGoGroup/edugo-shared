@@ -5,8 +5,8 @@ go 1.25.0
 require (
 	github.com/EduGoGroup/edugo-shared/audit v0.1.0
 	github.com/EduGoGroup/edugo-shared/auth v0.52.0
-	github.com/EduGoGroup/edugo-shared/common v0.54.0
-	github.com/EduGoGroup/edugo-shared/repository v0.4.6
+	github.com/EduGoGroup/edugo-shared/common v0.55.0
+	github.com/EduGoGroup/edugo-shared/repository v0.5.0
 	github.com/gin-gonic/gin v1.12.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/stretchr/testify v1.11.1

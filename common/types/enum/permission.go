@@ -164,10 +164,10 @@ const (
 
 // Permisos de eventos de calendario
 const (
-	PermissionCalendarEventsCreate Permission = "calendar_events:create"
-	PermissionCalendarEventsRead   Permission = "calendar_events:read"
-	PermissionCalendarEventsUpdate Permission = "calendar_events:update"
-	PermissionCalendarEventsDelete Permission = "calendar_events:delete"
+	PermissionCalendarEventsCreate Permission = "calendar:create"
+	PermissionCalendarEventsRead   Permission = "calendar:read"
+	PermissionCalendarEventsUpdate Permission = "calendar:update"
+	PermissionCalendarEventsDelete Permission = "calendar:delete"
 )
 
 // Permisos de asistencia

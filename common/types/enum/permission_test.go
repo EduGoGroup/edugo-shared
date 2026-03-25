@@ -233,9 +233,9 @@ func TestAllPermissions_MapIntegrity(t *testing.T) {
 			PermissionAssessmentsStudentRead,
 			// Dashboard
 			PermissionDashboardView,
-			// Configuracion del sistema
+			// Configuración del sistema
 			PermissionSystemSettingsSettings,
-			// Auditoria
+			// Auditoría
 			PermissionAuditRead,
 			PermissionAuditExport,
 			// Tipos de concepto

@@ -95,7 +95,7 @@ const (
 	PermissionRolesDelete Permission = "roles:delete"
 )
 
-// Gestion de permisos
+// Gestión de permisos
 const (
 	PermissionPermissionsMgmtRead   Permission = "permissions_mgmt:read"
 	PermissionPermissionsMgmtCreate Permission = "permissions_mgmt:create"
@@ -137,7 +137,7 @@ const (
 	PermissionDashboardView Permission = "dashboard:view"
 )
 
-// Permisos de configuracion del sistema
+// Permisos de configuración del sistema
 const (
 	PermissionSystemSettingsSettings Permission = "system_settings:settings"
 )
@@ -347,9 +347,9 @@ var AllPermissions = map[Permission]bool{
 	PermissionPeriodsUpdate: true,
 	PermissionPeriodsDelete: true,
 	// Grados
-	PermissionGradesCreate: true,
-	PermissionGradesRead:   true,
-	PermissionGradesUpdate: true,
+	PermissionGradesCreate:   true,
+	PermissionGradesRead:     true,
+	PermissionGradesUpdate:   true,
 	PermissionGradesFinalize: true,
 	// Reportes
 	PermissionReportsRead: true,

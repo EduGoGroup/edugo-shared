@@ -1,5 +1,5 @@
-github.com/EduGoGroup/edugo-infrastructure/postgres v0.67.0 h1:+n79z+aniPegPwBe+//uAA+fv6iwlZ3URYKy/wr6Pxg=
-github.com/EduGoGroup/edugo-infrastructure/postgres v0.67.0/go.mod h1:hkAdXvfG1I9uInn0+UCLurRRVqdP3TBLX84GvEEN0QU=
+github.com/EduGoGroup/edugo-infrastructure/postgres v0.69.0 h1:aaDELc2OGYpb6pagpNIdTZxGd6tgmtD6IPGNyX5dKk8=
+github.com/EduGoGroup/edugo-infrastructure/postgres v0.69.0/go.mod h1:hkAdXvfG1I9uInn0+UCLurRRVqdP3TBLX84GvEEN0QU=
 github.com/EduGoGroup/edugo-shared/auth v0.52.0 h1:PAhXqFXs/+47YmgbFigv0zG7SkAlYWZLf9e2yR3F6iA=
 github.com/EduGoGroup/edugo-shared/auth v0.52.0/go.mod h1:nsrPpHwlIXnRys4iq3FX/U3lnjoVPWVl9Iem12lR+3w=
 github.com/EduGoGroup/edugo-shared/common v0.55.0 h1:/LcIFsy73w7RzGSHBd+8C2U37sxy2zwiV/O9IqEYssw=

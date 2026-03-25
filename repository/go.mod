@@ -3,7 +3,7 @@ module github.com/EduGoGroup/edugo-shared/repository
 go 1.25.0
 
 require (
-	github.com/EduGoGroup/edugo-infrastructure/postgres v0.67.0
+	github.com/EduGoGroup/edugo-infrastructure/postgres v0.69.0
 	github.com/google/uuid v1.6.0
 	gorm.io/gorm v1.31.1
 )

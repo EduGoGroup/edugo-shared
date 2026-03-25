@@ -229,10 +229,13 @@ func TestAllPermissions_MapIntegrity(t *testing.T) {
 			PermissionGuardianRelationsApprove,
 			PermissionGuardianRelationsRequest,
 			PermissionGuardianRelationsManage,
-			// Evaluaciones adicionales
-			PermissionAssessmentsTake,
-			PermissionAssessmentsArchive,
-			// Auditoría
+			// Evaluaciones para estudiantes
+			PermissionAssessmentsStudentRead,
+			// Dashboard
+			PermissionDashboardView,
+			// Configuracion del sistema
+			PermissionSystemSettingsSettings,
+			// Auditoria
 			PermissionAuditRead,
 			PermissionAuditExport,
 			// Tipos de concepto
@@ -263,16 +266,13 @@ func TestAllPermissions_MapIntegrity(t *testing.T) {
 			PermissionPeriodsRead,
 			PermissionPeriodsUpdate,
 			PermissionPeriodsDelete,
-			// Grados
+			// Calificaciones
 			PermissionGradesCreate,
 			PermissionGradesRead,
 			PermissionGradesUpdate,
-			PermissionGradesDelete,
+			PermissionGradesFinalize,
 			// Reportes
-			PermissionReportsCreate,
 			PermissionReportsRead,
-			PermissionReportsUpdate,
-			PermissionReportsDelete,
 			// Contexto
 			PermissionContextBrowseSchools,
 			PermissionContextBrowseUnits,

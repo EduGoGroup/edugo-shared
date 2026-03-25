@@ -95,17 +95,12 @@ const (
 	PermissionRolesDelete Permission = "roles:delete"
 )
 
-// Gestión de permisos
+// Gestion de permisos
 const (
 	PermissionPermissionsMgmtRead   Permission = "permissions_mgmt:read"
 	PermissionPermissionsMgmtCreate Permission = "permissions_mgmt:create"
 	PermissionPermissionsMgmtUpdate Permission = "permissions_mgmt:update"
 	PermissionPermissionsMgmtDelete Permission = "permissions_mgmt:delete"
-
-	// Deprecated: usar PermissionPermissionsMgmtRead
-	PermissionResourcesRead = PermissionPermissionsMgmtRead
-	// Deprecated: usar PermissionPermissionsMgmtUpdate
-	PermissionResourcesUpdate = PermissionPermissionsMgmtUpdate
 )
 
 // Permisos de membresías
@@ -132,10 +127,19 @@ const (
 	PermissionGuardianRelationsManage  Permission = "guardian_relations:manage"
 )
 
-// Permisos adicionales de evaluaciones
+// Permisos de evaluaciones para estudiantes
 const (
-	PermissionAssessmentsTake    Permission = "assessments:take"
-	PermissionAssessmentsArchive Permission = "assessments:archive"
+	PermissionAssessmentsStudentRead Permission = "assessments_student:read"
+)
+
+// Permisos de dashboard
+const (
+	PermissionDashboardView Permission = "dashboard:view"
+)
+
+// Permisos de configuracion del sistema
+const (
+	PermissionSystemSettingsSettings Permission = "system_settings:settings"
 )
 
 // Permisos de tipos de concepto
@@ -190,20 +194,17 @@ const (
 	PermissionPeriodsDelete Permission = "periods:delete"
 )
 
-// Permisos de grados
+// Permisos de calificaciones
 const (
-	PermissionGradesCreate Permission = "grades:create"
-	PermissionGradesRead   Permission = "grades:read"
-	PermissionGradesUpdate Permission = "grades:update"
-	PermissionGradesDelete Permission = "grades:delete"
+	PermissionGradesCreate   Permission = "grades:create"
+	PermissionGradesRead     Permission = "grades:read"
+	PermissionGradesUpdate   Permission = "grades:update"
+	PermissionGradesFinalize Permission = "grades:finalize"
 )
 
 // Permisos de reportes
 const (
-	PermissionReportsCreate Permission = "reports:create"
-	PermissionReportsRead   Permission = "reports:read"
-	PermissionReportsUpdate Permission = "reports:update"
-	PermissionReportsDelete Permission = "reports:delete"
+	PermissionReportsRead Permission = "reports:read"
 )
 
 // Permisos de contexto
@@ -308,9 +309,12 @@ var AllPermissions = map[Permission]bool{
 	PermissionGuardianRelationsApprove: true,
 	PermissionGuardianRelationsRequest: true,
 	PermissionGuardianRelationsManage:  true,
-	// Evaluaciones adicionales
-	PermissionAssessmentsTake:    true,
-	PermissionAssessmentsArchive: true,
+	// Evaluaciones para estudiantes
+	PermissionAssessmentsStudentRead: true,
+	// Dashboard
+	PermissionDashboardView: true,
+	// Configuracion del sistema
+	PermissionSystemSettingsSettings: true,
 	// Tipos de concepto
 	PermissionConceptTypesCreate: true,
 	PermissionConceptTypesRead:   true,
@@ -346,12 +350,9 @@ var AllPermissions = map[Permission]bool{
 	PermissionGradesCreate: true,
 	PermissionGradesRead:   true,
 	PermissionGradesUpdate: true,
-	PermissionGradesDelete: true,
+	PermissionGradesFinalize: true,
 	// Reportes
-	PermissionReportsCreate: true,
-	PermissionReportsRead:   true,
-	PermissionReportsUpdate: true,
-	PermissionReportsDelete: true,
+	PermissionReportsRead: true,
 	// Contexto
 	PermissionContextBrowseSchools: true,
 	PermissionContextBrowseUnits:   true,

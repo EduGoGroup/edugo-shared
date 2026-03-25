@@ -346,7 +346,7 @@ var AllPermissions = map[Permission]bool{
 	PermissionPeriodsRead:   true,
 	PermissionPeriodsUpdate: true,
 	PermissionPeriodsDelete: true,
-	// Grados
+	// Calificaciones
 	PermissionGradesCreate:   true,
 	PermissionGradesRead:     true,
 	PermissionGradesUpdate:   true,

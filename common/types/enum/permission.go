@@ -313,7 +313,7 @@ var AllPermissions = map[Permission]bool{
 	PermissionAssessmentsStudentRead: true,
 	// Dashboard
 	PermissionDashboardView: true,
-	// Configuracion del sistema
+	// Configuración del sistema
 	PermissionSystemSettingsSettings: true,
 	// Tipos de concepto
 	PermissionConceptTypesCreate: true,

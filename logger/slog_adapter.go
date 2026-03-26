@@ -13,17 +13,23 @@ type SlogAdapter struct {
 }
 
 // NewSlogAdapter envuelve un *slog.Logger para satisfacer la interfaz Logger.
-// Usar junto con NewSlogProvider:
+// Si se pasa nil, se usa slog.Default() como fallback para evitar panics.
 //
 //	slogLogger := logger.NewSlogProvider(cfg)
 //	appLogger := logger.NewSlogAdapter(slogLogger)
 func NewSlogAdapter(l *slog.Logger) Logger {
+	if l == nil {
+		l = slog.Default()
+	}
 	return &SlogAdapter{logger: l}
 }
 
 // SlogLogger retorna el *slog.Logger subyacente para uso directo.
 // Útil cuando necesitas pasar el slog.Logger a middleware o contexto.
 func (a *SlogAdapter) SlogLogger() *slog.Logger {
+	if a == nil || a.logger == nil {
+		return slog.Default()
+	}
 	return a.logger
 }
 

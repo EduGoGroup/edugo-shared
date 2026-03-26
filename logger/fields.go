@@ -142,7 +142,13 @@ func WithUserID(id string) slog.Attr { return slog.String(FieldUserID, id) }
 func WithCorrelationID(id string) slog.Attr { return slog.String(FieldCorrelationID, id) }
 
 // WithError retorna un slog.Attr con el mensaje de error.
-func WithError(err error) slog.Attr { return slog.String(FieldError, err.Error()) }
+// Si err es nil, retorna un atributo con mensaje vacío para evitar panic.
+func WithError(err error) slog.Attr {
+	if err == nil {
+		return slog.String(FieldError, "")
+	}
+	return slog.String(FieldError, err.Error())
+}
 
 // WithDuration retorna un slog.Attr con la duración en milisegundos.
 func WithDuration(d time.Duration) slog.Attr { return slog.Int64(FieldDuration, d.Milliseconds()) }

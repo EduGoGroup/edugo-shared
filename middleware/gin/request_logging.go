@@ -32,6 +32,9 @@ const (
 // Usa PostAuthLogging() DESPUÉS del middleware JWT para enriquecer
 // el logger con user_id, role y school_id.
 func RequestLogging(baseLogger *slog.Logger) gin.HandlerFunc {
+	if baseLogger == nil {
+		baseLogger = slog.Default()
+	}
 	return func(c *gin.Context) {
 		start := time.Now()
 

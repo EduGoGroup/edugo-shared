@@ -1,8 +1,8 @@
 package metrics
 
-// NoopRecorder is a metrics recorder that does nothing.
-// It is the default recorder used when no backend is configured.
-// All methods are zero-cost no-ops safe for concurrent use.
+// NoopRecorder es un recorder de métricas que no hace nada.
+// Es el recorder por defecto cuando no se configura un backend.
+// Todos los métodos son no-ops de cero costo, seguros para uso concurrente.
 type NoopRecorder struct{}
 
 // CounterAdd es un no-op que satisface la interfaz Recorder.

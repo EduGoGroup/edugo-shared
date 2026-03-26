@@ -4,6 +4,21 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/middleware/g
 
 ## [Unreleased]
 
+## [0.53.0] - 2026-03-26
+
+### Added
+
+- Logging de permission denied en `RequirePermission`, `RequireAnyPermission`, `RequireAllPermissions` con required_permission, missing_permissions, path, method.
+- Logging de fallos de autenticacion en `JWTAuthMiddleware`: missing header, invalid format, validation failed con path, ip, method, error.
+- Helper `requestPath()` usa `c.FullPath()` para evitar alta cardinalidad en logs/metrics.
+- Helper `requestMethod()` con nil guard para robustez en tests.
+
+### Changed
+
+- JWT middleware usa `GetLogger(c)` (context logger) en vez de `slog.Default()` para incluir request_id/correlation_id.
+- Permission logs usan constantes `logger.FieldPath`, `logger.FieldMethod` en vez de strings literales.
+- `RequireAnyPermission` usa `p.String()` en vez de `string(p)` para consistencia.
+
 ## [0.52.0] - 2026-03-26
 
 ### Added

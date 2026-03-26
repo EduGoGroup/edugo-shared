@@ -1,12 +1,29 @@
 package gin
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/EduGoGroup/edugo-shared/auth"
 	"github.com/EduGoGroup/edugo-shared/common/types/enum"
 	"github.com/gin-gonic/gin"
 )
+
+// requestPath retorna la URL path de la petición o cadena vacía si no hay request.
+func requestPath(c *gin.Context) string {
+	if c.Request != nil && c.Request.URL != nil {
+		return c.Request.URL.Path
+	}
+	return ""
+}
+
+// requestMethod retorna el método HTTP de la petición o cadena vacía si no hay request.
+func requestMethod(c *gin.Context) string {
+	if c.Request != nil {
+		return c.Request.Method
+	}
+	return ""
+}
 
 // getValidatedClaims es una función helper que extrae y valida los claims del contexto.
 // Retorna los claims validados o nil si hay algún error, y envía la respuesta HTTP correspondiente.
@@ -58,6 +75,12 @@ func RequirePermission(permission enum.Permission) gin.HandlerFunc {
 		}
 
 		if !hasPermission {
+			reqLogger := GetLogger(c)
+			reqLogger.Warn("permission denied",
+				slog.String("required_permission", permission.String()),
+				slog.String("path", requestPath(c)),
+				slog.String("method", requestMethod(c)),
+			)
 			c.JSON(http.StatusForbidden, gin.H{
 				"error":    "forbidden",
 				"code":     "INSUFFICIENT_PERMISSIONS",
@@ -92,6 +115,11 @@ func RequireAnyPermission(permissions ...enum.Permission) gin.HandlerFunc {
 			}
 		}
 
+		reqLogger := GetLogger(c)
+		reqLogger.Warn("permission denied",
+			slog.String("path", requestPath(c)),
+			slog.String("method", requestMethod(c)),
+		)
 		c.JSON(http.StatusForbidden, gin.H{
 			"error": "insufficient permissions",
 			"code":  "INSUFFICIENT_PERMISSIONS",
@@ -122,6 +150,11 @@ func RequireAllPermissions(permissions ...enum.Permission) gin.HandlerFunc {
 		}
 
 		if len(missing) > 0 {
+			reqLogger := GetLogger(c)
+			reqLogger.Warn("permission denied",
+				slog.String("path", requestPath(c)),
+				slog.String("method", requestMethod(c)),
+			)
 			c.JSON(http.StatusForbidden, gin.H{
 				"error":   "insufficient permissions",
 				"code":    "INSUFFICIENT_PERMISSIONS",

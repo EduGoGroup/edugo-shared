@@ -1,6 +1,7 @@
 package gin
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/EduGoGroup/edugo-shared/auth"
@@ -24,6 +25,10 @@ func JWTAuthMiddleware(jwtManager *auth.JWTManager) gin.HandlerFunc {
 		// 1. Verificar header Authorization
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
+			slog.Warn("missing authorization header",
+				slog.String("path", c.Request.URL.Path),
+				slog.String("ip", c.ClientIP()),
+			)
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": "authorization header required",
 				"code":  "MISSING_AUTH_HEADER",
@@ -37,6 +42,10 @@ func JWTAuthMiddleware(jwtManager *auth.JWTManager) gin.HandlerFunc {
 		if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
 			tokenString = authHeader[7:]
 		} else {
+			slog.Warn("invalid authorization header format",
+				slog.String("path", c.Request.URL.Path),
+				slog.String("ip", c.ClientIP()),
+			)
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": "invalid authorization header format, expected 'Bearer {token}'",
 				"code":  "INVALID_AUTH_FORMAT",
@@ -48,6 +57,11 @@ func JWTAuthMiddleware(jwtManager *auth.JWTManager) gin.HandlerFunc {
 		// 3. Validar token con JWTManager
 		claims, err := jwtManager.ValidateToken(tokenString)
 		if err != nil {
+			slog.Warn("jwt validation failed",
+				slog.String("path", c.Request.URL.Path),
+				slog.String("ip", c.ClientIP()),
+				slog.String("error", err.Error()),
+			)
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": "invalid or expired token",
 				"code":  "INVALID_TOKEN",

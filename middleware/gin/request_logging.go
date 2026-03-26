@@ -10,51 +10,52 @@ import (
 )
 
 const (
-	// HeaderRequestID is the HTTP header for request tracing.
-	HeaderRequestID = "X-Request-Id"
-	// HeaderCorrelationID is the HTTP header for cross-service correlation.
-	HeaderCorrelationID = "X-Correlation-Id"
+	// HeaderRequestID es el header HTTP para trazabilidad de peticiones.
+	HeaderRequestID = "X-Request-ID"
+	// HeaderCorrelationID es el header HTTP para correlación entre servicios.
+	HeaderCorrelationID = "X-Correlation-ID"
 
-	// ContextKeySlogLogger is the gin context key for the enriched slog.Logger.
+	// ContextKeySlogLogger es la clave en gin.Context para el slog.Logger enriquecido.
 	ContextKeySlogLogger = "slog_logger"
-	// ContextKeyRequestID is the gin context key for the request ID.
+	// ContextKeyRequestID es la clave en gin.Context para el ID de petición.
 	ContextKeyRequestID = "request_id"
 )
 
-// RequestLogging creates a middleware that:
-//  1. Generates or extracts a request_id and correlation_id
-//  2. Creates an enriched slog.Logger with contextual fields
-//  3. After JWT auth, enriches with user_id and role
-//  4. Injects the logger into gin.Context and context.Context
-//  5. Logs the completed request with status, duration, and bytes
+// RequestLogging crea un middleware que:
+//  1. Genera o extrae un request_id y correlation_id
+//  2. Crea un slog.Logger enriquecido con campos contextuales
+//  3. Después de la autenticación JWT, enriquece con user_id y role
+//  4. Inyecta el logger en gin.Context y context.Context
+//  5. Registra la petición completada con status, duración y bytes
 //
-// Place this middleware BEFORE auth middleware in the chain so that
-// request_id is available from the start. The user_id enrichment
-// happens automatically after the JWT middleware sets context keys.
+// Coloca este middleware ANTES del middleware de autenticación para que
+// el request_id esté disponible desde el inicio. El enriquecimiento con
+// user_id y role ocurre automáticamente después de que el middleware JWT
+// establece las claves en el contexto.
 func RequestLogging(baseLogger *slog.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
 
-		// Generate or extract request ID
+		// Generar o extraer el ID de petición
 		requestID := c.GetHeader(HeaderRequestID)
 		if requestID == "" {
 			requestID = uuid.NewString()
 		}
 
-		// Propagate correlation ID (or use request ID)
+		// Propagar el ID de correlación (o usar el ID de petición)
 		correlationID := c.GetHeader(HeaderCorrelationID)
 		if correlationID == "" {
 			correlationID = requestID
 		}
 
-		// Set response headers for tracing
+		// Establecer headers de respuesta para trazabilidad
 		c.Header(HeaderRequestID, requestID)
 		c.Header(HeaderCorrelationID, correlationID)
 
-		// Store request ID in gin context
+		// Almacenar el ID de petición en gin.Context
 		c.Set(ContextKeyRequestID, requestID)
 
-		// Create enriched logger with request context
+		// Crear logger enriquecido con contexto de la petición
 		reqLogger := baseLogger.With(
 			slog.String(logger.FieldRequestID, requestID),
 			slog.String(logger.FieldCorrelationID, correlationID),
@@ -63,30 +64,37 @@ func RequestLogging(baseLogger *slog.Logger) gin.HandlerFunc {
 			slog.String(logger.FieldIP, c.ClientIP()),
 		)
 
-		// Store logger in gin context
+		// Almacenar el logger en gin.Context
 		c.Set(ContextKeySlogLogger, reqLogger)
 
-		// Store logger in Go context for service layer access
+		// Almacenar el logger en context.Context para acceso desde la capa de servicio
 		ctx := logger.NewContext(c.Request.Context(), reqLogger)
 		c.Request = c.Request.WithContext(ctx)
 
-		// Process request
+		// Procesar la petición
 		c.Next()
 
-		// Post-request: enrich with user_id if available (set by JWT middleware)
+		// Post-petición: enriquecer con user_id si está disponible (establecido por JWT middleware)
 		if userID, exists := c.Get(ContextKeyUserID); exists {
 			if uid, ok := userID.(string); ok {
 				reqLogger = reqLogger.With(slog.String(logger.FieldUserID, uid))
 			}
 		}
 
-		// Log completed request
+		// Post-petición: enriquecer con role si está disponible (establecido por JWT middleware)
+		if role, exists := c.Get(ContextKeyRole); exists {
+			if r, ok := role.(string); ok {
+				reqLogger = reqLogger.With(slog.String("role", r))
+			}
+		}
+
+		// Registrar la petición completada
 		duration := time.Since(start)
 		status := c.Writer.Status()
 
 		attrs := []any{
 			slog.Int(logger.FieldStatusCode, status),
-			slog.String(logger.FieldDuration, duration.String()),
+			slog.Int64(logger.FieldDuration, duration.Milliseconds()),
 			slog.Int("bytes", c.Writer.Size()),
 		}
 
@@ -105,9 +113,9 @@ func RequestLogging(baseLogger *slog.Logger) gin.HandlerFunc {
 	}
 }
 
-// GetLogger extracts the enriched slog.Logger from the gin context.
-// Returns slog.Default() if no logger was stored.
-// Use this in handlers to get a logger with request_id, user_id, etc.
+// GetLogger extrae el slog.Logger enriquecido del gin.Context.
+// Retorna slog.Default() si no se almacenó ningún logger.
+// Úsalo en handlers para obtener un logger con request_id, user_id, etc.
 func GetLogger(c *gin.Context) *slog.Logger {
 	if l, exists := c.Get(ContextKeySlogLogger); exists {
 		if sl, ok := l.(*slog.Logger); ok {
@@ -117,7 +125,7 @@ func GetLogger(c *gin.Context) *slog.Logger {
 	return slog.Default()
 }
 
-// GetRequestID extracts the request ID from the gin context.
+// GetRequestID extrae el ID de petición del gin.Context.
 func GetRequestID(c *gin.Context) string {
 	if id, exists := c.Get(ContextKeyRequestID); exists {
 		if s, ok := id.(string); ok {

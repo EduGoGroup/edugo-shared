@@ -5,15 +5,15 @@ import (
 	"os"
 )
 
-// SlogAdapter implements the Logger interface by delegating to a *slog.Logger.
-// This allows gradual migration: existing code uses Logger interface while
-// new code can use *slog.Logger directly.
+// SlogAdapter implementa la interfaz Logger delegando a un *slog.Logger.
+// Esto permite una migración gradual: el código existente usa la interfaz Logger
+// mientras que el código nuevo puede usar *slog.Logger directamente.
 type SlogAdapter struct {
 	logger *slog.Logger
 }
 
-// NewSlogAdapter wraps a *slog.Logger to satisfy the Logger interface.
-// Use together with NewSlogProvider:
+// NewSlogAdapter envuelve un *slog.Logger para satisfacer la interfaz Logger.
+// Usar junto con NewSlogProvider:
 //
 //	slogLogger := logger.NewSlogProvider(cfg)
 //	appLogger := logger.NewSlogAdapter(slogLogger)
@@ -21,8 +21,8 @@ func NewSlogAdapter(l *slog.Logger) Logger {
 	return &SlogAdapter{logger: l}
 }
 
-// SlogLogger returns the underlying *slog.Logger for direct use.
-// Useful when you need to pass the slog.Logger to middleware or context.
+// SlogLogger retorna el *slog.Logger subyacente para uso directo.
+// Útil cuando necesitas pasar el slog.Logger a middleware o contexto.
 func (a *SlogAdapter) SlogLogger() *slog.Logger {
 	return a.logger
 }

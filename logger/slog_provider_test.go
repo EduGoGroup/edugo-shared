@@ -1,8 +1,7 @@
 package logger
 
 import (
-	"bytes"
-	"encoding/json"
+	"context"
 	"log/slog"
 	"testing"
 
@@ -11,7 +10,6 @@ import (
 )
 
 func TestNewSlogProvider_JSONFormat(t *testing.T) {
-	var buf bytes.Buffer
 	cfg := SlogConfig{
 		Level:   "info",
 		Format:  "json",
@@ -20,26 +18,28 @@ func TestNewSlogProvider_JSONFormat(t *testing.T) {
 		Version: "1.0.0",
 	}
 
-	// Create logger writing to buffer for testing
-	handler := slog.NewJSONHandler(&buf, &slog.HandlerOptions{Level: slog.LevelInfo})
-	l := slog.New(handler).With(
-		slog.String(FieldService, cfg.Service),
-		slog.String(FieldEnvironment, cfg.Env),
-		slog.String(FieldVersion, cfg.Version),
-	)
+	// Llamar a NewSlogProvider directamente y verificar que retorna non-nil
+	l := NewSlogProvider(cfg)
+	require.NotNil(t, l)
 
-	l.Info("test message", "key", "value")
+	// Verificar que el logger funciona sin panic en todos los niveles
+	assert.NotPanics(t, func() {
+		l.Info("test message", "key", "value")
+		l.Debug("debug message")
+		l.Warn("warn message")
+		l.Error("error message")
+	})
 
-	var entry map[string]interface{}
-	err := json.Unmarshal(buf.Bytes(), &entry)
-	require.NoError(t, err)
-
-	assert.Equal(t, "test message", entry["msg"])
-	assert.Equal(t, "INFO", entry["level"])
-	assert.Equal(t, "test-service", entry[FieldService])
-	assert.Equal(t, "test", entry[FieldEnvironment])
-	assert.Equal(t, "1.0.0", entry[FieldVersion])
-	assert.Equal(t, "value", entry["key"])
+	// Verificar que el logger respeta el nivel configurado:
+	// Con nivel "info", Debug no debe estar habilitado
+	assert.False(t, l.Handler().Enabled(context.Background(), slog.LevelDebug),
+		"con nivel info, debug no debe estar habilitado")
+	assert.True(t, l.Handler().Enabled(context.Background(), slog.LevelInfo),
+		"con nivel info, info debe estar habilitado")
+	assert.True(t, l.Handler().Enabled(context.Background(), slog.LevelWarn),
+		"con nivel info, warn debe estar habilitado")
+	assert.True(t, l.Handler().Enabled(context.Background(), slog.LevelError),
+		"con nivel info, error debe estar habilitado")
 }
 
 func TestNewSlogProvider_Defaults(t *testing.T) {

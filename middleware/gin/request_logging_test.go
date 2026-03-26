@@ -35,11 +35,11 @@ func TestRequestLogging_GeneratesRequestID(t *testing.T) {
 	req := httptest.NewRequest("GET", "/test", nil)
 	r.ServeHTTP(w, req)
 
-	// Should have X-Request-Id header in response
+	// Debe tener header X-Request-ID en la respuesta
 	requestID := w.Header().Get(HeaderRequestID)
 	assert.NotEmpty(t, requestID)
 
-	// Should have X-Correlation-Id header (defaults to request ID)
+	// Debe tener header X-Correlation-ID (por defecto igual al request ID)
 	correlationID := w.Header().Get(HeaderCorrelationID)
 	assert.Equal(t, requestID, correlationID)
 }
@@ -90,7 +90,12 @@ func TestRequestLogging_LogsFields(t *testing.T) {
 	assert.Equal(t, "GET", entry[logger.FieldMethod])
 	assert.Equal(t, "/test/:id", entry[logger.FieldPath])
 	assert.Equal(t, float64(200), entry[logger.FieldStatusCode])
-	assert.NotEmpty(t, entry[logger.FieldDuration])
+
+	// duration_ms debe ser numérico (int64 ms), no string
+	durationVal, exists := entry[logger.FieldDuration]
+	require.True(t, exists, "duration_ms debe estar presente")
+	_, isFloat := durationVal.(float64)
+	assert.True(t, isFloat, "duration_ms debe ser numérico, got %T", durationVal)
 }
 
 func TestRequestLogging_LogsWarnFor4xx(t *testing.T) {
@@ -128,7 +133,7 @@ func TestRequestLogging_InjectsLoggerInContext(t *testing.T) {
 		l := GetLogger(c)
 		assert.NotNil(t, l)
 
-		// Logger from Go context should also work
+		// El logger desde context.Context también debe funcionar
 		ctxLogger := logger.FromContext(c.Request.Context())
 		assert.NotNil(t, ctxLogger)
 
@@ -145,7 +150,7 @@ func TestRequestLogging_IncludesUserIDPostAuth(t *testing.T) {
 	buf := &bytes.Buffer{}
 	r, _ := setupLoggingTestRouter(buf)
 
-	// Simulate JWT middleware setting user_id
+	// Simular middleware JWT que establece user_id
 	r.Use(func(c *gin.Context) {
 		c.Set(ContextKeyUserID, "user-abc")
 		c.Next()
@@ -160,6 +165,28 @@ func TestRequestLogging_IncludesUserIDPostAuth(t *testing.T) {
 	var entry map[string]interface{}
 	require.NoError(t, json.Unmarshal(buf.Bytes(), &entry))
 	assert.Equal(t, "user-abc", entry[logger.FieldUserID])
+}
+
+func TestRequestLogging_IncludesRolePostAuth(t *testing.T) {
+	buf := &bytes.Buffer{}
+	r, _ := setupLoggingTestRouter(buf)
+
+	// Simular middleware JWT que establece user_id y role
+	r.Use(func(c *gin.Context) {
+		c.Set(ContextKeyUserID, "user-abc")
+		c.Set(ContextKeyRole, "teacher")
+		c.Next()
+	})
+
+	r.GET("/test", func(c *gin.Context) { c.Status(http.StatusOK) })
+
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest("GET", "/test", nil)
+	r.ServeHTTP(w, req)
+
+	var entry map[string]interface{}
+	require.NoError(t, json.Unmarshal(buf.Bytes(), &entry))
+	assert.Equal(t, "teacher", entry["role"])
 }
 
 func TestGetLogger_DefaultWhenMissing(t *testing.T) {

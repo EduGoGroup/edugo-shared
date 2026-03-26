@@ -5,25 +5,25 @@ import (
 	"os"
 )
 
-// SlogConfig holds configuration for creating a slog.Logger.
+// SlogConfig contiene la configuración para crear un slog.Logger.
 type SlogConfig struct {
-	// Level is the minimum log level: "debug", "info", "warn", "error". Default: "info".
+	// Level es el nivel mínimo de log: "debug", "info", "warn", "error". Por defecto: "info".
 	Level string
-	// Format is the output format: "json" or "text". Default: "json".
+	// Format es el formato de salida: "json" o "text". Por defecto: "json".
 	Format string
-	// Service is the service name added to every log entry.
+	// Service es el nombre del servicio agregado a cada entrada de log.
 	Service string
-	// Env is the environment name (dev, staging, production).
+	// Env es el nombre del entorno (dev, staging, production).
 	Env string
-	// Version is the application version.
+	// Version es la versión de la aplicación.
 	Version string
 }
 
-// NewSlogProvider creates a *slog.Logger using stdlib slog handlers.
-// JSON format for production (structured, Datadog-compatible), text for development.
+// NewSlogProvider crea un *slog.Logger usando handlers estándar de slog.
+// Formato JSON para producción (estructurado, compatible con Datadog), texto para desarrollo.
 //
-// The returned logger includes service, env, and version as base fields.
-// For backwards compatibility with the Logger interface, wrap with NewSlogAdapter.
+// El logger retornado incluye service, env y version como campos base.
+// Para compatibilidad con la interfaz Logger, envuelve con NewSlogAdapter.
 func NewSlogProvider(cfg SlogConfig) *slog.Logger {
 	level := parseSlogLevel(cfg.Level)
 	opts := &slog.HandlerOptions{
@@ -40,7 +40,7 @@ func NewSlogProvider(cfg SlogConfig) *slog.Logger {
 
 	l := slog.New(handler)
 
-	// Add base fields if provided
+	// Agregar campos base si fueron proporcionados
 	if cfg.Service != "" {
 		l = l.With(slog.String(FieldService, cfg.Service))
 	}

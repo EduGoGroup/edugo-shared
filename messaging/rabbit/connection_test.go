@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/EduGoGroup/edugo-shared/testing/containers"
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -562,4 +563,73 @@ func TestConnection_Lifecycle(t *testing.T) {
 	// Health check debe fallar después de cerrar
 	err = conn.HealthCheck()
 	assert.Error(t, err)
+}
+
+// --- Tests unitarios para API de reconexion (no requieren container RabbitMQ) ---
+
+func TestDefaultReconnectConfig(t *testing.T) {
+	cfg := DefaultReconnectConfig()
+	assert.True(t, cfg.Enabled)
+	assert.Equal(t, 1*time.Second, cfg.InitialDelay)
+	assert.Equal(t, 30*time.Second, cfg.MaxDelay)
+	assert.Equal(t, 0, cfg.MaxAttempts)
+}
+
+func TestConnection_GetChannel_ThreadSafe(t *testing.T) {
+	// Verificar que GetChannel no genera panic al llamarse concurrentemente
+	c := &Connection{
+		closeCh: make(chan struct{}),
+	}
+
+	done := make(chan struct{})
+	for i := 0; i < 10; i++ {
+		go func() {
+			_ = c.GetChannel()
+			done <- struct{}{}
+		}()
+	}
+	for i := 0; i < 10; i++ {
+		<-done
+	}
+}
+
+func TestConnection_Close_Idempotent(t *testing.T) {
+	c := &Connection{
+		closeCh: make(chan struct{}),
+	}
+	// Close no debe generar panic al llamarse multiples veces
+	err := c.Close()
+	assert.NoError(t, err)
+	err = c.Close()
+	assert.NoError(t, err)
+}
+
+func TestConnection_NotifyReconnect_NilWhenDisabled(t *testing.T) {
+	// Sin reconnect habilitado, NotifyReconnect retorna nil
+	c := &Connection{
+		closeCh: make(chan struct{}),
+	}
+	ch := c.NotifyReconnect()
+	assert.Nil(t, ch)
+}
+
+func TestConnection_SetLogger(t *testing.T) {
+	c := &Connection{
+		closeCh: make(chan struct{}),
+	}
+	var logged bool
+	c.SetLogger(func(msg string, args ...any) {
+		logged = true
+	})
+
+	// Verificar que el logger se configuro correctamente usando log()
+	c.log("test")
+	assert.True(t, logged)
+}
+
+func TestConnectWithReconnect_InvalidURL(t *testing.T) {
+	conn, err := ConnectWithReconnect("amqp://invalid:invalid@localhost:9999/", DefaultReconnectConfig())
+	assert.Error(t, err)
+	assert.Nil(t, conn)
+	assert.Contains(t, err.Error(), "failed to connect to RabbitMQ")
 }

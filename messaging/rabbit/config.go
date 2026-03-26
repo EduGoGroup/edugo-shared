@@ -1,11 +1,31 @@
-// Package messaging provides RabbitMQ messaging functionality including
-// publishers, consumers, and connection management for the EduGo shared library.
+// Package rabbit provee funcionalidad de mensajeria RabbitMQ incluyendo
+// publishers, consumers, y gestion de conexiones para la libreria compartida EduGo.
 package rabbit
 
+import "time"
+
 const (
-	// DefaultPrefetchCount is the default number of messages to prefetch
+	// DefaultPrefetchCount es el numero de mensajes a prefetch por defecto
 	DefaultPrefetchCount = 5
 )
+
+// ReconnectConfig configura el comportamiento de reconexion automatica.
+type ReconnectConfig struct {
+	Enabled      bool          // Reconectar automaticamente al desconectarse
+	InitialDelay time.Duration // Delay inicial antes del primer intento de reconexion (default: 1s)
+	MaxDelay     time.Duration // Delay maximo entre intentos de reconexion (default: 30s)
+	MaxAttempts  int           // Intentos maximos de reconexion, 0 = ilimitado (default: 0)
+}
+
+// DefaultReconnectConfig retorna valores por defecto para la reconexion.
+func DefaultReconnectConfig() ReconnectConfig {
+	return ReconnectConfig{
+		Enabled:      true,
+		InitialDelay: 1 * time.Second,
+		MaxDelay:     30 * time.Second,
+		MaxAttempts:  0,
+	}
+}
 
 // Config contiene la configuración para RabbitMQ
 type Config struct {
@@ -30,15 +50,15 @@ type Config struct {
 type ExchangeConfig struct {
 	Name       string // Nombre del exchange
 	Type       string // Tipo: direct, topic, fanout, headers
-	Durable    bool   // Persistent across restarts
+	Durable    bool   // Persistente entre reinicios
 	AutoDelete bool   // Auto-eliminar cuando no hay bindings
 }
 
-// QueueConfig configuración de la cola
+// QueueConfig configuracion de la cola
 type QueueConfig struct {
-	Args       map[string]interface{} // Additional arguments (priority, TTL, etc.)
+	Args       map[string]interface{} // Argumentos adicionales (prioridad, TTL, etc.)
 	Name       string                 // Nombre de la cola
-	Durable    bool                   // Persistent across restarts
+	Durable    bool                   // Persistente entre reinicios
 	AutoDelete bool                   // Auto-eliminar cuando no hay consumidores
 	Exclusive  bool                   // Exclusiva para esta conexión
 }
@@ -50,7 +70,7 @@ type ConsumerConfig struct {
 	Exclusive     bool      // Exclusivo
 	NoLocal       bool      // No recibir mensajes publicados en la misma conexión
 	PrefetchCount int       // Número de mensajes a prefetch
-	DLQ           DLQConfig // Dead Letter Queue configuration
+	DLQ           DLQConfig // Configuracion Dead Letter Queue
 }
 
 // DefaultConfig retorna una configuración con valores por defecto

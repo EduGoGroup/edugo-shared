@@ -28,7 +28,8 @@ func JWTAuthMiddleware(jwtManager *auth.JWTManager) gin.HandlerFunc {
 		if authHeader == "" {
 			GetLogger(c).Warn("missing authorization header",
 				slog.String(logger.FieldPath, requestPath(c)),
-				slog.String("ip", c.ClientIP()),
+				slog.String(logger.FieldMethod, requestMethod(c)),
+				slog.String(logger.FieldIP, c.ClientIP()),
 			)
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": "authorization header required",
@@ -45,7 +46,8 @@ func JWTAuthMiddleware(jwtManager *auth.JWTManager) gin.HandlerFunc {
 		} else {
 			GetLogger(c).Warn("invalid authorization header format",
 				slog.String(logger.FieldPath, requestPath(c)),
-				slog.String("ip", c.ClientIP()),
+				slog.String(logger.FieldMethod, requestMethod(c)),
+				slog.String(logger.FieldIP, c.ClientIP()),
 			)
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": "invalid authorization header format, expected 'Bearer {token}'",
@@ -60,8 +62,9 @@ func JWTAuthMiddleware(jwtManager *auth.JWTManager) gin.HandlerFunc {
 		if err != nil {
 			GetLogger(c).Warn("jwt validation failed",
 				slog.String(logger.FieldPath, requestPath(c)),
-				slog.String("ip", c.ClientIP()),
-				slog.String("error", err.Error()),
+				slog.String(logger.FieldMethod, requestMethod(c)),
+				slog.String(logger.FieldIP, c.ClientIP()),
+				slog.String(logger.FieldError, err.Error()),
 			)
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": "invalid or expired token",

@@ -29,10 +29,10 @@ func requestPath(c *gin.Context) string {
 
 // requestMethod retorna el método HTTP de la petición o cadena vacía si no hay request.
 func requestMethod(c *gin.Context) string {
-	if c.Request != nil {
-		return c.Request.Method
+	if c == nil || c.Request == nil {
+		return ""
 	}
-	return ""
+	return c.Request.Method
 }
 
 // getValidatedClaims es una función helper que extrae y valida los claims del contexto.
@@ -127,7 +127,7 @@ func RequireAnyPermission(permissions ...enum.Permission) gin.HandlerFunc {
 
 		permNames := make([]string, len(permissions))
 		for i, p := range permissions {
-			permNames[i] = string(p)
+			permNames[i] = p.String()
 		}
 		reqLogger := GetLogger(c)
 		reqLogger.Warn("permission denied",

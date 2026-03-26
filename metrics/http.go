@@ -7,9 +7,9 @@ import (
 
 // HTTP metric names.
 const (
-	MetricHTTPRequestsTotal    = "http_requests_total"
-	MetricHTTPRequestDuration  = "http_request_duration_seconds"
-	MetricHTTPActiveRequests   = "http_active_requests"
+	MetricHTTPRequestsTotal   = "http_requests_total"
+	MetricHTTPRequestDuration = "http_request_duration_seconds"
+	MetricHTTPActiveRequests  = "http_active_requests"
 )
 
 // RecordHTTPRequest records an HTTP request with method, path template, status code, and duration.

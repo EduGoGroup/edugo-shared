@@ -294,7 +294,7 @@ func TestRequestLogging_LogsGinErrors(t *testing.T) {
 	buf := &bytes.Buffer{}
 	r, _ := setupLoggingTestRouter(buf)
 	r.GET("/test", func(c *gin.Context) {
-		_ = c.Error(assert.AnError)
+		c.Error(assert.AnError) //nolint:errcheck // error deliberado para test
 		c.Status(http.StatusInternalServerError)
 	})
 

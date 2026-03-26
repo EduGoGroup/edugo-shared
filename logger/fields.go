@@ -135,15 +135,15 @@ const (
 // Helpers tipados que retornan slog.Attr para type-safety.
 // Previenen errores como slog.String(logger.FieldDuration, "oops").
 
-func WithRequestID(id string) slog.Attr       { return slog.String(FieldRequestID, id) }
-func WithUserID(id string) slog.Attr           { return slog.String(FieldUserID, id) }
-func WithCorrelationID(id string) slog.Attr    { return slog.String(FieldCorrelationID, id) }
-func WithError(err error) slog.Attr            { return slog.String(FieldError, err.Error()) }
-func WithDuration(d time.Duration) slog.Attr   { return slog.Int64(FieldDuration, d.Milliseconds()) }
-func WithComponent(name string) slog.Attr      { return slog.String(FieldComponent, name) }
-func WithSchoolID(id string) slog.Attr         { return slog.String(FieldSchoolID, id) }
-func WithRole(role string) slog.Attr           { return slog.String(FieldRole, role) }
-func WithResource(resource string) slog.Attr   { return slog.String(FieldResource, resource) }
-func WithResourceID(id string) slog.Attr       { return slog.String(FieldResourceID, id) }
-func WithAction(action string) slog.Attr       { return slog.String(FieldAction, action) }
-func WithIP(ip string) slog.Attr               { return slog.String(FieldIP, ip) }
+func WithRequestID(id string) slog.Attr      { return slog.String(FieldRequestID, id) }
+func WithUserID(id string) slog.Attr         { return slog.String(FieldUserID, id) }
+func WithCorrelationID(id string) slog.Attr  { return slog.String(FieldCorrelationID, id) }
+func WithError(err error) slog.Attr          { return slog.String(FieldError, err.Error()) }
+func WithDuration(d time.Duration) slog.Attr { return slog.Int64(FieldDuration, d.Milliseconds()) }
+func WithComponent(name string) slog.Attr    { return slog.String(FieldComponent, name) }
+func WithSchoolID(id string) slog.Attr       { return slog.String(FieldSchoolID, id) }
+func WithRole(role string) slog.Attr         { return slog.String(FieldRole, role) }
+func WithResource(resource string) slog.Attr { return slog.String(FieldResource, resource) }
+func WithResourceID(id string) slog.Attr     { return slog.String(FieldResourceID, id) }
+func WithAction(action string) slog.Attr     { return slog.String(FieldAction, action) }
+func WithIP(ip string) slog.Attr             { return slog.String(FieldIP, ip) }

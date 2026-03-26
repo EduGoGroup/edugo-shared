@@ -2,10 +2,30 @@
 // publishers, consumers, and connection management for the EduGo shared library.
 package rabbit
 
+import "time"
+
 const (
 	// DefaultPrefetchCount is the default number of messages to prefetch
 	DefaultPrefetchCount = 5
 )
+
+// ReconnectConfig configures automatic reconnection behavior.
+type ReconnectConfig struct {
+	Enabled      bool          // Whether to automatically reconnect on disconnect
+	InitialDelay time.Duration // Initial delay before first reconnect attempt (default: 1s)
+	MaxDelay     time.Duration // Maximum delay between reconnect attempts (default: 30s)
+	MaxAttempts  int           // Maximum reconnect attempts, 0 = unlimited (default: 0)
+}
+
+// DefaultReconnectConfig returns sensible defaults for reconnection.
+func DefaultReconnectConfig() ReconnectConfig {
+	return ReconnectConfig{
+		Enabled:      true,
+		InitialDelay: 1 * time.Second,
+		MaxDelay:     30 * time.Second,
+		MaxAttempts:  0,
+	}
+}
 
 // Config contiene la configuración para RabbitMQ
 type Config struct {

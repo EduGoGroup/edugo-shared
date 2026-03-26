@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/EduGoGroup/edugo-shared/auth"
 	"github.com/EduGoGroup/edugo-shared/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -96,6 +97,27 @@ func TestRequestLogging_LogsFields(t *testing.T) {
 	require.True(t, exists, "duration_ms debe estar presente")
 	_, isFloat := durationVal.(float64)
 	assert.True(t, isFloat, "duration_ms debe ser numérico, got %T", durationVal)
+
+	// bytes debe estar presente con constante
+	_, hasBytesField := entry[logger.FieldBytes]
+	assert.True(t, hasBytesField, "bytes field debe estar presente")
+}
+
+func TestRequestLogging_FallbackPathFor404(t *testing.T) {
+	buf := &bytes.Buffer{}
+	r, _ := setupLoggingTestRouter(buf)
+	// No registrar la ruta — cualquier request dará 404
+	r.GET("/exists", func(c *gin.Context) { c.Status(http.StatusOK) })
+
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest("GET", "/unknown/path", nil)
+	r.ServeHTTP(w, req)
+
+	var entry map[string]interface{}
+	require.NoError(t, json.Unmarshal(buf.Bytes(), &entry))
+
+	// Debe usar la URL real como fallback en vez de string vacío
+	assert.Equal(t, "/unknown/path", entry[logger.FieldPath])
 }
 
 func TestRequestLogging_LogsWarnFor4xx(t *testing.T) {
@@ -146,37 +168,82 @@ func TestRequestLogging_InjectsLoggerInContext(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
-func TestRequestLogging_IncludesUserIDPostAuth(t *testing.T) {
+func TestPostAuthLogging_EnrichesLoggerWithUserInfo(t *testing.T) {
 	buf := &bytes.Buffer{}
-	r, _ := setupLoggingTestRouter(buf)
+	gin.SetMode(gin.TestMode)
+	r := gin.New()
 
-	// Simular middleware JWT que establece user_id
-	r.Use(func(c *gin.Context) {
-		c.Set(ContextKeyUserID, "user-abc")
-		c.Next()
-	})
+	handler := slog.NewJSONHandler(buf, &slog.HandlerOptions{Level: slog.LevelDebug})
+	testLogger := slog.New(handler)
 
-	r.GET("/test", func(c *gin.Context) { c.Status(http.StatusOK) })
+	r.Use(RequestLogging(testLogger))
 
-	w := httptest.NewRecorder()
-	req := httptest.NewRequest("GET", "/test", nil)
-	r.ServeHTTP(w, req)
-
-	var entry map[string]interface{}
-	require.NoError(t, json.Unmarshal(buf.Bytes(), &entry))
-	assert.Equal(t, "user-abc", entry[logger.FieldUserID])
-}
-
-func TestRequestLogging_IncludesRolePostAuth(t *testing.T) {
-	buf := &bytes.Buffer{}
-	r, _ := setupLoggingTestRouter(buf)
-
-	// Simular middleware JWT que establece user_id y role
+	// Simular JWT middleware que establece user_id, role y claims
 	r.Use(func(c *gin.Context) {
 		c.Set(ContextKeyUserID, "user-abc")
 		c.Set(ContextKeyRole, "teacher")
+		c.Set(ContextKeyClaims, &auth.Claims{
+			UserID: "user-abc",
+			ActiveContext: &auth.UserContext{
+				RoleName: "teacher",
+				SchoolID: "school-xyz",
+			},
+		})
 		c.Next()
 	})
+
+	// PostAuthLogging enriquece el logger DESPUÉS del JWT
+	r.Use(PostAuthLogging())
+
+	r.GET("/test", func(c *gin.Context) {
+		// Verificar que el logger en context tiene user_id
+		ctxLogger := logger.FromContext(c.Request.Context())
+		assert.NotNil(t, ctxLogger)
+
+		// Log dentro del handler — debe incluir user_id, role, school_id
+		ctxLogger.Info("handler log")
+		c.Status(http.StatusOK)
+	})
+
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest("GET", "/test", nil)
+	r.ServeHTTP(w, req)
+
+	// Parsear todas las líneas de log
+	lines := strings.Split(strings.TrimSpace(buf.String()), "\n")
+	require.GreaterOrEqual(t, len(lines), 2, "debe haber al menos 2 log entries")
+
+	// El log del handler debe tener user_id, role y school_id
+	var handlerEntry map[string]interface{}
+	for _, line := range lines {
+		var entry map[string]interface{}
+		require.NoError(t, json.Unmarshal([]byte(line), &entry))
+		if entry["msg"] == "handler log" {
+			handlerEntry = entry
+			break
+		}
+	}
+	require.NotNil(t, handlerEntry, "debe existir el log del handler")
+	assert.Equal(t, "user-abc", handlerEntry[logger.FieldUserID])
+	assert.Equal(t, "teacher", handlerEntry[logger.FieldRole])
+	assert.Equal(t, "school-xyz", handlerEntry[logger.FieldSchoolID])
+}
+
+func TestPostAuthLogging_SummaryLogIncludesAuthFields(t *testing.T) {
+	buf := &bytes.Buffer{}
+	gin.SetMode(gin.TestMode)
+	r := gin.New()
+
+	handler := slog.NewJSONHandler(buf, &slog.HandlerOptions{Level: slog.LevelDebug})
+	testLogger := slog.New(handler)
+
+	r.Use(RequestLogging(testLogger))
+	r.Use(func(c *gin.Context) {
+		c.Set(ContextKeyUserID, "user-abc")
+		c.Set(ContextKeyRole, "admin")
+		c.Next()
+	})
+	r.Use(PostAuthLogging())
 
 	r.GET("/test", func(c *gin.Context) { c.Status(http.StatusOK) })
 
@@ -184,9 +251,20 @@ func TestRequestLogging_IncludesRolePostAuth(t *testing.T) {
 	req := httptest.NewRequest("GET", "/test", nil)
 	r.ServeHTTP(w, req)
 
-	var entry map[string]interface{}
-	require.NoError(t, json.Unmarshal(buf.Bytes(), &entry))
-	assert.Equal(t, "teacher", entry["role"])
+	// El log "request completed" debe tener user_id y role
+	lines := strings.Split(strings.TrimSpace(buf.String()), "\n")
+	var summaryEntry map[string]interface{}
+	for _, line := range lines {
+		var entry map[string]interface{}
+		require.NoError(t, json.Unmarshal([]byte(line), &entry))
+		if entry["msg"] == "request completed" {
+			summaryEntry = entry
+			break
+		}
+	}
+	require.NotNil(t, summaryEntry, "debe existir el log de request completed")
+	assert.Equal(t, "user-abc", summaryEntry[logger.FieldUserID])
+	assert.Equal(t, "admin", summaryEntry[logger.FieldRole])
 }
 
 func TestGetLogger_DefaultWhenMissing(t *testing.T) {

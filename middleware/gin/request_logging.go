@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/EduGoGroup/edugo-shared/auth"
 	"github.com/EduGoGroup/edugo-shared/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -24,14 +25,12 @@ const (
 // RequestLogging crea un middleware que:
 //  1. Genera o extrae un request_id y correlation_id
 //  2. Crea un slog.Logger enriquecido con campos contextuales
-//  3. Después de la autenticación JWT, enriquece con user_id y role
-//  4. Inyecta el logger en gin.Context y context.Context
-//  5. Registra la petición completada con status, duración y bytes
+//  3. Inyecta el logger en gin.Context y context.Context
+//  4. Registra la petición completada con status, duración y bytes
 //
-// Coloca este middleware ANTES del middleware de autenticación para que
-// el request_id esté disponible desde el inicio. El enriquecimiento con
-// user_id y role ocurre automáticamente después de que el middleware JWT
-// establece las claves en el contexto.
+// Coloca este middleware ANTES del middleware de autenticación.
+// Usa PostAuthLogging() DESPUÉS del middleware JWT para enriquecer
+// el logger con user_id, role y school_id.
 func RequestLogging(baseLogger *slog.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
@@ -55,38 +54,30 @@ func RequestLogging(baseLogger *slog.Logger) gin.HandlerFunc {
 		// Almacenar el ID de petición en gin.Context
 		c.Set(ContextKeyRequestID, requestID)
 
+		// Usar c.FullPath() con fallback a la URL real para rutas no registradas (404)
+		path := c.FullPath()
+		if path == "" {
+			path = c.Request.URL.Path
+		}
+
 		// Crear logger enriquecido con contexto de la petición
 		reqLogger := baseLogger.With(
 			slog.String(logger.FieldRequestID, requestID),
 			slog.String(logger.FieldCorrelationID, correlationID),
 			slog.String(logger.FieldMethod, c.Request.Method),
-			slog.String(logger.FieldPath, c.FullPath()),
+			slog.String(logger.FieldPath, path),
 			slog.String(logger.FieldIP, c.ClientIP()),
 		)
 
-		// Almacenar el logger en gin.Context
-		c.Set(ContextKeySlogLogger, reqLogger)
-
-		// Almacenar el logger en context.Context para acceso desde la capa de servicio
-		ctx := logger.NewContext(c.Request.Context(), reqLogger)
-		c.Request = c.Request.WithContext(ctx)
+		// Inyectar logger en gin.Context y context.Context
+		setLogger(c, reqLogger)
 
 		// Procesar la petición
 		c.Next()
 
-		// Post-petición: enriquecer con user_id si está disponible (establecido por JWT middleware)
-		if userID, exists := c.Get(ContextKeyUserID); exists {
-			if uid, ok := userID.(string); ok {
-				reqLogger = reqLogger.With(slog.String(logger.FieldUserID, uid))
-			}
-		}
-
-		// Post-petición: enriquecer con role si está disponible (establecido por JWT middleware)
-		if role, exists := c.Get(ContextKeyRole); exists {
-			if r, ok := role.(string); ok {
-				reqLogger = reqLogger.With(slog.String("role", r))
-			}
-		}
+		// Post-petición: leer user_id/role/school_id si fueron inyectados por PostAuthLogging
+		// para incluirlos en el log de resumen final
+		finalLogger := GetLogger(c)
 
 		// Registrar la petición completada
 		duration := time.Since(start)
@@ -95,7 +86,7 @@ func RequestLogging(baseLogger *slog.Logger) gin.HandlerFunc {
 		attrs := []any{
 			slog.Int(logger.FieldStatusCode, status),
 			slog.Int64(logger.FieldDuration, duration.Milliseconds()),
-			slog.Int("bytes", c.Writer.Size()),
+			slog.Int(logger.FieldBytes, c.Writer.Size()),
 		}
 
 		if len(c.Errors) > 0 {
@@ -104,18 +95,64 @@ func RequestLogging(baseLogger *slog.Logger) gin.HandlerFunc {
 
 		switch {
 		case status >= 500:
-			reqLogger.Error("request completed", attrs...)
+			finalLogger.Error("request completed", attrs...)
 		case status >= 400:
-			reqLogger.Warn("request completed", attrs...)
+			finalLogger.Warn("request completed", attrs...)
 		default:
-			reqLogger.Info("request completed", attrs...)
+			finalLogger.Info("request completed", attrs...)
 		}
 	}
 }
 
+// PostAuthLogging crea un middleware que enriquece el logger del contexto
+// con user_id, role y school_id después de que el middleware JWT los establece.
+//
+// Cadena de middleware recomendada:
+//
+//	Recovery -> RequestLogging -> CORS -> JWT -> PostAuthLogging -> handlers
+//
+// Sin este middleware, los logs de servicios (via logger.FromContext) no
+// contendrán información de autenticación.
+func PostAuthLogging() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		reqLogger := GetLogger(c)
+
+		if userID, exists := c.Get(ContextKeyUserID); exists {
+			if uid, ok := userID.(string); ok && uid != "" {
+				reqLogger = reqLogger.With(slog.String(logger.FieldUserID, uid))
+			}
+		}
+
+		if role, exists := c.Get(ContextKeyRole); exists {
+			if r, ok := role.(string); ok && r != "" {
+				reqLogger = reqLogger.With(slog.String(logger.FieldRole, r))
+			}
+		}
+
+		if claims, exists := c.Get(ContextKeyClaims); exists {
+			if jwtClaims, ok := claims.(*auth.Claims); ok && jwtClaims.ActiveContext != nil {
+				if jwtClaims.ActiveContext.SchoolID != "" {
+					reqLogger = reqLogger.With(slog.String(logger.FieldSchoolID, jwtClaims.ActiveContext.SchoolID))
+				}
+			}
+		}
+
+		// Re-inyectar el logger enriquecido en ambos contextos
+		setLogger(c, reqLogger)
+
+		c.Next()
+	}
+}
+
+// setLogger almacena el logger en gin.Context y context.Context.
+func setLogger(c *gin.Context, l *slog.Logger) {
+	c.Set(ContextKeySlogLogger, l)
+	ctx := logger.NewContext(c.Request.Context(), l)
+	c.Request = c.Request.WithContext(ctx)
+}
+
 // GetLogger extrae el slog.Logger enriquecido del gin.Context.
 // Retorna slog.Default() si no se almacenó ningún logger.
-// Úsalo en handlers para obtener un logger con request_id, user_id, etc.
 func GetLogger(c *gin.Context) *slog.Logger {
 	if l, exists := c.Get(ContextKeySlogLogger); exists {
 		if sl, ok := l.(*slog.Logger); ok {

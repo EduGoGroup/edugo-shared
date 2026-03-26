@@ -3,6 +3,7 @@ package logger
 import (
 	"log/slog"
 	"os"
+	"strings"
 )
 
 // SlogConfig contiene la configuración para crear un slog.Logger.
@@ -52,6 +53,29 @@ func NewSlogProvider(cfg SlogConfig) *slog.Logger {
 	}
 
 	return l
+}
+
+// NewSlogProviderFromEnv crea un *slog.Logger leyendo la configuración de variables de entorno:
+//   - LOGGING_LEVEL: debug, info, warn, error (default: info)
+//   - LOGGING_FORMAT: json, text (default: json)
+//   - SERVICE_NAME: nombre del servicio
+//   - APP_ENV: entorno (dev, staging, production)
+//   - APP_VERSION: versión de la aplicación
+func NewSlogProviderFromEnv() *slog.Logger {
+	return NewSlogProvider(SlogConfig{
+		Level:   strings.ToLower(getEnvOrDefault("LOGGING_LEVEL", "info")),
+		Format:  strings.ToLower(getEnvOrDefault("LOGGING_FORMAT", "json")),
+		Service: getEnvOrDefault("SERVICE_NAME", ""),
+		Env:     getEnvOrDefault("APP_ENV", ""),
+		Version: getEnvOrDefault("APP_VERSION", ""),
+	})
+}
+
+func getEnvOrDefault(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return fallback
 }
 
 func parseSlogLevel(level string) slog.Level {

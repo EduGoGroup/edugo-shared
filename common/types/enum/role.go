@@ -1,49 +1,71 @@
 package enum
 
-// SystemRole representa los roles del sistema
+// SystemRole representa los roles del sistema, alineados 1:1 con la tabla iam.roles
 type SystemRole string
 
 const (
-	// SystemRoleAdmin represents an administrator role
-	SystemRoleAdmin SystemRole = "admin"
-	// SystemRoleTeacher represents a teacher role
+	// SystemRoleSuperAdmin es el rol de super administrador de la plataforma
+	SystemRoleSuperAdmin SystemRole = "super_admin"
+	// SystemRolePlatformAdmin es el rol de administrador de la plataforma
+	SystemRolePlatformAdmin SystemRole = "platform_admin"
+
+	// SystemRoleSchoolAdmin es el rol de administrador de escuela
+	SystemRoleSchoolAdmin SystemRole = "school_admin"
+	// SystemRoleSchoolDirector es el rol de director de escuela
+	SystemRoleSchoolDirector SystemRole = "school_director"
+	// SystemRoleSchoolCoordinator es el rol de coordinador de escuela
+	SystemRoleSchoolCoordinator SystemRole = "school_coordinator"
+	// SystemRoleSchoolAssistant es el rol de asistente administrativo de escuela
+	SystemRoleSchoolAssistant SystemRole = "school_assistant"
+
+	// SystemRoleTeacher es el rol de profesor
 	SystemRoleTeacher SystemRole = "teacher"
-	// SystemRoleStudent represents a student role
+	// SystemRoleAssistantTeacher es el rol de profesor asistente
+	SystemRoleAssistantTeacher SystemRole = "assistant_teacher"
+	// SystemRoleStudent es el rol de estudiante
 	SystemRoleStudent SystemRole = "student"
-	// SystemRoleGuardian represents a guardian/parent role
+	// SystemRoleGuardian es el rol de tutor/padre de familia
 	SystemRoleGuardian SystemRole = "guardian"
+
+	// SystemRoleObserver es el rol de observador
+	SystemRoleObserver SystemRole = "observer"
+	// SystemRoleReadonlyAuditor es el rol de auditor de solo lectura
+	SystemRoleReadonlyAuditor SystemRole = "readonly_auditor"
 )
 
-// IsValid verifica si el rol es válido
+// IsValid verifica si el rol es valido
 func (r SystemRole) IsValid() bool {
 	switch r {
-	case SystemRoleAdmin, SystemRoleTeacher, SystemRoleStudent, SystemRoleGuardian:
+	case SystemRoleSuperAdmin, SystemRolePlatformAdmin,
+		SystemRoleSchoolAdmin, SystemRoleSchoolDirector, SystemRoleSchoolCoordinator, SystemRoleSchoolAssistant,
+		SystemRoleTeacher, SystemRoleAssistantTeacher, SystemRoleStudent, SystemRoleGuardian,
+		SystemRoleObserver, SystemRoleReadonlyAuditor:
 		return true
 	}
 	return false
 }
 
-// String retorna la representación en string del rol
+// String retorna la representacion en string del rol
 func (r SystemRole) String() string {
 	return string(r)
 }
 
-// AllSystemRoles retorna todos los roles válidos
+// AllSystemRoles retorna todos los roles validos
 func AllSystemRoles() []SystemRole {
 	return []SystemRole{
-		SystemRoleAdmin,
-		SystemRoleTeacher,
-		SystemRoleStudent,
-		SystemRoleGuardian,
+		SystemRoleSuperAdmin, SystemRolePlatformAdmin,
+		SystemRoleSchoolAdmin, SystemRoleSchoolDirector, SystemRoleSchoolCoordinator, SystemRoleSchoolAssistant,
+		SystemRoleTeacher, SystemRoleAssistantTeacher, SystemRoleStudent, SystemRoleGuardian,
+		SystemRoleObserver, SystemRoleReadonlyAuditor,
 	}
 }
 
-// AllSystemRolesStrings retorna todos los roles como strings (útil para validación)
+// AllSystemRolesStrings retorna todos los roles como strings (util para validacion)
 func AllSystemRolesStrings() []string {
 	return []string{
-		string(SystemRoleAdmin),
-		string(SystemRoleTeacher),
-		string(SystemRoleStudent),
-		string(SystemRoleGuardian),
+		string(SystemRoleSuperAdmin), string(SystemRolePlatformAdmin),
+		string(SystemRoleSchoolAdmin), string(SystemRoleSchoolDirector), string(SystemRoleSchoolCoordinator), string(SystemRoleSchoolAssistant),
+		string(SystemRoleTeacher), string(SystemRoleAssistantTeacher), string(SystemRoleStudent), string(SystemRoleGuardian),
+		string(SystemRoleObserver), string(SystemRoleReadonlyAuditor),
 	}
 }

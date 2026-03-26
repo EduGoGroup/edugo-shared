@@ -42,7 +42,7 @@ func Connect(url string) (*Connection, error) {
 	}, nil
 }
 
-// ConnectWithReconnect establishes a connection with automatic reconnection on disconnect.
+// ConnectWithReconnect establece una conexion con reconexion automatica al desconectarse.
 func ConnectWithReconnect(url string, cfg ReconnectConfig) (*Connection, error) {
 	c, err := Connect(url)
 	if err != nil {
@@ -58,36 +58,48 @@ func ConnectWithReconnect(url string, cfg ReconnectConfig) (*Connection, error) 
 	return c, nil
 }
 
-// reconnectLoop watches for connection close notifications and triggers reconnection.
+// reconnectLoop observa notificaciones de cierre de conexion y dispara la reconexion.
 func (c *Connection) reconnectLoop() {
 	for {
-		// Register for close notification
-		notifyClose := make(chan *amqp.Error, 1)
 		c.mu.RLock()
-		if c.conn != nil && !c.conn.IsClosed() {
-			c.conn.NotifyClose(notifyClose)
-		}
+		conn := c.conn
 		c.mu.RUnlock()
+
+		if conn == nil || conn.IsClosed() {
+			// La conexion no esta disponible, intentar reconectar
+			if !c.doReconnect() {
+				// MaxAttempts agotados, salir del loop
+				c.log("reconnect loop saliendo: intentos maximos agotados")
+				return
+			}
+			continue
+		}
+
+		// Registrar notificacion de cierre
+		notifyClose := make(chan *amqp.Error, 1)
+		conn.NotifyClose(notifyClose)
 
 		select {
 		case <-c.closeCh:
 			return
 		case amqpErr, ok := <-notifyClose:
 			if !ok {
-				// Channel closed without error (graceful close)
+				// Canal cerrado sin error (cierre graceful)
 				return
 			}
-			// Log reconnection attempt
-			if c.logger != nil {
-				c.logger("RabbitMQ connection lost, reconnecting...", "error", amqpErr)
+			c.log("conexion RabbitMQ perdida, reconectando...", "error", amqpErr)
+			if !c.doReconnect() {
+				// MaxAttempts agotados, salir del loop
+				c.log("reconnect loop saliendo: intentos maximos agotados")
+				return
 			}
-			c.doReconnect()
 		}
 	}
 }
 
-// doReconnect attempts to re-establish the connection with exponential backoff.
-func (c *Connection) doReconnect() {
+// doReconnect intenta restablecer la conexion con backoff exponencial.
+// Retorna true si la reconexion fue exitosa, false si se agotaron los intentos o se cerro.
+func (c *Connection) doReconnect() bool {
 	delay := c.reconnectCfg.InitialDelay
 	if delay == 0 {
 		delay = time.Second
@@ -100,39 +112,44 @@ func (c *Connection) doReconnect() {
 	for attempt := 1; c.reconnectCfg.MaxAttempts == 0 || attempt <= c.reconnectCfg.MaxAttempts; attempt++ {
 		select {
 		case <-c.closeCh:
-			return
+			return false
 		case <-time.After(delay):
 		}
 
 		if c.tryReconnect(attempt) {
-			return
+			return true
 		}
 
 		delay = nextBackoff(delay, maxDelay)
 	}
 
-	if c.logger != nil {
-		c.logger("RabbitMQ reconnect failed after max attempts", "max_attempts", c.reconnectCfg.MaxAttempts)
-	}
+	c.log("reconexion RabbitMQ fallida tras intentos maximos", "max_attempts", c.reconnectCfg.MaxAttempts)
+	return false
 }
 
-// tryReconnect attempts a single reconnection. Returns true on success.
+// tryReconnect intenta una reconexion individual. Retorna true si fue exitosa.
 func (c *Connection) tryReconnect(attempt int) bool {
 	conn, err := amqp.Dial(c.url)
 	if err != nil {
-		if c.logger != nil {
-			c.logger("RabbitMQ reconnect failed", "attempt", attempt, "error", err)
-		}
+		c.log("reconexion RabbitMQ fallida", "attempt", attempt, "error", err)
 		return false
 	}
 
 	ch, err := conn.Channel()
 	if err != nil {
-		_ = conn.Close() //nolint:errcheck // cleanup on channel error
-		if c.logger != nil {
-			c.logger("RabbitMQ channel creation failed after reconnect", "attempt", attempt, "error", err)
-		}
+		_ = conn.Close() //nolint:errcheck // cleanup en error de canal
+		c.log("creacion de canal fallida tras reconexion", "attempt", attempt, "error", err)
 		return false
+	}
+
+	// Verificar closeCh antes de asignar para evitar race con Close()
+	select {
+	case <-c.closeCh:
+		// La conexion fue cerrada mientras reconectabamos, limpiar recursos nuevos
+		_ = ch.Close()   //nolint:errcheck // cleanup de recursos huerfanos
+		_ = conn.Close() //nolint:errcheck // cleanup de recursos huerfanos
+		return false
+	default:
 	}
 
 	c.mu.Lock()
@@ -140,11 +157,9 @@ func (c *Connection) tryReconnect(attempt int) bool {
 	c.channel = ch
 	c.mu.Unlock()
 
-	if c.logger != nil {
-		c.logger("RabbitMQ reconnected successfully", "attempt", attempt)
-	}
+	c.log("RabbitMQ reconectado exitosamente", "attempt", attempt)
 
-	// Notify listeners
+	// Notificar a los listeners
 	select {
 	case c.reconnectCh <- struct{}{}:
 	default:
@@ -153,7 +168,19 @@ func (c *Connection) tryReconnect(attempt int) bool {
 	return true
 }
 
-// nextBackoff doubles the delay up to maxDelay.
+// log escribe un mensaje de log si el logger esta configurado.
+// Accede a c.logger bajo RLock para evitar data race con SetLogger.
+func (c *Connection) log(msg string, args ...any) {
+	c.mu.RLock()
+	lgr := c.logger
+	c.mu.RUnlock()
+
+	if lgr != nil {
+		lgr(msg, args...)
+	}
+}
+
+// nextBackoff duplica el delay hasta maxDelay.
 func nextBackoff(delay, maxDelay time.Duration) time.Duration {
 	delay *= 2
 	if delay > maxDelay {
@@ -162,28 +189,28 @@ func nextBackoff(delay, maxDelay time.Duration) time.Duration {
 	return delay
 }
 
-// NotifyReconnect returns a channel that receives a signal when the connection is re-established.
+// NotifyReconnect retorna un canal que recibe una senal cuando la conexion se restablece.
+// Retorna nil si la reconexion no esta habilitada.
 func (c *Connection) NotifyReconnect() <-chan struct{} {
-	if c.reconnectCh == nil {
-		ch := make(chan struct{})
-		return ch
-	}
 	return c.reconnectCh
 }
 
-// SetLogger sets an optional logger for reconnection events.
+// SetLogger configura un logger opcional para eventos de reconexion.
+// Es seguro para uso concurrente.
 func (c *Connection) SetLogger(logger func(msg string, args ...any)) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	c.logger = logger
 }
 
-// GetChannel retorna el canal de RabbitMQ
+// GetChannel retorna el canal de RabbitMQ de forma segura para concurrencia.
 func (c *Connection) GetChannel() *amqp.Channel {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	return c.channel
 }
 
-// GetConnection retorna la conexion de RabbitMQ
+// GetConnection retorna la conexion de RabbitMQ de forma segura para concurrencia.
 func (c *Connection) GetConnection() *amqp.Connection {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
@@ -229,7 +256,11 @@ func (c *Connection) IsClosed() bool {
 
 // DeclareExchange declara un exchange
 func (c *Connection) DeclareExchange(cfg ExchangeConfig) error {
-	return c.channel.ExchangeDeclare(
+	ch := c.GetChannel()
+	if ch == nil {
+		return fmt.Errorf("channel is nil")
+	}
+	return ch.ExchangeDeclare(
 		cfg.Name,
 		cfg.Type,
 		cfg.Durable,
@@ -242,7 +273,11 @@ func (c *Connection) DeclareExchange(cfg ExchangeConfig) error {
 
 // DeclareQueue declara una cola
 func (c *Connection) DeclareQueue(cfg QueueConfig) (amqp.Queue, error) {
-	return c.channel.QueueDeclare(
+	ch := c.GetChannel()
+	if ch == nil {
+		return amqp.Queue{}, fmt.Errorf("channel is nil")
+	}
+	return ch.QueueDeclare(
 		cfg.Name,
 		cfg.Durable,
 		cfg.AutoDelete,
@@ -254,7 +289,11 @@ func (c *Connection) DeclareQueue(cfg QueueConfig) (amqp.Queue, error) {
 
 // BindQueue vincula una cola a un exchange con una routing key
 func (c *Connection) BindQueue(queueName, routingKey, exchangeName string) error {
-	return c.channel.QueueBind(
+	ch := c.GetChannel()
+	if ch == nil {
+		return fmt.Errorf("channel is nil")
+	}
+	return ch.QueueBind(
 		queueName,
 		routingKey,
 		exchangeName,
@@ -265,7 +304,11 @@ func (c *Connection) BindQueue(queueName, routingKey, exchangeName string) error
 
 // SetPrefetchCount establece el prefetch count
 func (c *Connection) SetPrefetchCount(count int) error {
-	return c.channel.Qos(
+	ch := c.GetChannel()
+	if ch == nil {
+		return fmt.Errorf("channel is nil")
+	}
+	return ch.Qos(
 		count, // prefetch count
 		0,     // prefetch size
 		false, // global
@@ -279,12 +322,14 @@ func (c *Connection) HealthCheck() error {
 		return fmt.Errorf("connection is closed")
 	}
 
+	// Obtener conexion bajo RLock
+	conn := c.GetConnection()
+	if conn == nil {
+		return fmt.Errorf("connection is closed")
+	}
+
 	// Crear un canal temporal para este health check
 	// Esto evita race conditions cuando multiples goroutines llaman HealthCheck concurrentemente
-	c.mu.RLock()
-	conn := c.conn
-	c.mu.RUnlock()
-
 	ch, err := conn.Channel()
 	if err != nil {
 		return fmt.Errorf("health check failed: %w", err)

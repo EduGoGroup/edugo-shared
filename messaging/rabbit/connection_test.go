@@ -565,7 +565,7 @@ func TestConnection_Lifecycle(t *testing.T) {
 	assert.Error(t, err)
 }
 
-// --- Unit tests for reconnection API (no RabbitMQ container needed) ---
+// --- Tests unitarios para API de reconexion (no requieren container RabbitMQ) ---
 
 func TestDefaultReconnectConfig(t *testing.T) {
 	cfg := DefaultReconnectConfig()
@@ -576,7 +576,7 @@ func TestDefaultReconnectConfig(t *testing.T) {
 }
 
 func TestConnection_GetChannel_ThreadSafe(t *testing.T) {
-	// Test that GetChannel doesn't panic when called concurrently
+	// Verificar que GetChannel no genera panic al llamarse concurrentemente
 	c := &Connection{
 		closeCh: make(chan struct{}),
 	}
@@ -597,19 +597,20 @@ func TestConnection_Close_Idempotent(t *testing.T) {
 	c := &Connection{
 		closeCh: make(chan struct{}),
 	}
-	// Close should not panic when called multiple times
+	// Close no debe generar panic al llamarse multiples veces
 	err := c.Close()
 	assert.NoError(t, err)
 	err = c.Close()
 	assert.NoError(t, err)
 }
 
-func TestConnection_NotifyReconnect_NilSafe(t *testing.T) {
+func TestConnection_NotifyReconnect_NilWhenDisabled(t *testing.T) {
+	// Sin reconnect habilitado, NotifyReconnect retorna nil
 	c := &Connection{
 		closeCh: make(chan struct{}),
 	}
 	ch := c.NotifyReconnect()
-	assert.NotNil(t, ch)
+	assert.Nil(t, ch)
 }
 
 func TestConnection_SetLogger(t *testing.T) {
@@ -620,8 +621,9 @@ func TestConnection_SetLogger(t *testing.T) {
 	c.SetLogger(func(msg string, args ...any) {
 		logged = true
 	})
-	assert.NotNil(t, c.logger)
-	c.logger("test")
+
+	// Verificar que el logger se configuro correctamente usando log()
+	c.log("test")
 	assert.True(t, logged)
 }
 

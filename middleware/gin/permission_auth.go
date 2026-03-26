@@ -3,14 +3,24 @@ package gin
 import (
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/EduGoGroup/edugo-shared/auth"
 	"github.com/EduGoGroup/edugo-shared/common/types/enum"
+	"github.com/EduGoGroup/edugo-shared/logger"
 	"github.com/gin-gonic/gin"
 )
 
-// requestPath retorna la URL path de la petición o cadena vacía si no hay request.
+// requestPath retorna la ruta registrada en el router (e.g. /api/v1/users/:id)
+// para evitar alta cardinalidad en dashboards. Si FullPath no está disponible,
+// cae al URL.Path literal como fallback.
 func requestPath(c *gin.Context) string {
+	if c == nil {
+		return ""
+	}
+	if fullPath := c.FullPath(); fullPath != "" {
+		return fullPath
+	}
 	if c.Request != nil && c.Request.URL != nil {
 		return c.Request.URL.Path
 	}
@@ -78,8 +88,8 @@ func RequirePermission(permission enum.Permission) gin.HandlerFunc {
 			reqLogger := GetLogger(c)
 			reqLogger.Warn("permission denied",
 				slog.String("required_permission", permission.String()),
-				slog.String("path", requestPath(c)),
-				slog.String("method", requestMethod(c)),
+				slog.String(logger.FieldPath, requestPath(c)),
+				slog.String(logger.FieldMethod, requestMethod(c)),
 			)
 			c.JSON(http.StatusForbidden, gin.H{
 				"error":    "forbidden",
@@ -115,10 +125,15 @@ func RequireAnyPermission(permissions ...enum.Permission) gin.HandlerFunc {
 			}
 		}
 
+		permNames := make([]string, len(permissions))
+		for i, p := range permissions {
+			permNames[i] = string(p)
+		}
 		reqLogger := GetLogger(c)
 		reqLogger.Warn("permission denied",
-			slog.String("path", requestPath(c)),
-			slog.String("method", requestMethod(c)),
+			slog.String("required_permissions", strings.Join(permNames, ",")),
+			slog.String(logger.FieldPath, requestPath(c)),
+			slog.String(logger.FieldMethod, requestMethod(c)),
 		)
 		c.JSON(http.StatusForbidden, gin.H{
 			"error": "insufficient permissions",
@@ -152,8 +167,9 @@ func RequireAllPermissions(permissions ...enum.Permission) gin.HandlerFunc {
 		if len(missing) > 0 {
 			reqLogger := GetLogger(c)
 			reqLogger.Warn("permission denied",
-				slog.String("path", requestPath(c)),
-				slog.String("method", requestMethod(c)),
+				slog.String("missing_permissions", strings.Join(missing, ",")),
+				slog.String(logger.FieldPath, requestPath(c)),
+				slog.String(logger.FieldMethod, requestMethod(c)),
 			)
 			c.JSON(http.StatusForbidden, gin.H{
 				"error":   "insufficient permissions",

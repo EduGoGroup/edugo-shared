@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/EduGoGroup/edugo-shared/auth"
+	"github.com/EduGoGroup/edugo-shared/logger"
 	"github.com/gin-gonic/gin"
 )
 
@@ -25,8 +26,8 @@ func JWTAuthMiddleware(jwtManager *auth.JWTManager) gin.HandlerFunc {
 		// 1. Verificar header Authorization
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			slog.Warn("missing authorization header",
-				slog.String("path", c.Request.URL.Path),
+			GetLogger(c).Warn("missing authorization header",
+				slog.String(logger.FieldPath, requestPath(c)),
 				slog.String("ip", c.ClientIP()),
 			)
 			c.JSON(http.StatusUnauthorized, gin.H{
@@ -42,8 +43,8 @@ func JWTAuthMiddleware(jwtManager *auth.JWTManager) gin.HandlerFunc {
 		if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
 			tokenString = authHeader[7:]
 		} else {
-			slog.Warn("invalid authorization header format",
-				slog.String("path", c.Request.URL.Path),
+			GetLogger(c).Warn("invalid authorization header format",
+				slog.String(logger.FieldPath, requestPath(c)),
 				slog.String("ip", c.ClientIP()),
 			)
 			c.JSON(http.StatusUnauthorized, gin.H{
@@ -57,8 +58,8 @@ func JWTAuthMiddleware(jwtManager *auth.JWTManager) gin.HandlerFunc {
 		// 3. Validar token con JWTManager
 		claims, err := jwtManager.ValidateToken(tokenString)
 		if err != nil {
-			slog.Warn("jwt validation failed",
-				slog.String("path", c.Request.URL.Path),
+			GetLogger(c).Warn("jwt validation failed",
+				slog.String(logger.FieldPath, requestPath(c)),
 				slog.String("ip", c.ClientIP()),
 				slog.String("error", err.Error()),
 			)

@@ -16,6 +16,8 @@ require (
 
 replace github.com/EduGoGroup/edugo-shared/audit => ../../audit
 
+replace github.com/EduGoGroup/edugo-shared/auth => ../../auth
+
 require (
 	github.com/EduGoGroup/edugo-infrastructure/postgres v0.69.0 // indirect
 	github.com/bytedance/gopkg v0.1.4 // indirect

@@ -1,5 +1,10 @@
 package logger
 
+import (
+	"log/slog"
+	"time"
+)
+
 // Constantes para campos de log estandarizados
 // Estas constantes facilitan el uso consistente de campos en toda la aplicación
 const (
@@ -116,4 +121,49 @@ const (
 
 	// FieldContentType es el tipo de contenido MIME
 	FieldContentType = "content_type"
+
+	// FieldRole es el rol del usuario autenticado
+	FieldRole = "role"
+
+	// FieldSchoolID es el ID de la escuela en contexto
+	FieldSchoolID = "school_id"
+
+	// FieldBytes es el tamaño de la respuesta HTTP en bytes
+	FieldBytes = "bytes"
 )
+
+// WithRequestID retorna un slog.Attr con el ID de petición.
+func WithRequestID(id string) slog.Attr { return slog.String(FieldRequestID, id) }
+
+// WithUserID retorna un slog.Attr con el ID de usuario.
+func WithUserID(id string) slog.Attr { return slog.String(FieldUserID, id) }
+
+// WithCorrelationID retorna un slog.Attr con el ID de correlación.
+func WithCorrelationID(id string) slog.Attr { return slog.String(FieldCorrelationID, id) }
+
+// WithError retorna un slog.Attr con el mensaje de error.
+func WithError(err error) slog.Attr { return slog.String(FieldError, err.Error()) }
+
+// WithDuration retorna un slog.Attr con la duración en milisegundos.
+func WithDuration(d time.Duration) slog.Attr { return slog.Int64(FieldDuration, d.Milliseconds()) }
+
+// WithComponent retorna un slog.Attr con el nombre del componente.
+func WithComponent(name string) slog.Attr { return slog.String(FieldComponent, name) }
+
+// WithSchoolID retorna un slog.Attr con el ID de la escuela.
+func WithSchoolID(id string) slog.Attr { return slog.String(FieldSchoolID, id) }
+
+// WithRole retorna un slog.Attr con el rol del usuario.
+func WithRole(role string) slog.Attr { return slog.String(FieldRole, role) }
+
+// WithResource retorna un slog.Attr con el recurso afectado.
+func WithResource(resource string) slog.Attr { return slog.String(FieldResource, resource) }
+
+// WithResourceID retorna un slog.Attr con el ID del recurso.
+func WithResourceID(id string) slog.Attr { return slog.String(FieldResourceID, id) }
+
+// WithAction retorna un slog.Attr con la acción ejecutada.
+func WithAction(action string) slog.Attr { return slog.String(FieldAction, action) }
+
+// WithIP retorna un slog.Attr con la dirección IP del cliente.
+func WithIP(ip string) slog.Attr { return slog.String(FieldIP, ip) }

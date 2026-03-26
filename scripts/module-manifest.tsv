@@ -1,6 +1,7 @@
 # module|level|integration|coverage_validation
 common|0|false|false
 logger|0|false|true
+metrics|0|false|true
 config|0|false|true
 testing|0|true|true
 messaging/events|0|false|true

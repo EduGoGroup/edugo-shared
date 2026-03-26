@@ -6,7 +6,7 @@ import "time"
 const (
 	MetricAuthLoginsTotal       = "auth_logins_total"
 	MetricAuthLoginDuration     = "auth_login_duration_seconds"
-	MetricAuthTokenRefreshTotal = "auth_token_refresh_total"
+	MetricAuthTokenRefreshTotal = "auth_token_refresh_total" //nolint:gosec // no es una credencial, es un nombre de métrica
 	MetricAuthRateLimitHits     = "auth_rate_limit_hits_total"
 	MetricAuthPermissionChecks  = "auth_permission_checks_total"
 )

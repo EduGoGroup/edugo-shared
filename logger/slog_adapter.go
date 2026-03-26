@@ -27,31 +27,38 @@ func (a *SlogAdapter) SlogLogger() *slog.Logger {
 	return a.logger
 }
 
+// Debug registra un mensaje de nivel debug.
 func (a *SlogAdapter) Debug(msg string, fields ...interface{}) {
 	a.logger.Debug(msg, fields...)
 }
 
+// Info registra un mensaje de nivel info.
 func (a *SlogAdapter) Info(msg string, fields ...interface{}) {
 	a.logger.Info(msg, fields...)
 }
 
+// Warn registra un mensaje de nivel warning.
 func (a *SlogAdapter) Warn(msg string, fields ...interface{}) {
 	a.logger.Warn(msg, fields...)
 }
 
+// Error registra un mensaje de nivel error.
 func (a *SlogAdapter) Error(msg string, fields ...interface{}) {
 	a.logger.Error(msg, fields...)
 }
 
+// Fatal registra un mensaje de nivel fatal y termina la aplicación.
 func (a *SlogAdapter) Fatal(msg string, fields ...interface{}) {
 	a.logger.Error(msg, fields...)
 	os.Exit(1)
 }
 
+// With agrega campos contextuales y retorna un nuevo Logger inmutable.
 func (a *SlogAdapter) With(fields ...interface{}) Logger {
 	return &SlogAdapter{logger: a.logger.With(fields...)}
 }
 
+// Sync es un no-op para compatibilidad con la interfaz Logger.
 func (a *SlogAdapter) Sync() error {
 	return nil
 }

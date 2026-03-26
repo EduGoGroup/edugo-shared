@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"testing"
@@ -99,7 +100,7 @@ func BenchmarkSlogAdapter_With(b *testing.B) {
 
 func BenchmarkFromContext(b *testing.B) {
 	l := NewSlogProvider(SlogConfig{Level: "info", Format: "json"})
-	ctx := NewContext(nil, l)
+	ctx := NewContext(context.Background(), l)
 	b.ResetTimer()
 	for b.Loop() {
 		_ = FromContext(ctx)

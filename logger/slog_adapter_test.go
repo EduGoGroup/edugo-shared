@@ -17,7 +17,7 @@ func newTestSlogAdapter(buf *bytes.Buffer) (*SlogAdapter, *bytes.Buffer) {
 	}
 	handler := slog.NewJSONHandler(buf, &slog.HandlerOptions{Level: slog.LevelDebug})
 	l := slog.New(handler)
-	adapter := NewSlogAdapter(l).(*SlogAdapter)
+	adapter, _ := NewSlogAdapter(l).(*SlogAdapter) //nolint:errcheck // siempre retorna *SlogAdapter
 	return adapter, buf
 }
 

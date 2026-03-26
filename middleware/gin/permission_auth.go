@@ -1,12 +1,39 @@
 package gin
 
 import (
+	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/EduGoGroup/edugo-shared/auth"
 	"github.com/EduGoGroup/edugo-shared/common/types/enum"
+	"github.com/EduGoGroup/edugo-shared/logger"
 	"github.com/gin-gonic/gin"
 )
+
+// requestPath retorna la ruta registrada en el router (e.g. /api/v1/users/:id)
+// para evitar alta cardinalidad en dashboards. Si FullPath no está disponible,
+// cae al URL.Path literal como fallback.
+func requestPath(c *gin.Context) string {
+	if c == nil {
+		return ""
+	}
+	if fullPath := c.FullPath(); fullPath != "" {
+		return fullPath
+	}
+	if c.Request != nil && c.Request.URL != nil {
+		return c.Request.URL.Path
+	}
+	return ""
+}
+
+// requestMethod retorna el método HTTP de la petición o cadena vacía si no hay request.
+func requestMethod(c *gin.Context) string {
+	if c.Request != nil {
+		return c.Request.Method
+	}
+	return ""
+}
 
 // getValidatedClaims es una función helper que extrae y valida los claims del contexto.
 // Retorna los claims validados o nil si hay algún error, y envía la respuesta HTTP correspondiente.
@@ -58,6 +85,12 @@ func RequirePermission(permission enum.Permission) gin.HandlerFunc {
 		}
 
 		if !hasPermission {
+			reqLogger := GetLogger(c)
+			reqLogger.Warn("permission denied",
+				slog.String("required_permission", permission.String()),
+				slog.String(logger.FieldPath, requestPath(c)),
+				slog.String(logger.FieldMethod, requestMethod(c)),
+			)
 			c.JSON(http.StatusForbidden, gin.H{
 				"error":    "forbidden",
 				"code":     "INSUFFICIENT_PERMISSIONS",
@@ -92,6 +125,16 @@ func RequireAnyPermission(permissions ...enum.Permission) gin.HandlerFunc {
 			}
 		}
 
+		permNames := make([]string, len(permissions))
+		for i, p := range permissions {
+			permNames[i] = string(p)
+		}
+		reqLogger := GetLogger(c)
+		reqLogger.Warn("permission denied",
+			slog.String("required_permissions", strings.Join(permNames, ",")),
+			slog.String(logger.FieldPath, requestPath(c)),
+			slog.String(logger.FieldMethod, requestMethod(c)),
+		)
 		c.JSON(http.StatusForbidden, gin.H{
 			"error": "insufficient permissions",
 			"code":  "INSUFFICIENT_PERMISSIONS",
@@ -122,6 +165,12 @@ func RequireAllPermissions(permissions ...enum.Permission) gin.HandlerFunc {
 		}
 
 		if len(missing) > 0 {
+			reqLogger := GetLogger(c)
+			reqLogger.Warn("permission denied",
+				slog.String("missing_permissions", strings.Join(missing, ",")),
+				slog.String(logger.FieldPath, requestPath(c)),
+				slog.String(logger.FieldMethod, requestMethod(c)),
+			)
 			c.JSON(http.StatusForbidden, gin.H{
 				"error":   "insufficient permissions",
 				"code":    "INSUFFICIENT_PERMISSIONS",

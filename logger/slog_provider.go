@@ -1,0 +1,94 @@
+package logger
+
+import (
+	"log/slog"
+	"os"
+	"strings"
+)
+
+// SlogConfig contiene la configuración para crear un slog.Logger.
+type SlogConfig struct {
+	// Level es el nivel mínimo de log: "debug", "info", "warn", "error". Por defecto: "info".
+	Level string
+	// Format es el formato de salida: "json" o "text". Por defecto: "json".
+	Format string
+	// Service es el nombre del servicio agregado a cada entrada de log.
+	Service string
+	// Env es el nombre del entorno (dev, staging, production).
+	Env string
+	// Version es la versión de la aplicación.
+	Version string
+}
+
+// NewSlogProvider crea un *slog.Logger usando handlers estándar de slog.
+// Formato JSON para producción (estructurado, compatible con Datadog), texto para desarrollo.
+//
+// El logger retornado incluye service, env y version como campos base.
+// Para compatibilidad con la interfaz Logger, envuelve con NewSlogAdapter.
+func NewSlogProvider(cfg SlogConfig) *slog.Logger {
+	level := parseSlogLevel(cfg.Level)
+	opts := &slog.HandlerOptions{
+		Level:     level,
+		AddSource: true,
+	}
+
+	var handler slog.Handler
+	if cfg.Format == "text" {
+		handler = slog.NewTextHandler(os.Stdout, opts)
+	} else {
+		handler = slog.NewJSONHandler(os.Stdout, opts)
+	}
+
+	l := slog.New(handler)
+
+	// Agregar campos base si fueron proporcionados
+	if cfg.Service != "" {
+		l = l.With(slog.String(FieldService, cfg.Service))
+	}
+	if cfg.Env != "" {
+		l = l.With(slog.String(FieldEnvironment, cfg.Env))
+	}
+	if cfg.Version != "" {
+		l = l.With(slog.String(FieldVersion, cfg.Version))
+	}
+
+	return l
+}
+
+// NewSlogProviderFromEnv crea un *slog.Logger leyendo la configuración de variables de entorno:
+//   - LOGGING_LEVEL: debug, info, warn, error (default: info)
+//   - LOGGING_FORMAT: json, text (default: json)
+//   - SERVICE_NAME: nombre del servicio
+//   - APP_ENV: entorno (dev, staging, production)
+//   - APP_VERSION: versión de la aplicación
+func NewSlogProviderFromEnv() *slog.Logger {
+	return NewSlogProvider(SlogConfig{
+		Level:   strings.ToLower(getEnvOrDefault("LOGGING_LEVEL", "info")),
+		Format:  strings.ToLower(getEnvOrDefault("LOGGING_FORMAT", "json")),
+		Service: getEnvOrDefault("SERVICE_NAME", ""),
+		Env:     getEnvOrDefault("APP_ENV", ""),
+		Version: getEnvOrDefault("APP_VERSION", ""),
+	})
+}
+
+func getEnvOrDefault(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return fallback
+}
+
+func parseSlogLevel(level string) slog.Level {
+	switch level {
+	case "debug":
+		return slog.LevelDebug
+	case "info":
+		return slog.LevelInfo
+	case "warn":
+		return slog.LevelWarn
+	case "error":
+		return slog.LevelError
+	default:
+		return slog.LevelInfo
+	}
+}

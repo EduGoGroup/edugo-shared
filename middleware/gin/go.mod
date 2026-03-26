@@ -6,7 +6,7 @@ require (
 	github.com/EduGoGroup/edugo-shared/audit v0.1.0
 	github.com/EduGoGroup/edugo-shared/auth v0.52.0
 	github.com/EduGoGroup/edugo-shared/common v0.56.0
-	github.com/EduGoGroup/edugo-shared/logger v0.50.1
+	github.com/EduGoGroup/edugo-shared/logger v0.51.0
 	github.com/EduGoGroup/edugo-shared/repository v0.6.0
 	github.com/gin-gonic/gin v1.12.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
@@ -15,8 +15,6 @@ require (
 )
 
 replace github.com/EduGoGroup/edugo-shared/audit => ../../audit
-
-replace github.com/EduGoGroup/edugo-shared/logger => ../../logger
 
 require (
 	github.com/EduGoGroup/edugo-infrastructure/postgres v0.69.0 // indirect

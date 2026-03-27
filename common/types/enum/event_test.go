@@ -43,6 +43,6 @@ func TestEventType_GetRoutingKey(t *testing.T) {
 
 func TestAllEventTypes(t *testing.T) {
 	events := AllEventTypes()
-	assert.Len(t, events, 12)
+	assert.Len(t, events, 18)
 	assert.Contains(t, events, EventMaterialUploaded)
 }

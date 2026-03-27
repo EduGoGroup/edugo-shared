@@ -38,6 +38,7 @@ const (
 	PermissionMaterialsDelete   Permission = "materials:delete"
 	PermissionMaterialsPublish  Permission = "materials:publish"
 	PermissionMaterialsDownload Permission = "materials:download"
+	PermissionMaterialsUpload   Permission = "materials:upload"
 )
 
 // Permisos de evaluaciones
@@ -50,6 +51,8 @@ const (
 	PermissionAssessmentsGrade       Permission = "assessments:grade"
 	PermissionAssessmentsAttempt     Permission = "assessments:attempt"
 	PermissionAssessmentsViewResults Permission = "assessments:view_results"
+	PermissionAssessmentsAssign      Permission = "assessments:assign"
+	PermissionAssessmentsReview      Permission = "assessments:review"
 )
 
 // Permisos de progreso
@@ -135,6 +138,11 @@ const (
 // Permisos de dashboard
 const (
 	PermissionDashboardView Permission = "dashboard:view"
+)
+
+// Permisos de notificaciones
+const (
+	PermissionNotificationsRead Permission = "notifications:read"
 )
 
 // Permisos de configuración del sistema
@@ -255,6 +263,7 @@ var AllPermissions = map[Permission]bool{
 	PermissionMaterialsDelete:   true,
 	PermissionMaterialsPublish:  true,
 	PermissionMaterialsDownload: true,
+	PermissionMaterialsUpload:   true,
 	// Evaluaciones
 	PermissionAssessmentsCreate:      true,
 	PermissionAssessmentsRead:        true,
@@ -264,6 +273,8 @@ var AllPermissions = map[Permission]bool{
 	PermissionAssessmentsGrade:       true,
 	PermissionAssessmentsAttempt:     true,
 	PermissionAssessmentsViewResults: true,
+	PermissionAssessmentsAssign:      true,
+	PermissionAssessmentsReview:      true,
 	// Progreso
 	PermissionProgressRead:    true,
 	PermissionProgressUpdate:  true,
@@ -313,6 +324,8 @@ var AllPermissions = map[Permission]bool{
 	PermissionAssessmentsStudentRead: true,
 	// Dashboard
 	PermissionDashboardView: true,
+	// Notificaciones
+	PermissionNotificationsRead: true,
 	// Configuración del sistema
 	PermissionSystemSettingsSettings: true,
 	// Tipos de concepto

@@ -15,7 +15,7 @@ func TestAssessmentType_IsValid(t *testing.T) {
 		{"MultipleChoice", AssessmentTypeMultipleChoice, true},
 		{"TrueFalse", AssessmentTypeTrueFalse, true},
 		{"ShortAnswer", AssessmentTypeShortAnswer, true},
-		{"Essay", AssessmentTypeEssay, true}, // This should pass if implemented correctly
+		{"OpenEnded", AssessmentTypeOpenEnded, true},
 		{"Invalid", "invalid_type", false},
 	}
 	for _, tt := range tests {
@@ -31,6 +31,6 @@ func TestAssessmentType_String(t *testing.T) {
 
 func TestAllAssessmentTypes(t *testing.T) {
 	types := AllAssessmentTypes()
-	// Should contain Essay, so length should be 4
-	assert.Contains(t, types, AssessmentTypeEssay)
+	// Should contain OpenEnded, so length should be 4
+	assert.Contains(t, types, AssessmentTypeOpenEnded)
 }

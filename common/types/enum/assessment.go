@@ -12,14 +12,14 @@ const (
 	AssessmentTypeTrueFalse AssessmentType = "true_false"
 	// AssessmentTypeShortAnswer represents a short answer question
 	AssessmentTypeShortAnswer AssessmentType = "short_answer"
-	// AssessmentTypeEssay represents an essay question
-	AssessmentTypeEssay AssessmentType = "essay"
+	// AssessmentTypeOpenEnded represents an open ended question
+	AssessmentTypeOpenEnded AssessmentType = "open_ended"
 )
 
 // IsValid verifica si el tipo es válido
 func (a AssessmentType) IsValid() bool {
 	switch a {
-	case AssessmentTypeMultipleChoice, AssessmentTypeTrueFalse, AssessmentTypeShortAnswer, AssessmentTypeEssay:
+	case AssessmentTypeMultipleChoice, AssessmentTypeTrueFalse, AssessmentTypeShortAnswer, AssessmentTypeOpenEnded:
 		return true
 	}
 	return false
@@ -36,6 +36,6 @@ func AllAssessmentTypes() []AssessmentType {
 		AssessmentTypeMultipleChoice,
 		AssessmentTypeTrueFalse,
 		AssessmentTypeShortAnswer,
-		AssessmentTypeEssay,
+		AssessmentTypeOpenEnded,
 	}
 }

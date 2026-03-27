@@ -1,7 +1,6 @@
 package gin
 
 import (
-	"context"
 	"strings"
 
 	"github.com/EduGoGroup/edugo-shared/audit"
@@ -69,7 +68,7 @@ func AuditMiddleware(logger audit.AuditLogger) gin.HandlerFunc { //nolint:gocycl
 			}
 		}
 
-		_ = logger.Log(context.Background(), event) //nolint:errcheck
+		_ = logger.Log(c.Request.Context(), event) //nolint:errcheck
 	}
 }
 

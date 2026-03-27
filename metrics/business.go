@@ -12,6 +12,9 @@ const (
 	MetricAssessmentAttempts  = "assessment_attempts_total"
 	MetricGradingTotal        = "grading_operations_total"
 	MetricGradingDuration     = "grading_duration_seconds"
+	MetricReviewTotal         = "review_operations_total"
+	MetricReviewDuration      = "review_duration_seconds"
+	MetricNotificationTotal   = "notification_operations_total"
 )
 
 // RecordBusinessOperation records a generic business operation.
@@ -50,6 +53,29 @@ func (m *Metrics) RecordGrading(questionType string, duration time.Duration, err
 	}
 	m.recorder.CounterAdd(MetricGradingTotal, 1, labels)
 	m.recorder.HistogramObserve(MetricGradingDuration, durationSeconds(duration), labels)
+}
+
+// RecordReview records an assessment review operation.
+// action: "submit", "request_revision", "approve"
+func (m *Metrics) RecordReview(action string, duration time.Duration, err error) {
+	labels := map[string]string{
+		"service": m.service,
+		"action":  action,
+		"status":  statusLabel(err),
+	}
+	m.recorder.CounterAdd(MetricReviewTotal, 1, labels)
+	m.recorder.HistogramObserve(MetricReviewDuration, durationSeconds(duration), labels)
+}
+
+// RecordNotification records a notification operation.
+// channel: "push", "in_app", "email"
+func (m *Metrics) RecordNotification(channel string, err error) {
+	labels := map[string]string{
+		"service": m.service,
+		"channel": channel,
+		"status":  statusLabel(err),
+	}
+	m.recorder.CounterAdd(MetricNotificationTotal, 1, labels)
 }
 
 // RecordExport records an export operation.

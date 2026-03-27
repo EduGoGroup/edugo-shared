@@ -19,6 +19,19 @@ const (
 	EventAssessmentAttemptRecorded EventType = "assessment.attempt_recorded"
 	// EventAssessmentCompleted represents an assessment completion event
 	EventAssessmentCompleted EventType = "assessment.completed"
+	// EventAssessmentPublished represents an assessment publishing event
+	EventAssessmentPublished EventType = "assessment.published"
+	// EventAssessmentAssigned represents an assessment assignment event
+	EventAssessmentAssigned EventType = "assessment.assigned"
+	// EventAssessmentReviewed represents an assessment review event
+	EventAssessmentReviewed EventType = "assessment.reviewed"
+	// EventAssessmentGenerate represents a request to generate an assessment via AI
+	EventAssessmentGenerate EventType = "assessment.generate"
+	// EventAssessmentGenerated represents a completed AI-generated assessment event
+	EventAssessmentGenerated EventType = "assessment.generated"
+
+	// EventNotificationCreated represents a notification creation event
+	EventNotificationCreated EventType = "notification.created"
 
 	// EventStudentEnrolled represents a student enrollment event
 	EventStudentEnrolled EventType = "student.enrolled"
@@ -39,6 +52,9 @@ func (e EventType) IsValid() bool {
 	case EventMaterialUploaded, EventMaterialReprocess, EventMaterialDeleted,
 		EventMaterialPublished, EventMaterialArchived,
 		EventAssessmentAttemptRecorded, EventAssessmentCompleted,
+		EventAssessmentPublished, EventAssessmentAssigned, EventAssessmentReviewed,
+		EventAssessmentGenerate, EventAssessmentGenerated,
+		EventNotificationCreated,
 		EventStudentEnrolled, EventStudentProgress,
 		EventUserCreated, EventUserUpdated, EventUserDeactivated:
 		return true
@@ -66,6 +82,12 @@ func AllEventTypes() []EventType {
 		EventMaterialArchived,
 		EventAssessmentAttemptRecorded,
 		EventAssessmentCompleted,
+		EventAssessmentPublished,
+		EventAssessmentAssigned,
+		EventAssessmentReviewed,
+		EventAssessmentGenerate,
+		EventAssessmentGenerated,
+		EventNotificationCreated,
 		EventStudentEnrolled,
 		EventStudentProgress,
 		EventUserCreated,

@@ -4,6 +4,13 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/middleware/g
 
 ## [Unreleased]
 
+## 0.54.0 - 2026-03-27
+
+### Changed
+
+- Actualización de dependencia `github.com/EduGoGroup/edugo-shared/repository` de `v0.4.6` a `v0.4.7`.
+- Actualización de dependencia indirecta `github.com/EduGoGroup/edugo-infrastructure/postgres` 
+
 ## [0.53.0] - 2026-03-26
 
 ### Added
@@ -48,4 +55,3 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/middleware/g
 ### Added
 
 - Baseline de documentacion de fase 1 con `README.md`, `docs/README.md` y organizacion local por modulo.
-

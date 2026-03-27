@@ -37,8 +37,19 @@ func (b *InMemoryBlacklist) Revoke(jti string, expiresAt time.Time) {
 
 // IsRevoked returns true if the token's JTI has been revoked.
 func (b *InMemoryBlacklist) IsRevoked(jti string) bool {
-	_, ok := b.store.Load(jti)
-	return ok
+	val, ok := b.store.Load(jti)
+	if !ok {
+		return false
+	}
+	exp, valid := val.(time.Time)
+	if !valid {
+		return false
+	}
+	if time.Now().After(exp) {
+		b.store.Delete(jti)
+		return false
+	}
+	return true
 }
 
 func (b *InMemoryBlacklist) cleanupLoop(ctx context.Context) {

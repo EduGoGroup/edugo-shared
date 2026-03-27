@@ -4,7 +4,7 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/middleware/g
 
 ## [Unreleased]
 
-## 0.54.0 - 2026-03-27
+## 0.56.0 - 2026-03-27
 
 ### Changed
 

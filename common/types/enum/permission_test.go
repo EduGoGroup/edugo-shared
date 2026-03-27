@@ -183,6 +183,11 @@ func TestAllPermissions_MapIntegrity(t *testing.T) {
 			PermissionAssessmentsPublish,
 			PermissionAssessmentsGrade,
 			PermissionAssessmentsAttempt,
+			PermissionAssessmentsAssign,
+			PermissionAssessmentsReview,
+			PermissionNotificationsRead,
+			PermissionMaterialsUpload,
+
 			PermissionAssessmentsViewResults,
 			// Progreso
 			PermissionProgressRead,

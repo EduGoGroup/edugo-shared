@@ -4,10 +4,10 @@ go 1.25.0
 
 require (
 	github.com/EduGoGroup/edugo-shared/audit v0.1.0
-	github.com/EduGoGroup/edugo-shared/auth v0.52.0
-	github.com/EduGoGroup/edugo-shared/common v0.56.0
+	github.com/EduGoGroup/edugo-shared/auth v0.54.0
+	github.com/EduGoGroup/edugo-shared/common v0.58.0
 	github.com/EduGoGroup/edugo-shared/logger v0.51.0
-	github.com/EduGoGroup/edugo-shared/repository v0.6.0
+	github.com/EduGoGroup/edugo-shared/repository v0.7.0
 	github.com/gin-gonic/gin v1.12.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
@@ -19,10 +19,10 @@ replace github.com/EduGoGroup/edugo-shared/audit => ../../audit
 replace github.com/EduGoGroup/edugo-shared/auth => ../../auth
 
 require (
-	github.com/EduGoGroup/edugo-infrastructure/postgres v0.69.0 // indirect
+	github.com/EduGoGroup/edugo-infrastructure/postgres v0.71.0 // indirect
 	github.com/bytedance/gopkg v0.1.4 // indirect
 	github.com/bytedance/sonic v1.15.0 // indirect
-	github.com/bytedance/sonic/loader v0.5.0 // indirect
+	github.com/bytedance/sonic/loader v0.5.1 // indirect
 	github.com/cloudwego/base64x v0.1.6 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.13 // indirect

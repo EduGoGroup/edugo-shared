@@ -23,6 +23,8 @@ type AssessmentAttemptRecordedPayload struct {
 	Score        float64   `json:"score"`
 	TotalPoints  float64   `json:"total_points"`
 	SubmittedAt  time.Time `json:"submitted_at"`
+	TeacherID    string    `json:"teacher_id,omitempty"`
+	Title        string    `json:"title,omitempty"`
 }
 
 // NewAssessmentAttemptRecordedEvent crea y valida un nuevo evento de intento de evaluacion.

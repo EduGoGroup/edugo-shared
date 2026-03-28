@@ -69,7 +69,7 @@ func TestNewAssessmentReviewedEvent_EmptyFields(t *testing.T) {
 		{
 			name: "Status vacio", eventID: "evt_1",
 			payload: func() AssessmentReviewedPayload { p := base; p.Status = ""; return p }(),
-			wantErr: "Status",
+			wantErr: "status",
 		},
 	}
 

@@ -73,7 +73,7 @@ func TestNewAssessmentPublishedEvent_EmptyFields(t *testing.T) {
 			payload: AssessmentPublishedPayload{
 				AssessmentID: "a", SchoolID: "s", TeacherID: "t", Title: "", QuestionCount: 1,
 			},
-			wantErr: "Title",
+			wantErr: "title",
 		},
 	}
 

@@ -7,11 +7,11 @@ import (
 
 // AssessmentAssignedEvent representa la asignacion de una evaluacion a estudiantes o unidades.
 type AssessmentAssignedEvent struct {
-	EventID      string                     `json:"event_id"`
-	EventType    string                     `json:"event_type"`
-	EventVersion string                     `json:"event_version"`
-	Timestamp    time.Time                  `json:"timestamp"`
-	Payload      AssessmentAssignedPayload  `json:"payload"`
+	EventID      string                    `json:"event_id"`
+	EventType    string                    `json:"event_type"`
+	EventVersion string                    `json:"event_version"`
+	Timestamp    time.Time                 `json:"timestamp"`
+	Payload      AssessmentAssignedPayload `json:"payload"`
 }
 
 // AssessmentAssignedPayload contiene los datos de la asignacion.

@@ -7,11 +7,11 @@ import (
 
 // AssessmentPublishedEvent representa la publicacion de una evaluacion.
 type AssessmentPublishedEvent struct {
-	EventID      string                      `json:"event_id"`
-	EventType    string                      `json:"event_type"`
-	EventVersion string                      `json:"event_version"`
-	Timestamp    time.Time                   `json:"timestamp"`
-	Payload      AssessmentPublishedPayload  `json:"payload"`
+	EventID      string                     `json:"event_id"`
+	EventType    string                     `json:"event_type"`
+	EventVersion string                     `json:"event_version"`
+	Timestamp    time.Time                  `json:"timestamp"`
+	Payload      AssessmentPublishedPayload `json:"payload"`
 }
 
 // AssessmentPublishedPayload contiene los datos de la evaluacion publicada.
@@ -45,7 +45,7 @@ func NewAssessmentPublishedEvent(eventID, eventType, eventVersion string, payloa
 		return AssessmentPublishedEvent{}, errors.New("TeacherID no puede estar vacío")
 	}
 	if payload.Title == "" {
-		return AssessmentPublishedEvent{}, errors.New("Title no puede estar vacío")
+		return AssessmentPublishedEvent{}, errors.New("title no puede estar vacío")
 	}
 
 	return AssessmentPublishedEvent{

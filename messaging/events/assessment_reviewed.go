@@ -7,11 +7,11 @@ import (
 
 // AssessmentReviewedEvent representa la revision de un intento de evaluacion por un profesor.
 type AssessmentReviewedEvent struct {
-	EventID      string                     `json:"event_id"`
-	EventType    string                     `json:"event_type"`
-	EventVersion string                     `json:"event_version"`
-	Timestamp    time.Time                  `json:"timestamp"`
-	Payload      AssessmentReviewedPayload  `json:"payload"`
+	EventID      string                    `json:"event_id"`
+	EventType    string                    `json:"event_type"`
+	EventVersion string                    `json:"event_version"`
+	Timestamp    time.Time                 `json:"timestamp"`
+	Payload      AssessmentReviewedPayload `json:"payload"`
 }
 
 // AssessmentReviewedPayload contiene los datos de la revision.
@@ -50,7 +50,7 @@ func NewAssessmentReviewedEvent(eventID, eventType, eventVersion string, payload
 		return AssessmentReviewedEvent{}, errors.New("SchoolID no puede estar vacío")
 	}
 	if payload.Status == "" {
-		return AssessmentReviewedEvent{}, errors.New("Status no puede estar vacío")
+		return AssessmentReviewedEvent{}, errors.New("status no puede estar vacío")
 	}
 
 	return AssessmentReviewedEvent{

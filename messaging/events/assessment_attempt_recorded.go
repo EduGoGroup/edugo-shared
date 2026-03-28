@@ -7,11 +7,11 @@ import (
 
 // AssessmentAttemptRecordedEvent representa el registro de un intento de evaluacion por un estudiante.
 type AssessmentAttemptRecordedEvent struct {
-	EventID      string                            `json:"event_id"`
-	EventType    string                            `json:"event_type"`
-	EventVersion string                            `json:"event_version"`
-	Timestamp    time.Time                         `json:"timestamp"`
-	Payload      AssessmentAttemptRecordedPayload  `json:"payload"`
+	EventID      string                           `json:"event_id"`
+	EventType    string                           `json:"event_type"`
+	EventVersion string                           `json:"event_version"`
+	Timestamp    time.Time                        `json:"timestamp"`
+	Payload      AssessmentAttemptRecordedPayload `json:"payload"`
 }
 
 // AssessmentAttemptRecordedPayload contiene los datos del intento registrado.

@@ -22,11 +22,11 @@ func TestNewAssessmentAttemptRecordedEvent_Valid(t *testing.T) {
 		Title:        "Examen de Matematicas",
 	}
 
-	event, err := NewAssessmentAttemptRecordedEvent("evt_001", "assessment.attempt.recorded", "1.0", payload)
+	event, err := NewAssessmentAttemptRecordedEvent("evt_001", "assessment.attempt_recorded", "1.0", payload)
 
 	require.NoError(t, err)
 	assert.Equal(t, "evt_001", event.EventID)
-	assert.Equal(t, "assessment.attempt.recorded", event.EventType)
+	assert.Equal(t, "assessment.attempt_recorded", event.EventType)
 	assert.Equal(t, "1.0", event.EventVersion)
 	assert.False(t, event.Timestamp.IsZero())
 	assert.Equal(t, 85.5, event.Payload.Score)
@@ -75,7 +75,7 @@ func TestNewAssessmentAttemptRecordedEvent_EmptyFields(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := NewAssessmentAttemptRecordedEvent(tt.eventID, "assessment.attempt.recorded", "1.0", tt.payload)
+			_, err := NewAssessmentAttemptRecordedEvent(tt.eventID, "assessment.attempt_recorded", "1.0", tt.payload)
 			assert.Error(t, err)
 			assert.Contains(t, err.Error(), tt.wantErr)
 		})
@@ -94,7 +94,7 @@ func TestAssessmentAttemptRecordedEvent_Serialization(t *testing.T) {
 		SubmittedAt:  now,
 	}
 
-	event, err := NewAssessmentAttemptRecordedEvent("evt_001", "assessment.attempt.recorded", "1.0", payload)
+	event, err := NewAssessmentAttemptRecordedEvent("evt_001", "assessment.attempt_recorded", "1.0", payload)
 	require.NoError(t, err)
 
 	data, err := json.Marshal(event)
@@ -123,7 +123,7 @@ func TestAssessmentAttemptRecordedEvent_OptionalFieldsSerialization(t *testing.T
 		Title:        "Examen Final",
 	}
 
-	event, err := NewAssessmentAttemptRecordedEvent("evt_001", "assessment.attempt.recorded", "1.0", payload)
+	event, err := NewAssessmentAttemptRecordedEvent("evt_001", "assessment.attempt_recorded", "1.0", payload)
 	require.NoError(t, err)
 
 	data, err := json.Marshal(event)
@@ -140,7 +140,7 @@ func TestAssessmentAttemptRecordedEvent_OptionalFieldsSerialization(t *testing.T
 func TestAssessmentAttemptRecordedEvent_BackwardCompatibility(t *testing.T) {
 	jsonWithoutNewFields := `{
 		"event_id": "evt_001",
-		"event_type": "assessment.attempt.recorded",
+		"event_type": "assessment.attempt_recorded",
 		"event_version": "1.0",
 		"timestamp": "2026-03-28T10:00:00Z",
 		"payload": {

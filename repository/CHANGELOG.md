@@ -4,6 +4,11 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/repository` 
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-03-28
+### Changed
+- Actualizada dependencia `edugo-infrastructure/postgres`
+
+
 ## [0.7.0] - 2026-03-27
 ### Changed
 - Actualizada dependencia `edugo-infrastructure/postgres` a `v0.71.0`.

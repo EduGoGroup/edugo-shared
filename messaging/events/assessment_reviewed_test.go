@@ -17,6 +17,8 @@ func TestNewAssessmentReviewedEvent_Valid(t *testing.T) {
 		FinalScore:   88.5,
 		TotalPoints:  100.0,
 		Status:       "approved",
+		StudentID:    "student_001",
+		Title:        "Examen de Historia",
 	}
 
 	event, err := NewAssessmentReviewedEvent("evt_001", "assessment.reviewed", "1.0", payload)
@@ -28,6 +30,8 @@ func TestNewAssessmentReviewedEvent_Valid(t *testing.T) {
 	assert.False(t, event.Timestamp.IsZero())
 	assert.Equal(t, 88.5, event.Payload.FinalScore)
 	assert.Equal(t, "approved", event.Payload.Status)
+	assert.Equal(t, "student_001", event.Payload.StudentID)
+	assert.Equal(t, "Examen de Historia", event.Payload.Title)
 }
 
 func TestNewAssessmentReviewedEvent_EmptyFields(t *testing.T) {
@@ -107,4 +111,55 @@ func TestAssessmentReviewedEvent_Serialization(t *testing.T) {
 	assert.Equal(t, event.Payload.AttemptID, decoded.Payload.AttemptID)
 	assert.Equal(t, event.Payload.FinalScore, decoded.Payload.FinalScore)
 	assert.Equal(t, event.Payload.Status, decoded.Payload.Status)
+}
+
+func TestAssessmentReviewedEvent_OptionalFieldsSerialization(t *testing.T) {
+	payload := AssessmentReviewedPayload{
+		AttemptID:    "attempt_001",
+		AssessmentID: "assess_001",
+		ReviewerID:   "teacher_001",
+		SchoolID:     "school_001",
+		FinalScore:   95.0,
+		TotalPoints:  100.0,
+		Status:       "completed",
+		StudentID:    "student_002",
+		Title:        "Quiz de Ciencias",
+	}
+
+	event, err := NewAssessmentReviewedEvent("evt_001", "assessment.reviewed", "1.0", payload)
+	require.NoError(t, err)
+
+	data, err := json.Marshal(event)
+	require.NoError(t, err)
+
+	var decoded AssessmentReviewedEvent
+	err = json.Unmarshal(data, &decoded)
+	require.NoError(t, err)
+
+	assert.Equal(t, "student_002", decoded.Payload.StudentID)
+	assert.Equal(t, "Quiz de Ciencias", decoded.Payload.Title)
+}
+
+func TestAssessmentReviewedEvent_BackwardCompatibility(t *testing.T) {
+	jsonWithoutNewFields := `{
+		"event_id": "evt_001",
+		"event_type": "assessment.reviewed",
+		"event_version": "1.0",
+		"timestamp": "2026-03-28T10:00:00Z",
+		"payload": {
+			"attempt_id": "attempt_001",
+			"assessment_id": "assess_001",
+			"reviewer_id": "teacher_001",
+			"school_id": "school_001",
+			"final_score": 88.5,
+			"total_points": 100.0,
+			"status": "approved"
+		}
+	}`
+
+	var decoded AssessmentReviewedEvent
+	err := json.Unmarshal([]byte(jsonWithoutNewFields), &decoded)
+	require.NoError(t, err)
+	assert.Equal(t, "", decoded.Payload.StudentID)
+	assert.Equal(t, "", decoded.Payload.Title)
 }

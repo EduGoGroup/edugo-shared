@@ -23,6 +23,8 @@ type AssessmentReviewedPayload struct {
 	FinalScore   float64 `json:"final_score"`
 	TotalPoints  float64 `json:"total_points"`
 	Status       string  `json:"status"`
+	StudentID    string  `json:"student_id,omitempty"`
+	Title        string  `json:"title,omitempty"`
 }
 
 // NewAssessmentReviewedEvent crea y valida un nuevo evento de revision de evaluacion.

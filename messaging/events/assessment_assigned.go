@@ -22,6 +22,7 @@ type AssessmentAssignedPayload struct {
 	AssignedByID string `json:"assigned_by_id"`
 	TargetType   string `json:"target_type"` // "student" o "unit"
 	TargetID     string `json:"target_id"`
+	Title        string `json:"title,omitempty"`
 }
 
 // NewAssessmentAssignedEvent crea y valida un nuevo evento de asignacion de evaluacion.

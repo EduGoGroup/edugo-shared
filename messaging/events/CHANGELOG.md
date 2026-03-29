@@ -4,6 +4,16 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/messaging/ev
 
 ## [Unreleased]
 
+## [v0.52.0] - 2026-03-28
+
+### Added
+
+- Add optional TeacherID and Title fields to AssessmentAttemptRecordedPayload
+- Add optional StudentID and Title fields to AssessmentReviewedPayload
+- Add optional Title field to AssessmentAssignedPayload
+- All fields use omitempty for backward compatibility
+- Added serialization and backward-compatibility tests
+
 ## [v0.51.0] - 2026-03-28
 
 ### Added

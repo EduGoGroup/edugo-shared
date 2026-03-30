@@ -1,11 +1,11 @@
-github.com/EduGoGroup/edugo-infrastructure/postgres v0.77.0 h1:5qvReUFbFg471EYygfkophq3YjUqyqN7aFij0jh7RIY=
-github.com/EduGoGroup/edugo-infrastructure/postgres v0.77.0/go.mod h1:h9dD6t1LbuMWqrG37ZNoNnxcq/ne+u8tDzYNheTwAKw=
+github.com/EduGoGroup/edugo-infrastructure/postgres v0.77.1 h1:THWMkgpcVwr1UQf9bYrWAGUroNw19LY55VJnfTW9ypI=
+github.com/EduGoGroup/edugo-infrastructure/postgres v0.77.1/go.mod h1:h9dD6t1LbuMWqrG37ZNoNnxcq/ne+u8tDzYNheTwAKw=
 github.com/EduGoGroup/edugo-shared/common v0.58.0 h1:WGT/scHP1H1/AtKfNAaeI/eG12PIPiVai2smbKApq1Y=
 github.com/EduGoGroup/edugo-shared/common v0.58.0/go.mod h1:Y0TuHzMPyVYP/SJwH0bR9VpGqSBvuJtlzbCHAAmu9eM=
 github.com/EduGoGroup/edugo-shared/logger v0.51.0 h1:e4KutBDDiYyjzNeNF76/4Jd1vIPIO9NinwT7Z0uM258=
 github.com/EduGoGroup/edugo-shared/logger v0.51.0/go.mod h1:MxMk6Yy4H7UrdwdO4H5CYvU6AFTBHc8IyiwSAHXCfPk=
-github.com/EduGoGroup/edugo-shared/repository v0.7.2 h1:XSZ2basvAPgj40RIFEyvjXeHT8u63LF0opkBQTKj2qU=
-github.com/EduGoGroup/edugo-shared/repository v0.7.2/go.mod h1:O1XlHsGJ0mW98b18gyl8VVUYXe4aT9APcEeT83KT/8k=
+github.com/EduGoGroup/edugo-shared/repository v0.7.3 h1:vdGhmDNdu7XLwrvcHEQ8kljRjYYNVtwK3KhRPAGQKw4=
+github.com/EduGoGroup/edugo-shared/repository v0.7.3/go.mod h1:70RhGyzEK0pRUZ4FMowm5AkVNNasgs+hP/xjMVZjjic=
 github.com/bytedance/gopkg v0.1.4 h1:oZnQwnX82KAIWb7033bEwtxvTqXcYMxDBaQxo5JJHWM=
 github.com/bytedance/gopkg v0.1.4/go.mod h1:v1zWfPm21Fb+OsyXN2VAHdL6TBb2L88anLQgdyje6R4=
 github.com/bytedance/sonic v1.15.0 h1:/PXeWFaR5ElNcVE84U0dOHjiMHQOwNIx3K4ymzh/uSE=

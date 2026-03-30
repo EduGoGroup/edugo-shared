@@ -7,7 +7,7 @@ require (
 	github.com/EduGoGroup/edugo-shared/auth v0.54.0
 	github.com/EduGoGroup/edugo-shared/common v0.58.0
 	github.com/EduGoGroup/edugo-shared/logger v0.51.0
-	github.com/EduGoGroup/edugo-shared/repository v0.7.2
+	github.com/EduGoGroup/edugo-shared/repository v0.7.3
 	github.com/gin-gonic/gin v1.12.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
@@ -19,7 +19,7 @@ replace github.com/EduGoGroup/edugo-shared/audit => ../../audit
 replace github.com/EduGoGroup/edugo-shared/auth => ../../auth
 
 require (
-	github.com/EduGoGroup/edugo-infrastructure/postgres v0.77.0 // indirect
+	github.com/EduGoGroup/edugo-infrastructure/postgres v0.77.1 // indirect
 	github.com/bytedance/gopkg v0.1.4 // indirect
 	github.com/bytedance/sonic v1.15.0 // indirect
 	github.com/bytedance/sonic/loader v0.5.1 // indirect

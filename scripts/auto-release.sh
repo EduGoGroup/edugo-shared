@@ -224,13 +224,9 @@ extract_version_from_changelog() {
   local version
   version=$(awk '
     /^## \[Unreleased\]/ { found_unreleased=1; next }
-    found_unreleased && /^## \[[0-9]/ {
-      # Extract version using sub/gsub instead of match with array
-      line = $0
-      sub(/^.*\[/, "", line)
-      sub(/\].*$/, "", line)
-      if (line ~ /^[0-9]+\.[0-9]+\.[0-9]+$/) {
-        print line
+    found_unreleased && /^## \[?[0-9]/ {
+      if (match($0, /[0-9]+\.[0-9]+\.[0-9]+/)) {
+        print substr($0, RSTART, RLENGTH)
         exit
       }
     }

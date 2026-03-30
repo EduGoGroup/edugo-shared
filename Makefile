@@ -237,3 +237,19 @@ version: ## Mostrar versiones de herramientas
 	else \
 		echo "golangci-lint: no instalado"; \
 	fi
+
+.PHONY: auto-release
+auto-release: ## Release automatico desde CHANGELOGs modificados (modo interactivo)
+	@./scripts/auto-release.sh
+
+.PHONY: auto-release-all
+auto-release-all: ## Release automatico de todos los modulos con CHANGELOGs modificados
+	@./scripts/auto-release.sh --all
+
+.PHONY: auto-release-dry-run
+auto-release-dry-run: ## Simular auto-release sin hacer cambios (con verbose)
+	@./scripts/auto-release.sh --dry-run --verbose
+
+.PHONY: auto-release-help
+auto-release-help: ## Mostrar ayuda del script de auto-release
+	@./scripts/auto-release.sh --help

@@ -92,9 +92,8 @@ func RequirePermission(permission enum.Permission) gin.HandlerFunc {
 				slog.String(logger.FieldMethod, requestMethod(c)),
 			)
 			c.JSON(http.StatusForbidden, gin.H{
-				"error":    "forbidden",
-				"code":     "INSUFFICIENT_PERMISSIONS",
-				"required": permission.String(),
+				"error": "forbidden",
+				"code":  "INSUFFICIENT_PERMISSIONS",
 			})
 			c.Abort()
 			return

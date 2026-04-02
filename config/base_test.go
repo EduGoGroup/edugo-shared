@@ -39,4 +39,3 @@ func TestDatabaseConfig_ConnectionStringWithDB(t *testing.T) {
 		t.Errorf("ConnectionStringWithDB() = %v, want %v", actual, expected)
 	}
 }
-

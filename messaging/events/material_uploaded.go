@@ -56,12 +56,12 @@ type MaterialUploadedEvent struct {
 // Por ejemplo, para almacenar la clave S3 separada de la URL completa, o metadatos
 // específicos del tipo de archivo como dimensiones de imagen, duración de video, etc.
 type MaterialUploadedPayload struct {
-	MaterialID    string                 `json:"material_id"`
-	SchoolID      string                 `json:"school_id"`
-	TeacherID     string                 `json:"teacher_id"`
-	FileURL       string                 `json:"file_url"`
-	FileSizeBytes uint64                 `json:"file_size_bytes"` // uint64 previene valores negativos
-	FileType      string                 `json:"file_type"`
+	MaterialID    string         `json:"material_id"`
+	SchoolID      string         `json:"school_id"`
+	TeacherID     string         `json:"teacher_id"`
+	FileURL       string         `json:"file_url"`
+	FileSizeBytes uint64         `json:"file_size_bytes"` // uint64 previene valores negativos
+	FileType      string         `json:"file_type"`
 	Metadata      map[string]any `json:"metadata,omitempty"`
 }
 

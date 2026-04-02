@@ -57,10 +57,10 @@ type ExchangeConfig struct {
 // QueueConfig configuracion de la cola
 type QueueConfig struct {
 	Args       map[string]any // Argumentos adicionales (prioridad, TTL, etc.)
-	Name       string                 // Nombre de la cola
-	Durable    bool                   // Persistente entre reinicios
-	AutoDelete bool                   // Auto-eliminar cuando no hay consumidores
-	Exclusive  bool                   // Exclusiva para esta conexión
+	Name       string         // Nombre de la cola
+	Durable    bool           // Persistente entre reinicios
+	AutoDelete bool           // Auto-eliminar cuando no hay consumidores
+	Exclusive  bool           // Exclusiva para esta conexión
 }
 
 // ConsumerConfig configuración del consumidor

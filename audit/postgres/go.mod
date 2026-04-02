@@ -3,7 +3,7 @@ module github.com/EduGoGroup/edugo-shared/audit/postgres
 go 1.25.0
 
 require (
-	github.com/EduGoGroup/edugo-shared/audit v0.1.0
+	github.com/EduGoGroup/edugo-shared/audit v0.100.0
 	github.com/gin-gonic/gin v1.12.0
 	gorm.io/gorm v1.31.1
 )

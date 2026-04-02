@@ -72,4 +72,3 @@ func TestProcessingStatus_IsValid(t *testing.T) {
 func TestProcessingStatus_String(t *testing.T) {
 	assert.Equal(t, "pending", ProcessingStatusPending.String())
 }
-

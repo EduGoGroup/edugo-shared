@@ -8,7 +8,7 @@ Carga configuración YAML con Viper, la mezcla con variables de entorno y la val
 go get github.com/EduGoGroup/edugo-shared/config
 ```
 
-El módulo se versionan y consume de forma independiente gracias a su `go.mod` propio.
+El módulo se versiona y se consume de forma independiente gracias a su `go.mod` propio.
 
 ## Quick Start
 

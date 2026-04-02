@@ -8,7 +8,7 @@ Utilidades para validar templates, resolver slots, aplicar overrides por platafo
 go get github.com/EduGoGroup/edugo-shared/screenconfig
 ```
 
-El módulo se versionan y consume de forma independiente gracias a su `go.mod` propio.
+El módulo se versiona y se consume de forma independiente gracias a su `go.mod` propio.
 
 ## Quick Start
 

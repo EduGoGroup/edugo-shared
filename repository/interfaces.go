@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"regexp"
-	"slices"
 	"strings"
 
 	"github.com/EduGoGroup/edugo-infrastructure/postgres/entities"
@@ -118,8 +117,12 @@ func (f ListFilters) ApplyFieldFilters(query *gorm.DB, allowedFields []string) *
 	if len(f.FieldFilters) == 0 {
 		return query
 	}
+	allowed := make(map[string]struct{}, len(allowedFields))
+	for _, af := range allowedFields {
+		allowed[af] = struct{}{}
+	}
 	for field, values := range f.FieldFilters {
-		if !slices.Contains(allowedFields, field) || !validFieldName.MatchString(field) {
+		if _, ok := allowed[field]; !ok || !validFieldName.MatchString(field) {
 			continue
 		}
 		if len(values) == 1 {

@@ -22,13 +22,11 @@ import (
 
 // Crear configuración fluida
 config := containers.NewConfig().
-    WithPostgres(true).
-    WithMongoDB(false).
-    WithRabbitMQ(false).
-    WithNetwork("test-net")
+    WithPostgreSQL(nil).
+    Build()
 
-// Obtener manager singleton
-mgr, err := config.GetManager(context.Background())
+// Obtener manager singleton (t es *testing.T)
+mgr, err := containers.GetManager(t, config)
 if err != nil {
     log.Fatal(err)
 }
@@ -61,11 +59,12 @@ var mgr *containers.Manager
 func TestMain(m *testing.M) {
     ctx := context.Background()
     config := containers.NewConfig().
-        WithPostgres(true).
-        WithMongoDB(true)
+        WithPostgreSQL(nil).
+        WithMongoDB(nil).
+        Build()
 
     var err error
-    mgr, err = config.GetManager(ctx)
+    mgr, err = containers.GetManager(nil, config)
     if err != nil {
         log.Fatal(err)
     }
@@ -80,12 +79,12 @@ func cleanupState(t *testing.T) {
     ctx := context.Background()
 
     // Truncar tablas PostgreSQL
-    if err := mgr.TruncatePostgres(ctx, []string{"users", "schools"}); err != nil {
+    if err := mgr.CleanPostgreSQL(ctx, "users", "schools"); err != nil {
         t.Fatalf("truncate failed: %v", err)
     }
 
     // Dropear colecciones MongoDB
-    if err := mgr.DropMongoDB(ctx, []string{"profiles", "settings"}); err != nil {
+    if err := mgr.CleanMongoDB(ctx); err != nil {
         t.Fatalf("drop failed: %v", err)
     }
 }
@@ -104,17 +103,17 @@ func TestUserCreation(t *testing.T) {
 ctx := context.Background()
 
 // WaitForHealthy reintenta hasta que el container está listo
-if err := mgr.PostgreSQL().WaitForHealthy(ctx); err != nil {
+if err := containers.WaitForHealthy(ctx, func() error {
+    return mgr.PostgreSQL().DB().Raw("SELECT 1").Error
+}, 30*time.Second, 500*time.Millisecond); err != nil {
     log.Fatalf("PostgreSQL failed to become healthy: %v", err)
 }
 
 // RetryOperation ejecuta operación con reintentos
-result := containers.RetryOperation(func() (interface{}, error) {
-    return mgr.PostgreSQL().DB().Raw("SELECT 1").Row().Scan(), nil
-}, 5, 100*time.Millisecond)
-
-if result.Err != nil {
-    log.Fatal(result.Err)
+if err := containers.RetryOperation(func() error {
+    return mgr.PostgreSQL().DB().Raw("SELECT 1").Error
+}, 5, 100*time.Millisecond); err != nil {
+    log.Fatal(err)
 }
 ```
 
@@ -125,7 +124,7 @@ if result.Err != nil {
 - **PostgresContainer**: Wrapper para PostgreSQL con acceso GORM y utilities
 - **MongoDBContainer**: Wrapper para MongoDB con acceso client
 - **RabbitMQContainer**: Wrapper para RabbitMQ con acceso connection
-- **Cleanup helpers**: TruncatePostgres, DropMongoDB, PurgeRabbitMQ
+- **Cleanup helpers**: CleanPostgreSQL, CleanMongoDB, PurgeRabbitMQ
 - **Health utilities**: WaitForHealthy, RetryOperation, ExecSQLFile
 
 ## Documentación
@@ -147,7 +146,7 @@ make test-all  # Tests con integración Docker (requiere Docker)
 
 - **Singleton Manager**: Centraliza vida útil de containers para abaratar suites largas
 - **ConfigBuilder fluido**: API clara para habilitar solo containers necesarios
-- **Cleanup entre tests**: Helpers tipados (TruncatePostgres, DropMongoDB, PurgeRabbitMQ)
+- **Cleanup entre tests**: Helpers tipados (CleanPostgreSQL, CleanMongoDB, PurgeRabbitMQ)
 - **Sin framework específico**: Funciona con cualquier testing framework (testing, testify, ginkgo, etc.)
 - **Health checks**: Retries automáticos para esperar a que containers estén listos
 - **Docker agnóstico**: Testcontainers abstrae detalles de Docker

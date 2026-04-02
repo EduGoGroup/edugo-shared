@@ -49,4 +49,3 @@ func (r SystemRole) IsValid() bool {
 func (r SystemRole) String() string {
 	return string(r)
 }
-

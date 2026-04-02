@@ -79,4 +79,3 @@ func (p ProcessingStatus) IsValid() bool {
 func (p ProcessingStatus) String() string {
 	return string(p)
 }
-

@@ -51,4 +51,3 @@ func TestSystemRole_String(t *testing.T) {
 	assert.Equal(t, "teacher", SystemRoleTeacher.String())
 	assert.Equal(t, "student", SystemRoleStudent.String())
 }
-

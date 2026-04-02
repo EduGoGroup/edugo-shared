@@ -24,10 +24,10 @@ err := auth.VerifyPassword(hashed, "my-password")
 
 ```go
 // Crear JWTManager
-manager := auth.NewJWTManager(issuer, secret)
+manager := auth.NewJWTManager(secretKey, issuer)
 
 // Generar access token
-token, err := manager.GenerateTokenWithContext(ctx, userID, email, activeContext)
+token, expiresAt, err := manager.GenerateTokenWithContext(userID, email, activeContext, expiresIn)
 
 // Validar token
 claims, err := manager.ValidateToken(token)

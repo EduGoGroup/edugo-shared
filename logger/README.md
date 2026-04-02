@@ -8,7 +8,7 @@ Abstracción de logging estructurado con implementaciones en Zap, Logrus y Slog.
 go get github.com/EduGoGroup/edugo-shared/logger
 ```
 
-El módulo se versionan y consume de forma independiente gracias a su `go.mod` propio.
+El módulo se versiona y se consume de forma independiente gracias a su `go.mod` propio.
 
 ## Quick Start
 

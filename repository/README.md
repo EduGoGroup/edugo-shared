@@ -8,7 +8,7 @@ Adaptadores GORM para CRUD y listados seguros sobre entidades de PostgreSQL.
 go get github.com/EduGoGroup/edugo-shared/repository
 ```
 
-El módulo se versionan y consume de forma independiente gracias a su `go.mod` propio.
+El módulo se versiona y se consume de forma independiente gracias a su `go.mod` propio.
 
 ## Quick Start
 

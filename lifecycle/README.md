@@ -8,7 +8,7 @@ Manager de ciclo de vida para recursos de infraestructura con startup secuencial
 go get github.com/EduGoGroup/edugo-shared/lifecycle
 ```
 
-El módulo se versionan y consume de forma independiente gracias a su `go.mod` propio.
+El módulo se versiona y se consume de forma independiente gracias a su `go.mod` propio.
 
 ## Quick Start
 

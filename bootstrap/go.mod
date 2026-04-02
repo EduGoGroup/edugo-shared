@@ -3,8 +3,8 @@ module github.com/EduGoGroup/edugo-shared/bootstrap
 go 1.25.0
 
 require (
-	github.com/EduGoGroup/edugo-shared/logger v0.50.1
-	github.com/EduGoGroup/edugo-shared/testing v0.50.2
+	github.com/EduGoGroup/edugo-shared/logger v0.100.0
+	github.com/EduGoGroup/edugo-shared/testing v0.100.0
 	github.com/aws/aws-sdk-go-v2 v1.41.4
 	github.com/aws/aws-sdk-go-v2/config v1.32.12
 	github.com/aws/aws-sdk-go-v2/credentials v1.19.12
@@ -97,7 +97,6 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.1 // indirect
 	golang.org/x/crypto v0.49.0 // indirect
-	golang.org/x/net v0.52.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/sys v0.42.0 // indirect
 	golang.org/x/text v0.35.0 // indirect

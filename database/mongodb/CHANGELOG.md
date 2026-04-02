@@ -6,6 +6,10 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/database/mon
 
 ## [0.100.0] - 2026-04-02
 
+### Changed
+
+- Added `//go:build integration` tag to `mongodb_integration_test.go`
+
 ### Added
 
 - **MongoDB Connection**: Módulo de bajo nivel para conectar, validar y cerrar conexiones a MongoDB

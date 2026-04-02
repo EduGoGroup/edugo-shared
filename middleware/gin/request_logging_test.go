@@ -200,6 +200,9 @@ func TestPostAuthLogging_EnrichesLoggerWithUserInfo(t *testing.T) {
 		ctxLogger := logger.FromContext(c.Request.Context())
 		assert.NotNil(t, ctxLogger)
 
+		// Nested overwrite: el logger post-auth debe ser distinto al base
+		assert.NotEqual(t, testLogger, ctxLogger, "PostAuthLogging must overwrite the context logger")
+
 		// Log dentro del handler — debe incluir user_id, role, school_id
 		ctxLogger.Info("handler log")
 		c.Status(http.StatusOK)

@@ -83,69 +83,6 @@ func TestPermission_IsValid(t *testing.T) {
 	}
 }
 
-func TestAllPermissionsSlice(t *testing.T) {
-	t.Run("retorna todos los permisos definidos", func(t *testing.T) {
-		perms := AllPermissionsSlice()
-
-		// Verificar que retorna la cantidad correcta de permisos
-		assert.Len(t, perms, len(AllPermissions))
-
-		// Verificar que todos los permisos retornados son válidos
-		for _, perm := range perms {
-			assert.True(t, perm.IsValid(), "permiso %s debería ser válido", perm)
-		}
-	})
-
-	t.Run("contiene permisos de usuarios", func(t *testing.T) {
-		perms := AllPermissionsSlice()
-		permsMap := make(map[Permission]bool)
-		for _, p := range perms {
-			permsMap[p] = true
-		}
-
-		assert.True(t, permsMap[PermissionUsersCreate])
-		assert.True(t, permsMap[PermissionUsersRead])
-		assert.True(t, permsMap[PermissionUsersUpdate])
-		assert.True(t, permsMap[PermissionUsersDelete])
-	})
-
-	t.Run("contiene permisos de escuelas", func(t *testing.T) {
-		perms := AllPermissionsSlice()
-		permsMap := make(map[Permission]bool)
-		for _, p := range perms {
-			permsMap[p] = true
-		}
-
-		assert.True(t, permsMap[PermissionSchoolsCreate])
-		assert.True(t, permsMap[PermissionSchoolsRead])
-		assert.True(t, permsMap[PermissionSchoolsManage])
-	})
-
-	t.Run("contiene permisos de materiales", func(t *testing.T) {
-		perms := AllPermissionsSlice()
-		permsMap := make(map[Permission]bool)
-		for _, p := range perms {
-			permsMap[p] = true
-		}
-
-		assert.True(t, permsMap[PermissionMaterialsCreate])
-		assert.True(t, permsMap[PermissionMaterialsPublish])
-		assert.True(t, permsMap[PermissionMaterialsDownload])
-	})
-
-	t.Run("contiene permisos de evaluaciones", func(t *testing.T) {
-		perms := AllPermissionsSlice()
-		permsMap := make(map[Permission]bool)
-		for _, p := range perms {
-			permsMap[p] = true
-		}
-
-		assert.True(t, permsMap[PermissionAssessmentsCreate])
-		assert.True(t, permsMap[PermissionAssessmentsGrade])
-		assert.True(t, permsMap[PermissionAssessmentsAttempt])
-	})
-}
-
 func TestAllPermissions_MapIntegrity(t *testing.T) {
 	t.Run("todas las constantes están en AllPermissions", func(t *testing.T) {
 		// Lista de todas las constantes definidas

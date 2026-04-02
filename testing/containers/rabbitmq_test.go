@@ -1,3 +1,5 @@
+//go:build integration
+
 //nolint:errcheck,staticcheck // Tests: errores de Close/Terminate en cleanup se ignoran; QueueInspect deprecado pero funcional
 package containers
 

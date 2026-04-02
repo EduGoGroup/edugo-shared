@@ -99,12 +99,6 @@ func TestSlogAdapter_Sync(t *testing.T) {
 	assert.NoError(t, adapter.Sync())
 }
 
-func TestSlogAdapter_SlogLogger(t *testing.T) {
-	adapter, _ := newTestSlogAdapter(nil)
-	sl := adapter.SlogLogger()
-	assert.NotNil(t, sl)
-}
-
 func TestSlogAdapter_ImplementsLogger(t *testing.T) {
 	adapter, _ := newTestSlogAdapter(nil)
 	var _ Logger = adapter // compile-time check

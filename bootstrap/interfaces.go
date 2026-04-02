@@ -14,6 +14,14 @@ import (
 // =============================================================================
 // CONFIGURATION STRUCTS
 // =============================================================================
+//
+// Estos tipos son versiones simplificadas de los configs de cada modulo
+// (database/postgres.Config, etc.). Se mantienen separados intencionalmente:
+//   - Evitan dependencia directa de bootstrap hacia database/*, messaging/*, cache/*
+//   - Exponen solo los campos necesarios para la inicializacion
+//   - Los modulos completos tienen campos adicionales de connection pooling,
+//     timeouts y search paths que bootstrap gestiona internamente
+// =============================================================================
 
 // PostgreSQLConfig define la configuración para PostgreSQL
 type PostgreSQLConfig struct {

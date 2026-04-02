@@ -28,12 +28,6 @@ func TestMaterialStatus_String(t *testing.T) {
 	assert.Equal(t, "draft", MaterialStatusDraft.String())
 }
 
-func TestAllMaterialStatuses(t *testing.T) {
-	statuses := AllMaterialStatuses()
-	assert.Len(t, statuses, 3)
-	assert.Contains(t, statuses, MaterialStatusDraft)
-}
-
 func TestProgressStatus_IsValid(t *testing.T) {
 	tests := []struct {
 		name   string
@@ -54,12 +48,6 @@ func TestProgressStatus_IsValid(t *testing.T) {
 
 func TestProgressStatus_String(t *testing.T) {
 	assert.Equal(t, "not_started", ProgressStatusNotStarted.String())
-}
-
-func TestAllProgressStatuses(t *testing.T) {
-	statuses := AllProgressStatuses()
-	assert.Len(t, statuses, 3)
-	assert.Contains(t, statuses, ProgressStatusNotStarted)
 }
 
 func TestProcessingStatus_IsValid(t *testing.T) {
@@ -85,8 +73,3 @@ func TestProcessingStatus_String(t *testing.T) {
 	assert.Equal(t, "pending", ProcessingStatusPending.String())
 }
 
-func TestAllProcessingStatuses(t *testing.T) {
-	statuses := AllProcessingStatuses()
-	assert.Len(t, statuses, 4)
-	assert.Contains(t, statuses, ProcessingStatusPending)
-}

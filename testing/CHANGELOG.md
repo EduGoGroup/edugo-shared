@@ -4,6 +4,14 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/testing` se 
 
 ## [0.100.0] - 2026-04-02
 
+### Removed
+
+- Deleted `helpers_unit_test.go` (invalid tests passing db=nil)
+
+### Changed
+
+- Added `//go:build integration` tag to `postgres_test.go`, `mongodb_test.go`, `rabbitmq_test.go`, `helpers_test.go`
+
 ### Added
 
 - **ConfigBuilder**: Constructor fluido para configurar qué containers habilitar.

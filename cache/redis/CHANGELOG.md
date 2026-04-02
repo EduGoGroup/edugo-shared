@@ -6,6 +6,10 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/cache/redis`
 
 ## [0.100.0] - 2026-04-02
 
+### Changed
+
+- Added `//go:build integration` tag to `cache_test.go`
+
 ### Added
 
 - **Redis Connection**: Módulo de bajo nivel para conectar a Redis con validación de conectividad

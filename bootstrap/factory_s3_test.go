@@ -12,7 +12,7 @@ func TestS3Factory_Creation(t *testing.T) {
 	factory := NewDefaultS3Factory()
 
 	assert.NotNil(t, factory)
-	assert.IsType(t, &DefaultS3Factory{}, factory)
+	assert.IsType(t, &defaultS3Factory{}, factory)
 }
 
 // TestS3Factory_CreateClient_ValidConfig verifica creación con config válida
@@ -251,7 +251,7 @@ func TestS3Factory_BucketNaming(t *testing.T) {
 
 // TestS3Factory_InterfaceImplementation verifica que implementa la interfaz
 func TestS3Factory_InterfaceImplementation(t *testing.T) {
-	var _ S3Factory = (*DefaultS3Factory)(nil)
+	var _ S3Factory = (*defaultS3Factory)(nil)
 
 	factory := NewDefaultS3Factory()
 	assert.Implements(t, (*S3Factory)(nil), factory)

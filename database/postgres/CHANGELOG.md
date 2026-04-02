@@ -6,6 +6,11 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/database/pos
 
 ## [0.100.0] - 2026-04-02
 
+### Changed
+
+- Removed trivial `TestDefaultConstants_Unit` from `connection_unit_test.go`
+- Added `//go:build integration` tag to `connection_test.go`
+
 ### Added
 
 - **PostgreSQL Connection**: Módulo de bajo nivel para conectar, validar y manejar transacciones en PostgreSQL

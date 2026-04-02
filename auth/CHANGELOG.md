@@ -2,7 +2,11 @@
 
 Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/auth` se registran aquí.
 
-## [0.100.0] - 2026-04-01
+## [0.100.0] - 2026-04-02
+
+### Changed
+
+- Removed trivial `TestNoOpBlacklist` test (covered by middleware/gin/jwt_auth_test.go)
 
 ### Added
 

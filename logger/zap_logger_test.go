@@ -10,28 +10,6 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-func TestNewZapLogger(t *testing.T) {
-	tests := []struct {
-		name   string
-		level  string
-		format string
-	}{
-		{"DebugJSON", "debug", "json"},
-		{"InfoConsole", "info", "console"},
-		{"WarnJSON", "warn", "json"},
-		{"ErrorConsole", "error", "console"},
-		{"FatalJSON", "fatal", "json"},
-		{"DefaultInfo", "invalid", "json"},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			l := NewZapLogger(tt.level, tt.format)
-			assert.NotNil(t, l)
-		})
-	}
-}
-
 func TestZapLogger_JSONOutput(t *testing.T) {
 	// Custom sink to capture output
 	buffer := &bytes.Buffer{}

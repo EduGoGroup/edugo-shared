@@ -372,12 +372,3 @@ var AllPermissions = map[Permission]bool{
 	// Períodos especiales
 	PermissionPeriodsActivate: true,
 }
-
-// AllPermissionsSlice retorna todos los permisos como slice
-func AllPermissionsSlice() []Permission {
-	perms := make([]Permission, 0, len(AllPermissions))
-	for perm := range AllPermissions {
-		perms = append(perms, perm)
-	}
-	return perms
-}

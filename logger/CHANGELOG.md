@@ -4,6 +4,14 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/logger` se r
 
 ## [0.100.0] - 2026-04-02
 
+### Changed
+
+- Removed 9 trivial field setter tests and `BenchmarkTypedHelpers` from `fields_test.go`
+- Reduced `context_test.go` to only `TestContext_NestedOverwrite`
+- Merged `TestNewLogrusLogger` into `TestLogrusLogger_Levels` in `logrus_logger_test.go`
+- Removed `TestSlogAdapter_SlogLogger` from `slog_adapter_test.go`
+- Removed `TestNewZapLogger` from `zap_logger_test.go` (duplicate of logger_test.go)
+
 ### Added
 
 - **Logger interface**: Contrato común (Debug, Info, Warn, Error, Fatal, With, Sync).

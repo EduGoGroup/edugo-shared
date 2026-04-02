@@ -37,13 +37,6 @@ func TestInMemoryBlacklist_MultipleRevocations(t *testing.T) {
 	assert.False(t, bl.IsRevoked("jti-4"))
 }
 
-func TestNoOpBlacklist(t *testing.T) {
-	bl := &NoOpBlacklist{}
-
-	bl.Revoke("jti-1", time.Now().Add(1*time.Hour))
-	assert.False(t, bl.IsRevoked("jti-1"))
-}
-
 func TestInMemoryBlacklist_CancelStopsCleanup(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	bl := NewInMemoryBlacklist(ctx)

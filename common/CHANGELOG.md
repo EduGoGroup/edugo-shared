@@ -2,7 +2,16 @@
 
 Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/common` se registran aquí.
 
-## [0.100.0] - 2026-04-01
+## [0.100.0] - 2026-04-02
+
+### Removed
+
+- `AllSystemRoles()`, `AllSystemRolesStrings()` from `types/enum/role.go` (dead code, no external consumers)
+- `AllMaterialStatuses()`, `AllProgressStatuses()`, `AllProcessingStatuses()` from `types/enum/status.go` (dead code)
+- `AllEventTypes()` from `types/enum/event.go` (dead code)
+- `AllAssessmentTypes()` from `types/enum/assessment.go` (dead code)
+- `AllPermissionsSlice()` from `types/enum/permission.go` (dead code)
+- Corresponding test functions for all removed functions
 
 ### Added
 

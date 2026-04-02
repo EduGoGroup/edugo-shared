@@ -9,12 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewLogrusLogger(t *testing.T) {
-	l := logrus.New()
-	logger := NewLogrusLogger(l)
-	assert.NotNil(t, logger)
-}
-
 func TestLogrusLogger_Levels(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	l := logrus.New()
@@ -23,6 +17,7 @@ func TestLogrusLogger_Levels(t *testing.T) {
 	l.SetFormatter(&logrus.JSONFormatter{})
 
 	logger := NewLogrusLogger(l)
+	assert.NotNil(t, logger)
 
 	logger.Debug("debug msg")
 	assert.Contains(t, buffer.String(), "debug msg")

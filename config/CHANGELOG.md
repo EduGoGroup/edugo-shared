@@ -2,7 +2,11 @@
 
 Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/config` se registran aquí.
 
-## [0.100.0] - 2026-04-01
+## [0.100.0] - 2026-04-02
+
+### Changed
+
+- Removed trivial struct field tests from `base_test.go`, kept `TestConnectionString`
 
 ### Added
 

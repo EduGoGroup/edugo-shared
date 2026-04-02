@@ -71,27 +71,3 @@ func (e EventType) String() string {
 func (e EventType) GetRoutingKey() string {
 	return string(e)
 }
-
-// AllEventTypes retorna todos los tipos de eventos válidos
-func AllEventTypes() []EventType {
-	return []EventType{
-		EventMaterialUploaded,
-		EventMaterialReprocess,
-		EventMaterialDeleted,
-		EventMaterialPublished,
-		EventMaterialArchived,
-		EventAssessmentAttemptRecorded,
-		EventAssessmentCompleted,
-		EventAssessmentPublished,
-		EventAssessmentAssigned,
-		EventAssessmentReviewed,
-		EventAssessmentGenerate,
-		EventAssessmentGenerated,
-		EventNotificationCreated,
-		EventStudentEnrolled,
-		EventStudentProgress,
-		EventUserCreated,
-		EventUserUpdated,
-		EventUserDeactivated,
-	}
-}

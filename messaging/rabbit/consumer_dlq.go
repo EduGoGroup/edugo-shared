@@ -3,6 +3,7 @@ package rabbit
 import (
 	"context"
 	"fmt"
+	"maps"
 	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -281,8 +282,6 @@ func cloneHeaders(headers amqp.Table) amqp.Table {
 		return amqp.Table{}
 	}
 	copyHeaders := make(amqp.Table, len(headers))
-	for k, v := range headers {
-		copyHeaders[k] = v
-	}
+	maps.Copy(copyHeaders, headers)
 	return copyHeaders
 }

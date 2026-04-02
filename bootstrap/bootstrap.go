@@ -22,9 +22,9 @@ import (
 //nolint:gocyclo // Complejidad justificada: orquesta inicialización secuencial de múltiples recursos
 func Bootstrap(
 	ctx context.Context,
-	config interface{},
+	config any,
 	factories *Factories,
-	lifecycleManager interface{},
+	lifecycleManager any,
 	options ...BootstrapOption,
 ) (*Resources, error) {
 	// Aplicar opciones

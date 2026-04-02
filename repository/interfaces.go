@@ -86,7 +86,7 @@ func (f ListFilters) ApplySearch(query *gorm.DB) *gorm.DB {
 		return query
 	}
 	conditions := make([]string, 0, len(f.SearchFields))
-	args := make([]interface{}, 0, len(f.SearchFields))
+	args := make([]any, 0, len(f.SearchFields))
 	escaped := escapeLikePattern(f.Search)
 	for _, field := range f.SearchFields {
 		if !validFieldName.MatchString(field) {
@@ -117,12 +117,12 @@ func (f ListFilters) ApplyFieldFilters(query *gorm.DB, allowedFields []string) *
 	if len(f.FieldFilters) == 0 {
 		return query
 	}
-	allowed := make(map[string]bool, len(allowedFields))
-	for _, field := range allowedFields {
-		allowed[field] = true
+	allowed := make(map[string]struct{}, len(allowedFields))
+	for _, af := range allowedFields {
+		allowed[af] = struct{}{}
 	}
 	for field, values := range f.FieldFilters {
-		if !allowed[field] || !validFieldName.MatchString(field) {
+		if _, ok := allowed[field]; !ok || !validFieldName.MatchString(field) {
 			continue
 		}
 		if len(values) == 1 {

@@ -1,6 +1,9 @@
 package screenconfig
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"maps"
+)
 
 // ApplyPlatformOverrides aplica overrides de zonas especificas de plataforma a una definicion de plantilla.
 //
@@ -15,7 +18,7 @@ import "encoding/json"
 // Retorna la definicion con los overrides aplicados y la clave "platformOverrides" eliminada.
 // Si no hay overrides para la plataforma (incluyendo fallback), retorna la definicion sin cambios.
 func ApplyPlatformOverrides(definition json.RawMessage, platform string) json.RawMessage {
-	var defMap map[string]interface{}
+	var defMap map[string]any
 	if err := json.Unmarshal(definition, &defMap); err != nil {
 		return definition
 	}
@@ -25,7 +28,7 @@ func ApplyPlatformOverrides(definition json.RawMessage, platform string) json.Ra
 		return definition
 	}
 
-	overridesMap, ok := overrides.(map[string]interface{})
+	overridesMap, ok := overrides.(map[string]any)
 	if !ok {
 		return definition
 	}
@@ -41,7 +44,7 @@ func ApplyPlatformOverrides(definition json.RawMessage, platform string) json.Ra
 		return definition
 	}
 
-	platformMap, ok := platformOverride.(map[string]interface{})
+	platformMap, ok := platformOverride.(map[string]any)
 	if !ok {
 		return definition
 	}
@@ -61,19 +64,19 @@ func ApplyPlatformOverrides(definition json.RawMessage, platform string) json.Ra
 }
 
 // applyZoneOverrides merges zone-level overrides from platformMap into defMap["zones"].
-func applyZoneOverrides(defMap, platformMap map[string]interface{}) {
+func applyZoneOverrides(defMap, platformMap map[string]any) {
 	zonesMap, ok := toStringMap(platformMap["zones"])
 	if !ok {
 		return
 	}
 
-	zonesArr, ok := defMap["zones"].([]interface{})
+	zonesArr, ok := defMap["zones"].([]any)
 	if !ok {
 		return
 	}
 
 	for i, zone := range zonesArr {
-		zoneMap, ok := zone.(map[string]interface{})
+		zoneMap, ok := zone.(map[string]any)
 		if !ok {
 			continue
 		}
@@ -85,14 +88,12 @@ func applyZoneOverrides(defMap, platformMap map[string]interface{}) {
 		if !ok {
 			continue
 		}
-		for k, v := range overrideMap {
-			zoneMap[k] = v
-		}
+		maps.Copy(zoneMap, overrideMap)
 		zonesArr[i] = zoneMap
 	}
 }
 
-func toStringMap(v interface{}) (map[string]interface{}, bool) {
-	m, ok := v.(map[string]interface{})
+func toStringMap(v any) (map[string]any, bool) {
+	m, ok := v.(map[string]any)
 	return m, ok
 }

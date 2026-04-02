@@ -16,23 +16,23 @@ import (
 // POSTGRESQL FACTORY IMPLEMENTATION
 // =============================================================================
 
-// DefaultPostgreSQLFactory implementa PostgreSQLFactory usando GORM
-type DefaultPostgreSQLFactory struct {
+// defaultPostgreSQLFactory implementa PostgreSQLFactory usando GORM.
+type defaultPostgreSQLFactory struct {
 	logger logger.Interface
 }
 
-// NewDefaultPostgreSQLFactory crea una nueva instancia de DefaultPostgreSQLFactory
-func NewDefaultPostgreSQLFactory(gormLogger logger.Interface) *DefaultPostgreSQLFactory {
+// NewDefaultPostgreSQLFactory crea una instancia de PostgreSQLFactory con implementación GORM.
+func NewDefaultPostgreSQLFactory(gormLogger logger.Interface) PostgreSQLFactory {
 	if gormLogger == nil {
 		gormLogger = logger.Default.LogMode(logger.Info)
 	}
-	return &DefaultPostgreSQLFactory{
+	return &defaultPostgreSQLFactory{
 		logger: gormLogger,
 	}
 }
 
 // CreateConnection crea una conexión GORM a PostgreSQL
-func (f *DefaultPostgreSQLFactory) CreateConnection(ctx context.Context, config PostgreSQLConfig) (*gorm.DB, error) {
+func (f *defaultPostgreSQLFactory) CreateConnection(ctx context.Context, config PostgreSQLConfig) (*gorm.DB, error) {
 	dsn := f.buildDSN(config)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
@@ -66,7 +66,7 @@ func (f *DefaultPostgreSQLFactory) CreateConnection(ctx context.Context, config 
 }
 
 // CreateRawConnection crea una conexión SQL nativa
-func (f *DefaultPostgreSQLFactory) CreateRawConnection(ctx context.Context, config PostgreSQLConfig) (*sql.DB, error) {
+func (f *defaultPostgreSQLFactory) CreateRawConnection(ctx context.Context, config PostgreSQLConfig) (*sql.DB, error) {
 	dsn := f.buildDSN(config)
 
 	db, err := sql.Open("postgres", dsn)
@@ -95,7 +95,7 @@ func (f *DefaultPostgreSQLFactory) CreateRawConnection(ctx context.Context, conf
 }
 
 // Ping verifica la conectividad con PostgreSQL
-func (f *DefaultPostgreSQLFactory) Ping(ctx context.Context, db *gorm.DB) error {
+func (f *defaultPostgreSQLFactory) Ping(ctx context.Context, db *gorm.DB) error {
 	sqlDB, err := db.DB()
 	if err != nil {
 		return fmt.Errorf("failed to get sql.DB: %w", err)
@@ -109,7 +109,7 @@ func (f *DefaultPostgreSQLFactory) Ping(ctx context.Context, db *gorm.DB) error 
 }
 
 // Close cierra la conexión
-func (f *DefaultPostgreSQLFactory) Close(db *gorm.DB) error {
+func (f *defaultPostgreSQLFactory) Close(db *gorm.DB) error {
 	sqlDB, err := db.DB()
 	if err != nil {
 		return fmt.Errorf("failed to get sql.DB: %w", err)
@@ -123,7 +123,7 @@ func (f *DefaultPostgreSQLFactory) Close(db *gorm.DB) error {
 }
 
 // buildDSN construye el Data Source Name para PostgreSQL
-func (f *DefaultPostgreSQLFactory) buildDSN(config PostgreSQLConfig) string {
+func (f *defaultPostgreSQLFactory) buildDSN(config PostgreSQLConfig) string {
 	sslMode := config.SSLMode
 	if sslMode == "" {
 		sslMode = "disable"
@@ -140,5 +140,5 @@ func (f *DefaultPostgreSQLFactory) buildDSN(config PostgreSQLConfig) string {
 	)
 }
 
-// Verificar que DefaultPostgreSQLFactory implementa PostgreSQLFactory
-var _ PostgreSQLFactory = (*DefaultPostgreSQLFactory)(nil)
+// Verificar que defaultPostgreSQLFactory implementa PostgreSQLFactory
+var _ PostgreSQLFactory = (*defaultPostgreSQLFactory)(nil)

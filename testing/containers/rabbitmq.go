@@ -57,7 +57,7 @@ func createRabbitMQ(ctx context.Context, cfg *RabbitConfig) (*RabbitMQContainer,
 	// Conectar con retry
 	var conn *amqp.Connection
 	maxRetries := 10
-	for i := 0; i < maxRetries; i++ {
+	for range maxRetries {
 		conn, err = amqp.Dial(connStr)
 		if err == nil {
 			break

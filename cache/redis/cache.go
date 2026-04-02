@@ -11,8 +11,8 @@ import (
 
 // CacheService provides a generic cache interface with JSON serialization.
 type CacheService interface {
-	Get(ctx context.Context, key string, dest interface{}) error
-	Set(ctx context.Context, key string, value interface{}, ttl time.Duration) error
+	Get(ctx context.Context, key string, dest any) error
+	Set(ctx context.Context, key string, value any, ttl time.Duration) error
 	Delete(ctx context.Context, keys ...string) error
 	DeleteByPattern(ctx context.Context, pattern string) error
 }
@@ -26,7 +26,7 @@ func NewCacheService(client *goredis.Client) CacheService {
 	return &redisCacheService{client: client}
 }
 
-func (s *redisCacheService) Get(ctx context.Context, key string, dest interface{}) error {
+func (s *redisCacheService) Get(ctx context.Context, key string, dest any) error {
 	val, err := s.client.Get(ctx, key).Result()
 	if err != nil {
 		return err
@@ -34,7 +34,7 @@ func (s *redisCacheService) Get(ctx context.Context, key string, dest interface{
 	return json.Unmarshal([]byte(val), dest)
 }
 
-func (s *redisCacheService) Set(ctx context.Context, key string, value interface{}, ttl time.Duration) error {
+func (s *redisCacheService) Set(ctx context.Context, key string, value any, ttl time.Duration) error {
 	data, err := json.Marshal(value)
 	if err != nil {
 		return fmt.Errorf("marshaling cache value: %w", err)

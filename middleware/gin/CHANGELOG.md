@@ -4,6 +4,39 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/middleware/g
 
 ## [Unreleased]
 
+## [0.100.0] - 2026-04-02
+
+### Added
+
+- **JWT Authentication**: Validación segura de tokens JWT con `JWTAuthMiddleware` y variante con blacklist (`JWTAuthMiddlewareWithBlacklist`)
+- **Permission Authorization**: Validación granular con `RequirePermission` (individual), `RequireAnyPermission` (OR lógico), `RequireAllPermissions` (AND lógico)
+- **Request Logging**: Middleware `RequestLogging` con generación automática de request_id y correlation_id, enriquecimiento de contexto con logger estructurado
+- **Post-Auth Logging**: Middleware `PostAuthLogging` que enriquece logs con user_id, role, school_id después de validación JWT
+- **Audit Logging**: Middleware `AuditMiddleware` que registra automáticamente operaciones mutantes (POST, PUT, PATCH, DELETE), extrae resource_type e resource_id del path
+- **Context Helpers**: Extractores seguros `GetUserID`, `GetEmail`, `GetRole`, `GetClaims` y variantes `Must*` para acceso a datos de autenticación
+- **List Filters**: Función `ParseListFilters` para parseo defensivo de parámetros de paginación (page, limit), búsqueda (search, search_fields), filtrado booleano (is_active) y campos extra
+- **Logger Integration**: `GetLogger`, `GetRequestID` y helpers internos para inyección de logger en gin.Context y context.Context
+- **Constants**: Context keys (`ContextKeyUserID`, `ContextKeyEmail`, `ContextKeyRole`, `ContextKeyClaims`, `ContextKeySlogLogger`, `ContextKeyRequestID`) y headers HTTP (`HeaderRequestID`, `HeaderCorrelationID`)
+- **Error Types**: Errores contextuales (`ErrUserIDNotFound`, `ErrEmailNotFound`, `ErrRoleNotFound`, `ErrClaimsNotFound`, `ErrInvalidType`)
+- **Resource Path Extraction**: Helper `extractResourceFromPath()` para extraer resource_type (singular) e resource_id del path API REST
+- **Singularization**: Helper `singularize()` para convertir nombres de recursos plurales a singulares (roles → role, categories → category)
+- **Defensive Defaults**: Paginación con limit default 50, máximo 200; is_active nil = "mostrar todos"; validación de parámetros positivos
+- **HTTP Status Logging**: Log levels automáticos según status code (5xx=Error, 4xx=Warn, 2xx/3xx=Info) con duración en milliseconds y bytes transferidos
+- **Middleware Chain Recommendation**: Documentación clara del orden correcto: Recovery → RequestLogging → CORS → JWT → PostAuthLogging → Audit → handlers
+- **Suite completa de tests unitarios** sin dependencias externas
+- **Documentación técnica detallada** en docs/README.md con componentes, flujos comunes, arquitectura y ejemplos de integración
+- **Makefile** con targets: fmt, vet, lint, test, build, check
+
+### Design Notes
+
+- **Agnóstico de backend**: Soporta múltiples backends de auditoría mediante interfaz `audit.AuditLogger`
+- **Zero-panic por defecto**: Métodos Safe `Get*` retornan errores; variantes `Must*` entran en pánico (uso post-JWT)
+- **Contexto enriquecido**: RequestLogging + PostAuthLogging garantizan que todos los logs incluyan request_id, correlation_id, user_id
+- **Auditoría post-handler**: AuditMiddleware se ejecuta después de `c.Next()` para capturar status final de la operación
+- **Seguridad de concurrencia**: Cada petición obtiene su propio logger; sin estado compartido entre requests
+- **Validación defensiva**: ParseListFilters tiene defaults sensatos y capas a valores inválidos
+- **Logging de seguridad**: Registra accesos denegados (permission denied) con contexto completo para auditoría
+
 ## 0.57.0 - 2026-03-31
 
 ### Changed

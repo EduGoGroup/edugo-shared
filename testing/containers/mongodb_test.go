@@ -1,3 +1,5 @@
+//go:build integration
+
 //nolint:errcheck // Tests: errores de Terminate() en cleanup se ignoran intencionalmente
 package containers
 
@@ -63,7 +65,7 @@ func TestMongoDBContainer_Integration(t *testing.T) {
 		coll := db.Collection("test_users")
 
 		// Insertar documentos
-		docs := []interface{}{
+		docs := []any{
 			bson.M{"name": "Alice", "age": 30},
 			bson.M{"name": "Bob", "age": 25},
 		}

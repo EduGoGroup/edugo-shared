@@ -42,7 +42,7 @@ func TestConfig_Fields(t *testing.T) {
 			Durable:    false,
 			AutoDelete: true,
 			Exclusive:  true,
-			Args: map[string]interface{}{
+			Args: map[string]any{
 				"x-message-ttl": 60000,
 			},
 		},
@@ -93,42 +93,42 @@ func TestExchangeConfig_Types(t *testing.T) {
 func TestQueueConfig_WithArgs(t *testing.T) {
 	tests := []struct {
 		name     string
-		args     map[string]interface{}
-		validate func(t *testing.T, args map[string]interface{})
+		args     map[string]any
+		validate func(t *testing.T, args map[string]any)
 	}{
 		{
 			name: "with TTL",
-			args: map[string]interface{}{
+			args: map[string]any{
 				"x-message-ttl": 60000,
 			},
-			validate: func(t *testing.T, args map[string]interface{}) {
+			validate: func(t *testing.T, args map[string]any) {
 				assert.Equal(t, 60000, args["x-message-ttl"])
 			},
 		},
 		{
 			name: "with max length",
-			args: map[string]interface{}{
+			args: map[string]any{
 				"x-max-length": 1000,
 			},
-			validate: func(t *testing.T, args map[string]interface{}) {
+			validate: func(t *testing.T, args map[string]any) {
 				assert.Equal(t, 1000, args["x-max-length"])
 			},
 		},
 		{
 			name: "with DLX",
-			args: map[string]interface{}{
+			args: map[string]any{
 				"x-dead-letter-exchange":    "dlx_exchange",
 				"x-dead-letter-routing-key": "dlx_routing",
 			},
-			validate: func(t *testing.T, args map[string]interface{}) {
+			validate: func(t *testing.T, args map[string]any) {
 				assert.Equal(t, "dlx_exchange", args["x-dead-letter-exchange"])
 				assert.Equal(t, "dlx_routing", args["x-dead-letter-routing-key"])
 			},
 		},
 		{
 			name: "empty args",
-			args: map[string]interface{}{},
-			validate: func(t *testing.T, args map[string]interface{}) {
+			args: map[string]any{},
+			validate: func(t *testing.T, args map[string]any) {
 				assert.Empty(t, args)
 			},
 		},

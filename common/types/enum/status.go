@@ -26,15 +26,6 @@ func (s MaterialStatus) String() string {
 	return string(s)
 }
 
-// AllMaterialStatuses retorna todos los status válidos
-func AllMaterialStatuses() []MaterialStatus {
-	return []MaterialStatus{
-		MaterialStatusDraft,
-		MaterialStatusPublished,
-		MaterialStatusArchived,
-	}
-}
-
 // ProgressStatus representa el estado de progreso de lectura
 type ProgressStatus string
 
@@ -59,15 +50,6 @@ func (p ProgressStatus) IsValid() bool {
 // String retorna la representación en string del status
 func (p ProgressStatus) String() string {
 	return string(p)
-}
-
-// AllProgressStatuses retorna todos los status de progreso válidos
-func AllProgressStatuses() []ProgressStatus {
-	return []ProgressStatus{
-		ProgressStatusNotStarted,
-		ProgressStatusInProgress,
-		ProgressStatusCompleted,
-	}
 }
 
 // ProcessingStatus representa el estado de procesamiento de un material
@@ -96,14 +78,4 @@ func (p ProcessingStatus) IsValid() bool {
 // String retorna la representación en string del status
 func (p ProcessingStatus) String() string {
 	return string(p)
-}
-
-// AllProcessingStatuses retorna todos los status de procesamiento válidos
-func AllProcessingStatuses() []ProcessingStatus {
-	return []ProcessingStatus{
-		ProcessingStatusPending,
-		ProcessingStatusProcessing,
-		ProcessingStatusCompleted,
-		ProcessingStatusFailed,
-	}
 }

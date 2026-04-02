@@ -1,58 +1,126 @@
-# Audit - Documentacion de fase 1
+# Audit — Documentación técnica
 
-Esta documentacion cubre solo lo que existe dentro de `audit` al momento de esta fase. No intenta explicar integraciones externas ni adaptar el modulo a consumidores concretos.
+Contrato base para construir y despachar eventos de auditoría sin acoplar el almacenamiento.
 
-## Proposito
+## Propósito
 
-Contrato base para construir y despachar eventos de auditoria sin acoplar el almacenamiento.
+Proporcionar una interfaz agnóstica que desacople a los consumidores del backend de auditoría, permitiendo múltiples implementaciones (PostgreSQL, Kafka, archivos, etc.).
 
-## Procesos principales
+## Flujo de operación
 
-1. Construir un `AuditEvent` con datos de actor, accion, recurso, request y metadata.
-2. Enriquecer el evento con `AuditOption` como severidad, categoria, cambios, permisos o error.
-3. Despachar el evento a traves de la interfaz `AuditLogger` sin fijar la implementacion concreta.
-4. Usar `NoopAuditLogger` cuando se requiere un sink inerte para tests o escenarios locales.
-
-## Arquitectura local
-
-- El modulo define el contrato `AuditLogger`, el modelo `AuditEvent` y helpers funcionales.
-- No contiene persistencia propia; los adaptadores concretos viven en otros modulos.
-- La API esta pensada para desacoplar a los consumidores del backend de auditoria.
-
-```mermaid
-flowchart TD
-A[Caller] --> B[AuditEvent]
-B --> C[AuditOption helpers]
-C --> D[AuditLogger interface]
-D --> E[NoopAuditLogger]
-D -. adapter .-> F[audit/postgres]
+```
+┌─────────────┐
+│ AuditEvent  │
+└──────┬──────┘
+       │
+       ├─→ WithSeverity, WithCategory, etc. (opcionales)
+       │
+       └─→ AuditLogger.Log(ctx, event)
+           ↓
+       Implementación concreta (postgres, noop, etc.)
 ```
 
-## Superficie tecnica relevante
+## Componentes principales
 
-- `AuditEvent` centraliza el payload auditable.
-- `AuditLogger` fija el contrato minimo `Log(ctx, event)`.
-- `WithChanges`, `WithSeverity`, `WithCategory`, `WithMetadata`, `WithPermission` y `WithError` modelan enriquecimiento declarativo.
-- `NewNoopAuditLogger` entrega un logger inerte para pruebas.
+### audit_logger.go — Contrato público
 
-## Dependencias observadas
+**AuditEvent**
+Estructura que centraliza datos auditables:
+- Actor: `ActorID`, `ActorEmail`, `ActorRole`
+- HTTP: `RequestMethod`, `RequestPath`, `RequestID`, `StatusCode`
+- Acción: `Action`, `ResourceType`, `ResourceID`
+- Contexto: `ServiceName`, `Severity`, `Category`
+- Opcionales: `ActorIP`, `ActorUserAgent`, `SchoolID`, `UnitID`, `PermissionUsed`, `Changes`, `Metadata`, `ErrorMessage`
 
-- Runtime: ninguna dependencia interna del repositorio.
-- Relacion documental: la persistencia concreta queda en `audit/postgres`.
+**AuditLogger**
+Interfaz mínima:
+```go
+type AuditLogger interface {
+    Log(ctx context.Context, event AuditEvent) error
+}
+```
 
-## Operacion actual
+**AuditOption**
+Funciones que modifican un `AuditEvent` de forma declarativa:
+- `WithChanges(before, after)` — registra cambios de datos
+- `WithSeverity(level)` — establece severidad (Info, Warning, Critical)
+- `WithCategory(category)` — establece categoría (Auth, Data, Config, Admin)
+- `WithMetadata(key, value)` — agrega metadatos adicionales
+- `WithPermission(permission)` — registra permiso usado
+- `WithError(err)` — registra mensaje de error
 
-- `make build`, `make test` y `make check` cubren el ciclo local del modulo.
-- `make test-all` no agrega hoy una bateria de integracion separada respecto del codigo del modulo raiz.
+### noop_logger.go — Implementación de referencia
 
-## Observaciones actuales
+**NoopAuditLogger**
+Implementación que descarta eventos sin hacer nada. Útil para tests y entornos de desarrollo.
 
-- Este modulo documenta solo el contrato y el logger noop.
-- La persistencia en PostgreSQL y la extraccion desde Gin se documentan aparte.
-- El modulo tiene tests unitarios propios.
+```go
+logger := NewNoopAuditLogger()
+logger.Log(ctx, event) // Siempre retorna nil
+```
 
-## Limites de esta fase
+## Constantes
 
-- No describe consumidores externos ni politicas de retencion de auditoria.
-- No documenta aun integraciones con el archivo externo `ecosistema.md`.
-- No redefine politicas de release por modulo; eso queda para la fase 3.
+Severidades:
+- `SeverityInfo` = `"info"`
+- `SeverityWarning` = `"warning"`
+- `SeverityCritical` = `"critical"`
+
+Categorías:
+- `CategoryAuth` = `"auth"`
+- `CategoryData` = `"data"`
+- `CategoryConfig` = `"config"`
+- `CategoryAdmin` = `"admin"`
+
+## Testing
+
+El módulo incluye 12 tests que validan:
+- Funcionamiento de `NoopAuditLogger`
+- Todas las funciones `WithX`
+- Inicialización de mapas en opciones
+- Valores de constantes
+- Verificación de cumplimiento de interfaz
+
+Ejecutar:
+```bash
+make test          # Tests locales
+make check         # Tests + linting + format
+```
+
+## Integración
+
+Para usar este módulo:
+
+1. **Crear instancia de un AuditLogger concreto**
+   ```go
+   logger := postgres.NewPostgresAuditLogger(db, "my-service")
+   ```
+
+2. **Construir y enviar un evento**
+   ```go
+   event := audit.AuditEvent{
+       ActorID:      userID,
+       ActorEmail:   email,
+       ActorRole:    role,
+       ServiceName:  "my-service",
+       Action:       "create",
+       ResourceType: "user",
+       ResourceID:   newUserID,
+   }
+   logger.Log(ctx, event)
+   ```
+
+3. **Enriquecer opcionalmente**
+   ```go
+   event.Severity = audit.SeverityWarning
+   event.Category = audit.CategoryAdmin
+   event.Metadata = map[string]any{"ip": "10.0.0.1"}
+   ```
+
+## Notas de diseño
+
+- El módulo no contiene persistencia; es solo contrato.
+- La estrategia de adaptador permite implementaciones múltiples sin afectar consumidores.
+- Los `AuditOption` proporcionan forma declarativa de enriquecimiento.
+- No tiene dependencias internas del repositorio, solo stdlib.
+- Cada adaptador concreto (postgres, kafka, etc.) vive en su propio módulo con su propio `go.mod`.

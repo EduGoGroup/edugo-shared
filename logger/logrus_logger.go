@@ -21,27 +21,27 @@ func NewLogrusLogger(logger *logrus.Logger) Logger {
 }
 
 // Debug registra un mensaje de nivel debug
-func (l *logrusLogger) Debug(msg string, fields ...interface{}) {
+func (l *logrusLogger) Debug(msg string, fields ...any) {
 	l.entry.WithFields(convertToLogrusFields(fields...)).Debug(msg)
 }
 
 // Info registra un mensaje de nivel info
-func (l *logrusLogger) Info(msg string, fields ...interface{}) {
+func (l *logrusLogger) Info(msg string, fields ...any) {
 	l.entry.WithFields(convertToLogrusFields(fields...)).Info(msg)
 }
 
 // Warn registra un mensaje de nivel warning
-func (l *logrusLogger) Warn(msg string, fields ...interface{}) {
+func (l *logrusLogger) Warn(msg string, fields ...any) {
 	l.entry.WithFields(convertToLogrusFields(fields...)).Warn(msg)
 }
 
 // Error registra un mensaje de nivel error
-func (l *logrusLogger) Error(msg string, fields ...interface{}) {
+func (l *logrusLogger) Error(msg string, fields ...any) {
 	l.entry.WithFields(convertToLogrusFields(fields...)).Error(msg)
 }
 
 // Fatal registra un mensaje de nivel fatal y termina la aplicación
-func (l *logrusLogger) Fatal(msg string, fields ...interface{}) {
+func (l *logrusLogger) Fatal(msg string, fields ...any) {
 	l.entry.WithFields(convertToLogrusFields(fields...)).Fatal(msg)
 }
 
@@ -53,7 +53,7 @@ func (l *logrusLogger) Fatal(msg string, fields ...interface{}) {
 //
 // Las claves deben ser strings. Si hay un número impar de argumentos,
 // el último se ignora silenciosamente.
-func (l *logrusLogger) With(fields ...interface{}) Logger {
+func (l *logrusLogger) With(fields ...any) Logger {
 	return &logrusLogger{
 		logger: l.logger,
 		entry:  l.entry.WithFields(convertToLogrusFields(fields...)),
@@ -78,7 +78,7 @@ func (l *logrusLogger) Sync() error {
 //     sin pareja y se ignora silenciosamente.
 //   - Los valores se almacenan tal cual se reciben, sin transformaciones
 //     adicionales.
-func convertToLogrusFields(fields ...interface{}) logrus.Fields {
+func convertToLogrusFields(fields ...any) logrus.Fields {
 	result := logrus.Fields{}
 
 	// Los campos vienen en pares clave-valor

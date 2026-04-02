@@ -29,13 +29,3 @@ func (a AssessmentType) IsValid() bool {
 func (a AssessmentType) String() string {
 	return string(a)
 }
-
-// AllAssessmentTypes retorna todos los tipos válidos
-func AllAssessmentTypes() []AssessmentType {
-	return []AssessmentType{
-		AssessmentTypeMultipleChoice,
-		AssessmentTypeTrueFalse,
-		AssessmentTypeShortAnswer,
-		AssessmentTypeOpenEnded,
-	}
-}

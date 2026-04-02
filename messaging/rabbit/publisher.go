@@ -11,8 +11,8 @@ import (
 
 // Publisher interface para publicar mensajes
 type Publisher interface {
-	Publish(ctx context.Context, exchange, routingKey string, body interface{}) error
-	PublishWithPriority(ctx context.Context, exchange, routingKey string, body interface{}, priority uint8) error
+	Publish(ctx context.Context, exchange, routingKey string, body any) error
+	PublishWithPriority(ctx context.Context, exchange, routingKey string, body any, priority uint8) error
 	Close() error
 }
 
@@ -31,14 +31,14 @@ func NewPublisher(conn *Connection) Publisher {
 }
 
 // Publish publica un mensaje en un exchange con routing key
-func (p *RabbitMQPublisher) Publish(ctx context.Context, exchange, routingKey string, body interface{}) error {
+func (p *RabbitMQPublisher) Publish(ctx context.Context, exchange, routingKey string, body any) error {
 	return p.PublishWithPriority(ctx, exchange, routingKey, body, 0)
 }
 
 // PublishWithPriority publica un mensaje con prioridad específica
 //
 //nolint:contextcheck // ctx puede ser nil y se reemplaza con Background, es comportamiento intencional
-func (p *RabbitMQPublisher) PublishWithPriority(ctx context.Context, exchange, routingKey string, body interface{}, priority uint8) error {
+func (p *RabbitMQPublisher) PublishWithPriority(ctx context.Context, exchange, routingKey string, body any, priority uint8) error {
 	if ctx == nil {
 		ctx = context.Background()
 	}

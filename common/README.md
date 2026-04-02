@@ -1,42 +1,94 @@
 # Common
 
-Modulo base del repositorio: centraliza primitives reutilizables y subpaquetes de bajo acoplamiento.
+Módulo base del repositorio: primitivos reutilizables, resolución de configuración, manejo de errores, validación y tipos compartidos.
 
-## Alcance
-
-- Modulo Go: `github.com/EduGoGroup/edugo-shared/common`
-- Carpeta: `common`
-- Fase documental actual: `fase 1`, solo con evidencia local del repositorio
-
-## Instalacion
+## Instalación
 
 ```bash
 go get github.com/EduGoGroup/edugo-shared/common
 ```
 
-El modulo se descarga como `common`, pero el consumo real ocurre via subpaquetes como `common/errors`, `common/config`, `common/validator`, `common/types` y `common/types/enum`.
+El módulo se distribuye via subpaquetes: `common/config`, `common/errors`, `common/validator`, `common/types` y `common/types/enum`.
 
-## Procesos documentados
+## Quick Start
 
-1. Resolver variables de entorno y detectar ambiente con `common/config`.
-2. Construir `AppError` tipados y mapearlos a status HTTP en `common/errors`.
-3. Acumular errores de validacion y helpers de formato en `common/validator`.
-4. Generar, parsear y serializar UUIDs en `common/types`.
+### Configuración de entorno
 
-## Navegacion
+```go
+// Resolver variable de entorno con fallback
+dbHost := common.GetEnv("DB_HOST", "localhost")
+maxConnections := common.GetEnvInt("DB_MAX_CONN", 10)
 
-- [Documentacion del modulo](docs/README.md)
+// Detectar ambiente actual
+env := common.GetEnvironment() // "dev", "staging", "prod"
+```
+
+### Manejo de errores tipados
+
+```go
+// Errores de validación
+if user.Email == "" {
+    return common.NewValidationError("email is required")
+}
+
+// Errores de autenticación
+if !tokenValid {
+    return common.NewUnauthorizedError("invalid token")
+}
+
+// Mapeo automático a status HTTP
+statusCode := error.HTTPStatus() // 400 para validation, 401 para unauthorized, etc.
+```
+
+### Validación de datos
+
+```go
+// Acumular múltiples errores de validación
+v := common.NewValidator()
+v.RequireNotEmpty("email", user.Email)
+v.RequireNotEmpty("password", user.Password)
+v.RequireLength("password", user.Password, 8, 72)
+if !v.Valid() {
+    return v.Error() // Retorna error con todos los problemas
+}
+```
+
+### Tipos compartidos (UUID, Enums)
+
+```go
+// Generar UUID
+id := common.NewUUID() // string
+
+// Enums de dominio (roles, permisos, estados)
+role := common.RoleAdmin
+permission := common.PermissionUserRead
+```
+
+## Componentes principales
+
+- **config**: Resolución de variables de entorno y detección de ambiente
+- **errors**: Errores tipados (Validation, Unauthorized, NotFound, etc.) con mapeo a HTTP
+- **validator**: Agregación de errores de validación y helpers de validación comunes
+- **types**: UUID y tipos compartidos
+- **types/enum**: Enums de dominio (roles, permisos, estados, tipos de evento)
+
+## Documentación
+
+- [Documentación técnica](docs/README.md)
 - [Changelog](CHANGELOG.md)
 
-## Operacion local
+## Operación local
 
-- `make build`
-- `make test`
-- `make check`
-- Revisar `docs/README.md` para notas especificas de tests e integracion
+```bash
+make build    # Compilar módulo
+make test     # Ejecutar tests
+make test-race # Tests con race detector
+make check    # Validar (fmt, vet, lint, test)
+```
 
-## Notas actuales
+## Notas de diseño
 
-- Consumir `common` implica importar subpaquetes concretos; no existe un package raiz unico para toda la API.
-- Aqui estan varios contratos que otros modulos consideran fundacionales.
-- Los tests cubren errores, validator, UUID y enums.
+- No existe un package raíz único; consumir mediante subpaquetes específicos (`common/errors`, `common/config`, etc.)
+- Dependencias mínimas por diseño: solo `github.com/google/uuid` como dependencia externa
+- Módulo fundacional: otros módulos dependen de estos contratos
+- Arquitectura: bajo acoplamiento, alta reutilización, contrato estable

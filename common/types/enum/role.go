@@ -49,23 +49,3 @@ func (r SystemRole) IsValid() bool {
 func (r SystemRole) String() string {
 	return string(r)
 }
-
-// AllSystemRoles retorna todos los roles validos
-func AllSystemRoles() []SystemRole {
-	return []SystemRole{
-		SystemRoleSuperAdmin, SystemRolePlatformAdmin,
-		SystemRoleSchoolAdmin, SystemRoleSchoolDirector, SystemRoleSchoolCoordinator, SystemRoleSchoolAssistant,
-		SystemRoleTeacher, SystemRoleAssistantTeacher, SystemRoleStudent, SystemRoleGuardian,
-		SystemRoleObserver, SystemRoleReadonlyAuditor,
-	}
-}
-
-// AllSystemRolesStrings retorna todos los roles como strings (util para validacion)
-func AllSystemRolesStrings() []string {
-	return []string{
-		string(SystemRoleSuperAdmin), string(SystemRolePlatformAdmin),
-		string(SystemRoleSchoolAdmin), string(SystemRoleSchoolDirector), string(SystemRoleSchoolCoordinator), string(SystemRoleSchoolAssistant),
-		string(SystemRoleTeacher), string(SystemRoleAssistantTeacher), string(SystemRoleStudent), string(SystemRoleGuardian),
-		string(SystemRoleObserver), string(SystemRoleReadonlyAuditor),
-	}
-}

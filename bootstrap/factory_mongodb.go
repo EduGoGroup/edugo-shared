@@ -15,20 +15,20 @@ import (
 // MONGODB FACTORY IMPLEMENTATION
 // =============================================================================
 
-// DefaultMongoDBFactory implementa MongoDBFactory
-type DefaultMongoDBFactory struct {
+// defaultMongoDBFactory implementa MongoDBFactory.
+type defaultMongoDBFactory struct {
 	connectionTimeout time.Duration
 }
 
-// NewDefaultMongoDBFactory crea una nueva instancia de DefaultMongoDBFactory
-func NewDefaultMongoDBFactory() *DefaultMongoDBFactory {
-	return &DefaultMongoDBFactory{
+// NewDefaultMongoDBFactory crea una instancia de MongoDBFactory con implementación mongo-driver.
+func NewDefaultMongoDBFactory() MongoDBFactory {
+	return &defaultMongoDBFactory{
 		connectionTimeout: 10 * time.Second,
 	}
 }
 
 // CreateConnection crea una conexión a MongoDB
-func (f *DefaultMongoDBFactory) CreateConnection(ctx context.Context, config MongoDBConfig) (*mongo.Client, error) {
+func (f *defaultMongoDBFactory) CreateConnection(ctx context.Context, config MongoDBConfig) (*mongo.Client, error) {
 	// Crear context con timeout
 	ctx, cancel := context.WithTimeout(ctx, f.connectionTimeout)
 	defer cancel()
@@ -63,12 +63,12 @@ func (f *DefaultMongoDBFactory) CreateConnection(ctx context.Context, config Mon
 }
 
 // GetDatabase obtiene una base de datos específica
-func (f *DefaultMongoDBFactory) GetDatabase(client *mongo.Client, dbName string) *mongo.Database {
+func (f *defaultMongoDBFactory) GetDatabase(client *mongo.Client, dbName string) *mongo.Database {
 	return client.Database(dbName)
 }
 
 // Ping verifica la conectividad con MongoDB
-func (f *DefaultMongoDBFactory) Ping(ctx context.Context, client *mongo.Client) error {
+func (f *defaultMongoDBFactory) Ping(ctx context.Context, client *mongo.Client) error {
 	// Crear context con timeout
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
@@ -82,7 +82,7 @@ func (f *DefaultMongoDBFactory) Ping(ctx context.Context, client *mongo.Client) 
 }
 
 // Close cierra la conexión
-func (f *DefaultMongoDBFactory) Close(ctx context.Context, client *mongo.Client) error {
+func (f *defaultMongoDBFactory) Close(ctx context.Context, client *mongo.Client) error {
 	// Crear context con timeout
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
@@ -94,5 +94,5 @@ func (f *DefaultMongoDBFactory) Close(ctx context.Context, client *mongo.Client)
 	return nil
 }
 
-// Verificar que DefaultMongoDBFactory implementa MongoDBFactory
-var _ MongoDBFactory = (*DefaultMongoDBFactory)(nil)
+// Verificar que defaultMongoDBFactory implementa MongoDBFactory
+var _ MongoDBFactory = (*defaultMongoDBFactory)(nil)

@@ -55,12 +55,12 @@ const (
 
 // AppError es el error personalizado de la aplicación
 type AppError struct {
-	Fields     map[string]interface{} // Campos adicionales para contexto
-	Internal   error                  // Error interno original (no expuesto al cliente)
-	Message    string                 // Mensaje legible para humanos
-	Details    string                 // Detalles adicionales (opcional)
-	Code       ErrorCode              // Código único de error
-	StatusCode int                    // Código HTTP sugerido
+	Fields     map[string]any // Campos adicionales para contexto
+	Internal   error          // Error interno original (no expuesto al cliente)
+	Message    string         // Mensaje legible para humanos
+	Details    string         // Detalles adicionales (opcional)
+	Code       ErrorCode      // Código único de error
+	StatusCode int            // Código HTTP sugerido
 }
 
 // Error implementa la interfaz error
@@ -83,9 +83,9 @@ func (e *AppError) WithDetails(details string) *AppError {
 }
 
 // WithField agrega un campo de contexto
-func (e *AppError) WithField(key string, value interface{}) *AppError {
+func (e *AppError) WithField(key string, value any) *AppError {
 	if e.Fields == nil {
-		e.Fields = make(map[string]interface{})
+		e.Fields = make(map[string]any)
 	}
 	e.Fields[key] = value
 	return e
@@ -103,7 +103,7 @@ func New(code ErrorCode, message string) *AppError {
 		Code:       code,
 		Message:    message,
 		StatusCode: getDefaultStatusCode(code),
-		Fields:     make(map[string]interface{}),
+		Fields:     make(map[string]any),
 	}
 }
 
@@ -114,7 +114,7 @@ func Wrap(err error, code ErrorCode, message string) *AppError {
 		Message:    message,
 		StatusCode: getDefaultStatusCode(code),
 		Internal:   err,
-		Fields:     make(map[string]interface{}),
+		Fields:     make(map[string]any),
 	}
 }
 

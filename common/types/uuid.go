@@ -81,7 +81,7 @@ func (u UUID) Value() (driver.Value, error) {
 }
 
 // Scan implementa sql.Scanner para PostgreSQL
-func (u *UUID) Scan(value interface{}) error {
+func (u *UUID) Scan(value any) error {
 	if value == nil {
 		*u = UUID{}
 		return nil

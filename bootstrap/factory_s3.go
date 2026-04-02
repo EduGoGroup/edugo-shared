@@ -14,16 +14,16 @@ import (
 // S3 FACTORY IMPLEMENTATION
 // =============================================================================
 
-// DefaultS3Factory implementa S3Factory usando AWS SDK v2
-type DefaultS3Factory struct{}
+// defaultS3Factory implementa S3Factory usando AWS SDK v2.
+type defaultS3Factory struct{}
 
-// NewDefaultS3Factory crea una nueva instancia de DefaultS3Factory
-func NewDefaultS3Factory() *DefaultS3Factory {
-	return &DefaultS3Factory{}
+// NewDefaultS3Factory crea una instancia de S3Factory con implementación AWS SDK v2.
+func NewDefaultS3Factory() S3Factory {
+	return &defaultS3Factory{}
 }
 
 // CreateClient crea un cliente de S3
-func (f *DefaultS3Factory) CreateClient(ctx context.Context, s3Config S3Config) (*s3.Client, error) {
+func (f *defaultS3Factory) CreateClient(ctx context.Context, s3Config S3Config) (*s3.Client, error) {
 	// Configurar credenciales estáticas
 	creds := credentials.NewStaticCredentialsProvider(
 		s3Config.AccessKeyID,
@@ -52,12 +52,12 @@ func (f *DefaultS3Factory) CreateClient(ctx context.Context, s3Config S3Config) 
 }
 
 // CreatePresignClient crea un cliente para URLs pre-firmadas
-func (f *DefaultS3Factory) CreatePresignClient(client *s3.Client) *s3.PresignClient {
+func (f *defaultS3Factory) CreatePresignClient(client *s3.Client) *s3.PresignClient {
 	return s3.NewPresignClient(client)
 }
 
 // ValidateBucket verifica que el bucket existe y es accesible
-func (f *DefaultS3Factory) ValidateBucket(ctx context.Context, client *s3.Client, bucket string) error {
+func (f *defaultS3Factory) ValidateBucket(ctx context.Context, client *s3.Client, bucket string) error {
 	// Intentar head bucket
 	_, err := client.HeadBucket(ctx, &s3.HeadBucketInput{
 		Bucket: aws.String(bucket),
@@ -69,5 +69,5 @@ func (f *DefaultS3Factory) ValidateBucket(ctx context.Context, client *s3.Client
 	return nil
 }
 
-// Verificar que DefaultS3Factory implementa S3Factory
-var _ S3Factory = (*DefaultS3Factory)(nil)
+// Verificar que defaultS3Factory implementa S3Factory
+var _ S3Factory = (*defaultS3Factory)(nil)

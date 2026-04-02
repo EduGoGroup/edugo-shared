@@ -1,3 +1,5 @@
+//go:build integration
+
 //nolint:errcheck // Tests: errores de Close() en cleanup se ignoran intencionalmente
 package rabbit
 
@@ -198,7 +200,7 @@ func TestConnection_DeclareQueue(t *testing.T) {
 				Durable:    true,
 				AutoDelete: false,
 				Exclusive:  false,
-				Args: map[string]interface{}{
+				Args: map[string]any{
 					"x-message-ttl": 60000,
 				},
 			},
@@ -338,7 +340,7 @@ func TestConnection_DeclareQueue_WithDLX(t *testing.T) {
 		Durable:    true,
 		AutoDelete: false,
 		Exclusive:  false,
-		Args: map[string]interface{}{
+		Args: map[string]any{
 			"x-dead-letter-exchange":    "test_dlx",
 			"x-dead-letter-routing-key": "dlq",
 		},
@@ -385,14 +387,14 @@ func TestConnection_ConcurrentHealthChecks(t *testing.T) {
 	const concurrency = 10
 	errChan := make(chan error, concurrency)
 
-	for i := 0; i < concurrency; i++ {
+	for range concurrency {
 		go func() {
 			errChan <- conn.HealthCheck()
 		}()
 	}
 
 	// Verificar que todos los health checks pasaron
-	for i := 0; i < concurrency; i++ {
+	for i := range concurrency {
 		err := <-errChan
 		assert.NoError(t, err, fmt.Sprintf("Health check %d falló", i))
 	}
@@ -582,13 +584,13 @@ func TestConnection_GetChannel_ThreadSafe(t *testing.T) {
 	}
 
 	done := make(chan struct{})
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		go func() {
 			_ = c.GetChannel()
 			done <- struct{}{}
 		}()
 	}
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		<-done
 	}
 }

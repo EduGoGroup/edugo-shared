@@ -65,7 +65,7 @@ func TestValidatePlatform_InvalidPlatforms(t *testing.T) {
 }
 
 func TestResolvePlatformOverrideKey(t *testing.T) {
-	overrides := map[string]interface{}{
+	overrides := map[string]any{
 		"mobile":  nil,
 		"desktop": nil,
 	}
@@ -97,7 +97,7 @@ func TestResolvePlatformOverrideKey(t *testing.T) {
 
 func TestResolvePlatformOverrideKey_SpecificOverIDE(t *testing.T) {
 	// Cuando existe override especifico de ios, debe preferirlo sobre mobile
-	overrides := map[string]interface{}{
+	overrides := map[string]any{
 		"ios":    nil,
 		"mobile": nil,
 	}

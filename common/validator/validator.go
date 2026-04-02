@@ -5,6 +5,7 @@ package validator
 import (
 	"fmt"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/google/uuid"
@@ -41,7 +42,7 @@ func (v *Validator) AddError(message string) {
 }
 
 // AddErrorf agrega un error de validación con formato
-func (v *Validator) AddErrorf(format string, args ...interface{}) {
+func (v *Validator) AddErrorf(format string, args ...any) {
 	v.errors = append(v.errors, fmt.Sprintf(format, args...))
 }
 
@@ -111,10 +112,8 @@ func (v *Validator) InSlice(value string, allowed []string, fieldName string) {
 		return
 	}
 
-	for _, a := range allowed {
-		if value == a {
-			return
-		}
+	if slices.Contains(allowed, value) {
+		return
 	}
 
 	v.AddErrorf("%s must be one of: %s", fieldName, strings.Join(allowed, ", "))

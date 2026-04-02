@@ -1,42 +1,89 @@
 # Logger
 
-Abstraccion de logging estructurado con implementaciones en Zap y Logrus.
+Abstracción de logging estructurado con implementaciones en Zap, Logrus y Slog.
 
-## Alcance
-
-- Modulo Go: `github.com/EduGoGroup/edugo-shared/logger`
-- Carpeta: `logger`
-- Fase documental actual: `fase 1`, solo con evidencia local del repositorio
-
-## Instalacion
+## Instalación
 
 ```bash
 go get github.com/EduGoGroup/edugo-shared/logger
 ```
 
-El modulo se puede versionar y consumir de forma independiente gracias a su `go.mod` propio.
+El módulo se versiona y se consume de forma independiente gracias a su `go.mod` propio.
 
-## Procesos documentados
+## Quick Start
 
-1. Construir un logger Zap con nivel y formato configurables.
-2. Adaptar una instancia Logrus a la interfaz comun del repositorio.
-3. Agregar contexto con `With(fields...)` y reutilizarlo aguas abajo.
-4. Emitir logs estructurados y sincronizar buffers cuando el backend lo necesita.
+### Crear logger Zap con nivel y formato
 
-## Navegacion
+```go
+// JSON format, info level
+logger := logger.NewZapLogger("info", "json")
+defer logger.Sync()
 
-- [Documentacion del modulo](docs/README.md)
+// Emitir logs estructurados
+logger.Info("usuario autenticado", "user_id", 123, "email", "user@example.com")
+logger.Error("fallo la conexión", "host", "db.example.com", "error", err)
+```
+
+### Usar contexto con fields
+
+```go
+// Agregar campos contextuales que se incluyen en todos los logs subsecuentes
+requestLogger := logger.With("request_id", "abc123", "user_id", 456)
+requestLogger.Info("procesando solicitud")
+requestLogger.Info("solicitud completada")
+// Ambos logs incluyen request_id y user_id
+```
+
+### Adaptar Logrus existente
+
+```go
+// Si ya tienes una instancia Logrus, adaptarla a la interfaz común
+logrusInstance := logrus.New()
+logger := logger.NewLogrusLogger(logrusInstance)
+logger.Info("migrando a interfaz común", "status", "ok")
+```
+
+### Usar Slog (recomendado para nuevos proyectos)
+
+```go
+// Factory moderna con configuración desde variables de entorno
+slogLogger := logger.NewSlogProviderFromEnv().Logger()
+
+// Helpers tipados para campos comunes
+slogLogger.InfoContext(ctx, "operación iniciada",
+    logger.WithRequestID("req-123"),
+    logger.WithUserID("user-456"),
+    logger.WithDuration(150*time.Millisecond),
+)
+```
+
+## Componentes principales
+
+- **Logger**: Interfaz común (Debug, Info, Warn, Error, Fatal, With, Sync)
+- **ZapLogger**: Implementación con go.uber.org/zap (JSON o console)
+- **LogrusLogger**: Adaptador para github.com/sirupsen/logrus
+- **SlogProvider**: Factory moderna para *slog.Logger con campos base
+- **SlogAdapter**: Adaptador de slog a interfaz Logger (migración gradual)
+- **Context helpers**: Propagación de logger via context.Context
+- **Fields helpers**: Constructores tipados para atributos (WithUserID, WithRequestID, etc.)
+
+## Documentación
+
+- [Documentación técnica](docs/README.md)
 - [Changelog](CHANGELOG.md)
 
-## Operacion local
+## Operación local
 
-- `make build`
-- `make test`
-- `make check`
-- Revisar `docs/README.md` para notas especificas de tests e integracion
+```bash
+make build    # Compilar módulo
+make test     # Ejecutar tests
+make test-race # Tests con race detector
+make check    # Validar (fmt, vet, lint, test)
+```
 
-## Notas actuales
+## Notas de diseño
 
-- El modulo no define politicas de logging; solo la abstraccion y sus implementaciones.
-- Zap soporta formato `json` o `console`; Logrus se adapta a la interfaz comun.
-- Tiene tests unitarios sobre niveles, campos y formatos.
+- **Sin políticas de logging**: Módulo solo proporciona abstracción e implementaciones
+- **Múltiples backends**: Zap, Logrus y Slog intercambiables según necesidad
+- **Campos variadicos**: Key/value pairs para minimizar acoplamiento
+- **Migración gradual**: SlogAdapter permite usar slog en nuevo código mientras se migra

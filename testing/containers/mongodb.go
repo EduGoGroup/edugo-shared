@@ -109,7 +109,7 @@ func (mc *MongoDBContainer) DropAllCollections(ctx context.Context) error {
 	db := mc.Database()
 
 	// Listar todas las colecciones
-	collections, err := db.ListCollectionNames(ctx, map[string]interface{}{})
+	collections, err := db.ListCollectionNames(ctx, map[string]any{})
 	if err != nil {
 		return fmt.Errorf("error listando colecciones: %w", err)
 	}

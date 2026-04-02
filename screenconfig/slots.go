@@ -26,7 +26,7 @@ func ResolveSlots(definition json.RawMessage, slotData json.RawMessage) json.Raw
 		return definition
 	}
 
-	var slots map[string]interface{}
+	var slots map[string]any
 	if err := json.Unmarshal(slotData, &slots); err != nil {
 		return definition
 	}
@@ -35,7 +35,7 @@ func ResolveSlots(definition json.RawMessage, slotData json.RawMessage) json.Raw
 		return definition
 	}
 
-	var defMap interface{}
+	var defMap any
 	if err := json.Unmarshal(definition, &defMap); err != nil {
 		return definition
 	}
@@ -51,24 +51,24 @@ func ResolveSlots(definition json.RawMessage, slotData json.RawMessage) json.Raw
 }
 
 // resolveValue resuelve recursivamente referencias slot:xxx en un valor JSON parseado.
-func resolveValue(value interface{}, slots map[string]interface{}) interface{} {
+func resolveValue(value any, slots map[string]any) any {
 	switch v := value.(type) {
 	case string:
-		if strings.HasPrefix(v, "slot:") {
-			slotKey := strings.TrimPrefix(v, "slot:")
+		if after, ok := strings.CutPrefix(v, "slot:"); ok {
+			slotKey := after
 			if slotValue, ok := slots[slotKey]; ok {
 				return slotValue
 			}
 		}
 		return v
-	case map[string]interface{}:
-		result := make(map[string]interface{}, len(v))
+	case map[string]any:
+		result := make(map[string]any, len(v))
 		for key, val := range v {
 			result[key] = resolveValue(val, slots)
 		}
 		return result
-	case []interface{}:
-		result := make([]interface{}, len(v))
+	case []any:
+		result := make([]any, len(v))
 		for i, val := range v {
 			result[i] = resolveValue(val, slots)
 		}

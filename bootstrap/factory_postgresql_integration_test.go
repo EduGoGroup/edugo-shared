@@ -1,3 +1,5 @@
+//go:build integration
+
 package bootstrap
 
 import (
@@ -503,7 +505,7 @@ func TestPostgreSQLFactory_MultipleConnections(t *testing.T) {
 
 	// Crear múltiples conexiones
 	connections := make([]*gorm.DB, 3)
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		db, err := factory.CreateConnection(ctx, pgConfig)
 		require.NoError(t, err)
 		connections[i] = db

@@ -1,3 +1,5 @@
+//go:build integration
+
 //nolint:errcheck // Tests: errores de Terminate() en cleanup se ignoran intencionalmente
 package containers
 

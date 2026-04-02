@@ -199,8 +199,7 @@ func TestHashToken_SpecialCharacters(t *testing.T) {
 func BenchmarkGenerateRefreshToken(b *testing.B) {
 	ttl := 7 * 24 * time.Hour
 
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		_, err := GenerateRefreshToken(ttl)
 		if err != nil {
 			b.Fatalf("Error en benchmark: %v", err)
@@ -212,8 +211,7 @@ func BenchmarkGenerateRefreshToken(b *testing.B) {
 func BenchmarkHashToken(b *testing.B) {
 	token := "sample-refresh-token-abc123xyz"
 
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		_ = HashToken(token)
 	}
 }

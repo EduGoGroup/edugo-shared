@@ -17,7 +17,7 @@ import (
 // Retorna error si la inicialización falla.
 func initLogger(
 	ctx context.Context,
-	config interface{},
+	config any,
 	factories *Factories,
 	resources *Resources,
 	opts *BootstrapOptions,

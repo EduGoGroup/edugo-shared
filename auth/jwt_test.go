@@ -575,7 +575,7 @@ func TestConcurrentTokenGeneration(t *testing.T) {
 		const numTokens = 100
 		results := make(chan bool, numTokens)
 
-		for i := 0; i < numTokens; i++ {
+		for range numTokens {
 			go func() {
 				userID := uuid.New().String()
 				_, _, err := manager.GenerateTokenWithContext(
@@ -590,7 +590,7 @@ func TestConcurrentTokenGeneration(t *testing.T) {
 
 		// Esperar a que todos terminen
 		successCount := 0
-		for i := 0; i < numTokens; i++ {
+		for range numTokens {
 			select {
 			case success := <-results:
 				if success {

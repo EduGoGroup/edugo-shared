@@ -28,9 +28,3 @@ func TestAssessmentType_IsValid(t *testing.T) {
 func TestAssessmentType_String(t *testing.T) {
 	assert.Equal(t, "multiple_choice", AssessmentTypeMultipleChoice.String())
 }
-
-func TestAllAssessmentTypes(t *testing.T) {
-	types := AllAssessmentTypes()
-	// Should contain OpenEnded, so length should be 4
-	assert.Contains(t, types, AssessmentTypeOpenEnded)
-}

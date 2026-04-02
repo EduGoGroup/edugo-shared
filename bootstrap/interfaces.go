@@ -14,6 +14,14 @@ import (
 // =============================================================================
 // CONFIGURATION STRUCTS
 // =============================================================================
+//
+// Estos tipos son versiones simplificadas de los configs de cada modulo
+// (database/postgres.Config, etc.). Se mantienen separados intencionalmente:
+//   - Evitan dependencia directa de bootstrap hacia database/*, messaging/*, cache/*
+//   - Exponen solo los campos necesarios para la inicializacion
+//   - Los modulos completos tienen campos adicionales de connection pooling,
+//     timeouts y search paths que bootstrap gestiona internamente
+// =============================================================================
 
 // PostgreSQLConfig define la configuración para PostgreSQL
 type PostgreSQLConfig struct {
@@ -154,7 +162,7 @@ type DatabaseClient interface {
 	Close(ctx context.Context) error
 
 	// GetStats obtiene estadísticas de la conexión
-	GetStats(ctx context.Context) (map[string]interface{}, error)
+	GetStats(ctx context.Context) (map[string]any, error)
 }
 
 // =============================================================================

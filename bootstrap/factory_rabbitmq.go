@@ -13,20 +13,20 @@ import (
 // RABBITMQ FACTORY IMPLEMENTATION
 // =============================================================================
 
-// DefaultRabbitMQFactory implementa RabbitMQFactory
-type DefaultRabbitMQFactory struct {
+// defaultRabbitMQFactory implementa RabbitMQFactory.
+type defaultRabbitMQFactory struct {
 	connectionTimeout time.Duration
 }
 
-// NewDefaultRabbitMQFactory crea una nueva instancia de DefaultRabbitMQFactory
-func NewDefaultRabbitMQFactory() *DefaultRabbitMQFactory {
-	return &DefaultRabbitMQFactory{
+// NewDefaultRabbitMQFactory crea una instancia de RabbitMQFactory con implementación amqp091.
+func NewDefaultRabbitMQFactory() RabbitMQFactory {
+	return &defaultRabbitMQFactory{
 		connectionTimeout: 10 * time.Second,
 	}
 }
 
 // CreateConnection crea una conexión a RabbitMQ
-func (f *DefaultRabbitMQFactory) CreateConnection(ctx context.Context, config RabbitMQConfig) (*amqp.Connection, error) {
+func (f *defaultRabbitMQFactory) CreateConnection(ctx context.Context, config RabbitMQConfig) (*amqp.Connection, error) {
 	// Intentar conexión con timeout
 	connChan := make(chan *amqp.Connection, 1)
 	errChan := make(chan error, 1)
@@ -53,7 +53,7 @@ func (f *DefaultRabbitMQFactory) CreateConnection(ctx context.Context, config Ra
 }
 
 // CreateChannel crea un canal de comunicación
-func (f *DefaultRabbitMQFactory) CreateChannel(conn *amqp.Connection) (*amqp.Channel, error) {
+func (f *defaultRabbitMQFactory) CreateChannel(conn *amqp.Connection) (*amqp.Channel, error) {
 	channel, err := conn.Channel()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create channel: %w", err)
@@ -78,7 +78,7 @@ func (f *DefaultRabbitMQFactory) CreateChannel(conn *amqp.Connection) (*amqp.Cha
 }
 
 // DeclareQueue declara una cola con configuración por defecto
-func (f *DefaultRabbitMQFactory) DeclareQueue(channel *amqp.Channel, queueName string) (amqp.Queue, error) {
+func (f *defaultRabbitMQFactory) DeclareQueue(channel *amqp.Channel, queueName string) (amqp.Queue, error) {
 	queue, err := channel.QueueDeclare(
 		queueName, // name
 		true,      // durable
@@ -101,7 +101,7 @@ func (f *DefaultRabbitMQFactory) DeclareQueue(channel *amqp.Channel, queueName s
 }
 
 // Close cierra el canal y la conexión
-func (f *DefaultRabbitMQFactory) Close(channel *amqp.Channel, conn *amqp.Connection) error {
+func (f *defaultRabbitMQFactory) Close(channel *amqp.Channel, conn *amqp.Connection) error {
 	var errs []error
 
 	if channel != nil {
@@ -123,5 +123,5 @@ func (f *DefaultRabbitMQFactory) Close(channel *amqp.Channel, conn *amqp.Connect
 	return nil
 }
 
-// Verificar que DefaultRabbitMQFactory implementa RabbitMQFactory
-var _ RabbitMQFactory = (*DefaultRabbitMQFactory)(nil)
+// Verificar que defaultRabbitMQFactory implementa RabbitMQFactory
+var _ RabbitMQFactory = (*defaultRabbitMQFactory)(nil)

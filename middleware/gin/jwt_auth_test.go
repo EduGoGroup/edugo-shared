@@ -1,7 +1,6 @@
 package gin
 
 import (
-	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -316,8 +315,7 @@ func TestJWTAuthMiddlewareWithBlacklist_ValidTokenNotRevoked(t *testing.T) {
 	require.NoError(t, err)
 
 	// Blacklist that has NOT revoked this token
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	blacklist := auth.NewInMemoryBlacklist(ctx)
 
 	router := gin.New()
@@ -380,8 +378,7 @@ func TestJWTAuthMiddlewareWithBlacklist_RevokedToken(t *testing.T) {
 	require.NoError(t, err)
 
 	// Revoke the token in the blacklist
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	blacklist := auth.NewInMemoryBlacklist(ctx)
 	blacklist.Revoke(claims.ID, time.Now().Add(time.Hour))
 
@@ -416,8 +413,7 @@ func TestJWTAuthMiddlewareWithBlacklist_InvalidToken(t *testing.T) {
 
 	jwtManager := auth.NewJWTManager("test-secret", "test-issuer")
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	blacklist := auth.NewInMemoryBlacklist(ctx)
 
 	router := gin.New()
@@ -565,8 +561,7 @@ func TestJWTAuthMiddlewareWithBlacklist_MissingHeader(t *testing.T) {
 
 	jwtManager := auth.NewJWTManager("test-secret", "test-issuer")
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	blacklist := auth.NewInMemoryBlacklist(ctx)
 
 	router := gin.New()
@@ -595,8 +590,7 @@ func TestJWTAuthMiddlewareWithBlacklist_InvalidFormat(t *testing.T) {
 
 	jwtManager := auth.NewJWTManager("test-secret", "test-issuer")
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	blacklist := auth.NewInMemoryBlacklist(ctx)
 
 	router := gin.New()
@@ -650,8 +644,7 @@ func TestJWTAuthMiddlewareWithBlacklist_AbortChainOnRevoked(t *testing.T) {
 	claims, err := jwtManager.ValidateToken(token)
 	require.NoError(t, err)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	blacklist := auth.NewInMemoryBlacklist(ctx)
 	blacklist.Revoke(claims.ID, time.Now().Add(time.Hour))
 

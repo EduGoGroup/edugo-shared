@@ -1,3 +1,5 @@
+//go:build integration
+
 //nolint:errcheck // Tests: errores de Disconnect() en cleanup se ignoran intencionalmente
 package mongodb_test
 

@@ -1,56 +1,190 @@
-# Lifecycle - Documentacion de fase 1
+# Lifecycle — Documentación técnica
 
-Esta documentacion cubre solo lo que existe dentro de `lifecycle` al momento de esta fase. No intenta explicar integraciones externas ni adaptar el modulo a consumidores concretos.
+Orquestador de ciclo de vida para recursos de infraestructura con startup secuencial y cleanup LIFO.
 
-## Proposito
+## Propósito
 
-Manager de ciclo de vida para recursos de infraestructura con startup secuencial y cleanup LIFO.
+Proporcionar mecanismo robusto para registrar, iniciar y limpiar recursos de infraestructura en orden controlado, asegurando que la limpieza ocurra en orden inverso al registro (LIFO) incluso si algunos recursos fallan.
 
-## Procesos principales
+## Componentes principales
 
-1. Registrar recursos con nombre, startup opcional y cleanup.
-2. Ejecutar la fase de startup en orden de registro.
-3. Detener el proceso si un startup falla y reportar el recurso causante.
-4. Ejecutar cleanups en orden inverso acumulando errores sin abortar la limpieza total.
+### Manager — Orquestador
 
-## Arquitectura local
+Gestor central que mantiene lista de recursos y coordina startup/cleanup.
 
-- `Manager` conserva una lista protegida por mutex de `Resource`.
-- El logger es opcional y solo agrega trazabilidad, no cambia la logica.
-- El cleanup agrega errores y mantiene la semantica LIFO como contrato principal.
-
-```mermaid
-flowchart TD
-A[Register resources] --> B[Startup ordered]
-B --> C[App running]
-C --> D[Cleanup LIFO]
-D --> E[Aggregate errors]
+**Estructura:**
+```go
+type Manager struct {
+    resources []Resource        // Lista de recursos registrados
+    mu        sync.Mutex        // Protección de concurrencia
+    logger    logger.Logger     // Logger opcional
+    startTime time.Time         // Tiempo de inicio (para métricas)
+}
 ```
 
-## Superficie tecnica relevante
+**Métodos principales:**
+- `NewManager(log logger.Logger) *Manager` — Constructor
+- `Register(name string, startup func(ctx context.Context) error, cleanup func() error)` — Registrar recurso con startup y cleanup
+- `RegisterSimple(name string, cleanup func() error)` — Registrar recurso solo con cleanup
+- `Startup(ctx context.Context) error` — Ejecutar startup de todos los recursos en orden
+- `Cleanup() error` — Ejecutar cleanup de todos los recursos en orden inverso (LIFO)
+- `Count() int` — Cantidad de recursos registrados
+- `Clear()` — Limpiar lista sin ejecutar cleanup (para testing)
 
-- `NewManager` crea el manager.
-- `Register` y `RegisterSimple` agregan recursos.
-- `Startup`, `Cleanup`, `Count` y `Clear` cubren el ciclo completo.
+### Resource — Definición de recurso
 
-## Dependencias observadas
+Estructura que define un recurso registrable con funciones de startup y cleanup.
 
-- Runtime interno: `logger`.
-- No depende de ningun driver o framework concreto.
+**Estructura:**
+```go
+type Resource struct {
+    Name    string                          // Identificador del recurso
+    Startup func(ctx context.Context) error // Inicialización (opcional)
+    Cleanup func() error                    // Limpieza (obligatorio si se registra)
+}
+```
 
-## Operacion actual
+## Flujos comunes
 
-- `make build`, `make test`, `make test-race` y `make check` validan el modulo.
-- La suite actual es enteramente unitaria.
+### 1. Registrar múltiples recursos al inicializar
 
-## Observaciones actuales
+```go
+func setupInfrastructure(ctx context.Context, log logger.Logger) (*lifecycle.Manager, error) {
+    mgr := lifecycle.NewManager(log)
 
-- El modulo es pequeno y estable, orientado a coordinacion in-process.
-- Su valor principal es el orden de cleanup y el agregado de errores.
-- Tiene tests unitarios sobre startup, cleanup y LIFO.
+    // Recurso con startup y cleanup
+    mgr.Register("database",
+        func(ctx context.Context) error {
+            return db.Connect(ctx)
+        },
+        func() error {
+            return db.Close()
+        },
+    )
 
-## Limites de esta fase
+    // Otro recurso
+    mgr.Register("cache",
+        func(ctx context.Context) error {
+            return cache.Init(ctx)
+        },
+        func() error {
+            return cache.Flush()
+        },
+    )
 
-- No documenta aun como cada aplicacion del ecosistema registra sus recursos concretos.
-- No documenta aun integraciones con el archivo externo `ecosistema.md`.
-- No redefine politicas de release por modulo; eso queda para la fase 3.
+    // Recurso sin startup (ya está inicializado externamente)
+    mgr.RegisterSimple("logger",
+        func() error {
+            return log.Close()
+        },
+    )
+
+    // Ejecutar startup en orden de registro
+    if err := mgr.Startup(ctx); err != nil {
+        return nil, fmt.Errorf("infrastructure startup failed: %w", err)
+    }
+
+    return mgr, nil
+}
+```
+
+### 2. Cleanup con manejo de errores acumulados
+
+```go
+func shutdown(mgr *lifecycle.Manager) {
+    // Cleanup ejecuta en orden inverso, acumulando errores
+    if err := mgr.Cleanup(); err != nil {
+        log.Printf("cleanup warnings: %v", err)
+        // Continuamos aunque haya errores; se reportan para observabilidad
+    }
+}
+```
+
+### 3. Startup fallido aborta el proceso
+
+```go
+// Si un recurso falla en startup, el proceso se detiene inmediatamente
+// El error incluye el nombre del recurso que falló
+if err := mgr.Startup(ctx); err != nil {
+    // Error: "failed to startup resource database: connection refused"
+    return nil, err
+}
+```
+
+### 4. Consultar estado del manager
+
+```go
+// Cantidad de recursos
+count := mgr.Count() // 3
+
+// Limpiar para reutilizar en testing
+mgr.Clear()
+newCount := mgr.Count() // 0
+```
+
+## Arquitectura
+
+Flujo de ciclo de vida:
+
+```
+1. NewManager(logger)
+   ↓
+2. Register(name, startup, cleanup)
+   ├─ Agrega recurso a lista
+   ├─ Logger trazabilidad
+   └─ Retorna inmediatamente
+   ↓
+3. Startup(ctx)
+   ├─ Itera en orden de registro
+   ├─ Ejecuta startup de cada recurso
+   ├─ Si falla: retorna error inmediatamente
+   └─ Si todo ok: retorna nil
+   ↓
+4. [Aplicación ejecutándose]
+   ↓
+5. Cleanup()
+   ├─ Itera en orden inverso (LIFO)
+   ├─ Ejecuta cleanup de cada recurso
+   ├─ Continúa incluso si falla
+   ├─ Acumula todos los errores
+   └─ Retorna error compuesto si hubo fallos
+```
+
+## Características
+
+- **Startup secuencial**: Recursos se inicializan en orden de registro
+- **Cleanup LIFO**: Orden inverso garantiza dependencias se limpian correctamente
+- **Tolerancia a cleanup**: Continúa limpiando incluso si falla, para no dejar recursos abiertos
+- **Thread-safe**: Protección con mutex para operaciones concurrentes
+- **Logger opcional**: Trazabilidad sin obligatoriedad
+- **Métricas**: Calcula duración de startup y cleanup
+
+## Dependencias
+
+- **Internas**: `logger` (opcional, solo para logging)
+- **Externas**: Ninguna
+
+## Testing
+
+Suite de tests completa:
+- Registro de recursos y validación de orden
+- Startup exitoso y fallido
+- Cleanup en orden inverso
+- Acumulación de errores en cleanup
+- Operaciones con lista vacía
+- Thread-safety con race detector
+
+Ejecutar:
+```bash
+make test          # Tests básicos
+make test-race     # Tests con race detector
+make check         # Tests + linting + format
+```
+
+## Notas de diseño
+
+- **Módulo pequeño y estable**: Responsabilidad única — orquestar ciclo de vida
+- **LIFO como contrato**: Inversión del orden de registro es lo que hace al módulo valioso
+- **Tolerancia en cleanup**: Permite que recursos parcialmente inicializados se limpien completamente
+- **Logger opcional**: Adición de trazabilidad sin acoplamiento fuerte
+- **Sin framework específico**: Funciona con cualquier tipo de recurso que implemente las interfaces de startup/cleanup

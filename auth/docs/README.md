@@ -1,62 +1,197 @@
-# Auth - Documentacion de fase 1
+# Auth — Documentación técnica
 
-Esta documentacion cubre solo lo que existe dentro de `auth` al momento de esta fase. No intenta explicar integraciones externas ni adaptar el modulo a consumidores concretos.
+Servicios compartidos de autenticación: hashing de password, JWT de acceso, refresh tokens y blacklist de revocación.
 
-## Proposito
+## Propósito
 
-Servicios compartidos de autenticacion: hashing de password, JWT de acceso y refresh tokens.
+Proporcionar primitivos de autenticación y autorización reutilizables para los servicios de EduGo.
 
-## Procesos principales
+## Componentes principales
 
-1. Hashear passwords con bcrypt costo 12 y verificar hashes en login.
-2. Generar access tokens con `JWTManager` y un `UserContext` activo con rol y permisos.
-3. Validar access tokens exigiendo issuer valido y `ActiveContext` presente.
-4. Generar minimal tokens para refresh y distinguirlos por `TokenUse=refresh`.
-5. Generar refresh tokens aleatorios y almacenar solo su hash SHA-256.
+### password.go — Hashing seguro
 
-## Arquitectura local
+**Constantes**
+- `bcryptCost = 12` → ~250ms por hash (balance seguridad/UX)
+- `maxPasswordLength = 72` → límite de bcrypt
 
-- El centro del modulo es `JWTManager`, que encapsula issuer y secret.
-- Los claims propios se concentran en `Claims` y embeben `jwt.RegisteredClaims`.
-- La parte de refresh tokens convive con JWT, pero usa un flujo separado y storage hash-only.
+**HashPassword(password string) (string, error)**
+Genera hash bcrypt con salt aleatorio. Valida límite de 72 bytes.
 
-```mermaid
-flowchart TD
-A[Credenciales] --> B[HashPassword]
-A --> C[VerifyPassword]
-D[JWTManager] --> E[GenerateTokenWithContext]
-D --> F[ValidateToken]
-D --> G[GenerateMinimalToken]
-D --> H[ValidateMinimalToken]
-I[Random bytes] --> J[GenerateRefreshToken]
-J --> K[HashToken]
+**VerifyPassword(hash, password string) error**
+Verifica password contra su hash usando bcrypt.Compare.
+
+### jwt_claims.go — Tipos de datos para JWT
+
+**UserContext**
+Contexto activo del usuario embebido en JWT:
+- `RoleID`, `RoleName` — Rol actual
+- `SchoolID`, `SchoolName` — Escuela (opcional)
+- `AcademicUnitID`, `AcademicUnitName` — Unidad académica (opcional)
+- `Permissions` — Lista de permisos
+
+**Claims**
+Claims personalizados que heredan `jwt.RegisteredClaims`:
+- `UserID`, `Email` — Identidad del usuario
+- `ActiveContext` — UserContext embebido (obligatorio para access tokens)
+- `TokenUse` — Tipo de token: access (vacío), refresh, etc.
+- `SchoolID` — Se preserva en refresh tokens
+
+### jwt_manager.go — Generación y validación de tokens
+
+**JWTManager**
+Encapsula issuer y secret para generación/validación.
+
+Métodos principales:
+- `NewJWTManager(secretKey, issuer) *JWTManager`
+- `GenerateTokenWithContext(userID, email, activeContext, expiresIn) (string, time.Time, error)` — Access token con contexto
+- `ValidateToken(token) (*Claims, error)` — Valida access token, requiere ActiveContext
+- `GenerateMinimalToken(userID, email, schoolID, expiresIn) (string, time.Time, error)` — Token sin contexto (para refresh)
+- `ValidateMinimalToken(token) (*Claims, error)` — Valida refresh token
+
+### jwt_extract.go — Helpers para extracción
+
+**ExtractUserID(token string) (string, error)**
+Extrae userID de un token sin validar completamente. Útil solo para logging/debugging, NO para autenticación.
+
+### refresh_token.go — Tokens criptográficos
+
+**RefreshToken**
+Representa un refresh token:
+- `Token` — Texto plano (retorna al cliente)
+- `TokenHash` — SHA-256 en hex (guarda en BD)
+- `ExpiresAt` — Timestamp de expiración
+
+**GenerateRefreshToken(ttl time.Duration) (*RefreshToken, error)**
+Genera 32 bytes aleatorios con crypto/rand, codifica en base64 URL-safe, calcula SHA-256.
+
+**HashToken(token string) string**
+Calcula SHA-256 hex del token.
+
+**VerifyTokenHash(token, hash string) bool**
+Compara token contra su hash almacenado.
+
+### blacklist.go — Revocación de tokens
+
+**TokenBlacklist (interfaz)**
+Contrato para revocación:
+- `Revoke(jti string, expiresAt time.Time)` — Agregar a blacklist
+- `IsRevoked(jti string) bool` — Verificar si está revocado
+
+**InMemoryBlacklist**
+Implementación en memoria usando sync.Map con TTL:
+- `NewInMemoryBlacklist(ctx context.Context) *InMemoryBlacklist` — Constructor con cleanup goroutine
+- Cleanup automático de entradas expiradas
+- Seguro para concurrencia
+
+Nota: Para producción con escalabilidad, reemplazar con Redis.
+
+## Flujos comunes
+
+### 1. Registro de usuario
+
+```go
+// HashPassword genera hash seguro para BD
+hash, err := auth.HashPassword(userPassword)
+// Guardar hash en BD
 ```
 
-## Superficie tecnica relevante
+### 2. Login del usuario
 
-- `JWTManager` expone generacion y validacion de tokens.
-- `Claims` y `UserContext` modelan el contexto RBAC embebido en JWT.
-- `HashPassword` y `VerifyPassword` resuelven el flujo de password.
-- `GenerateRefreshToken` y `HashToken` soportan almacenamiento seguro de refresh tokens.
+```go
+// Recuperar hash de BD
+storedHash := getUserHash(userID)
+// Verificar password
+err := auth.VerifyPassword(storedHash, providedPassword)
+if err == nil {
+    // Login exitoso, generar tokens
+}
+```
 
-## Dependencias observadas
+### 3. Generar access y refresh tokens
 
-- Runtime interno: `common/errors`.
-- Runtime externo: `github.com/golang-jwt/jwt/v5`, `github.com/google/uuid`, `golang.org/x/crypto/bcrypt`.
+```go
+manager := auth.NewJWTManager(issuer, secret)
 
-## Operacion actual
+// Access token con contexto
+userCtx := &auth.UserContext{
+    RoleID:      "admin",
+    RoleName:    "Administrator",
+    SchoolID:    "sch-123",
+    Permissions: []string{"users:read", "users:write"},
+}
+accessToken, _ := manager.GenerateTokenWithContext(ctx, userID, email, userCtx)
 
-- `make build`, `make test`, `make test-race` y `make check` cubren el modulo.
-- El modulo ya tiene benchmarks y tests concurrentes que ejercitan los caminos criticos.
+// Refresh token minimal
+refreshToken, _ := auth.GenerateRefreshToken(7 * 24 * time.Hour)
+// Guardar refreshToken.TokenHash en BD
+// Retornar accessToken y refreshToken.Token al cliente
+```
 
-## Observaciones actuales
+### 4. Validar access token
 
-- Los access tokens requieren `ActiveContext`; los refresh usan un camino minimal separado.
-- El limite de password es 72 bytes por la restriccion propia de bcrypt.
-- El modulo tiene una bateria amplia de tests unitarios y benchmarks.
+```go
+claims, err := manager.ValidateToken(accessToken)
+if err != nil {
+    return errors.Unauthorized
+}
+if claims.ActiveContext == nil {
+    return errors.InvalidToken
+}
+// Usar claims.UserID, claims.ActiveContext.Permissions, etc.
+```
 
-## Limites de esta fase
+### 5. Refresh token (obtener nuevo access token)
 
-- No documenta aun como otros servicios resuelven refresh persistence o revocacion.
-- No documenta aun integraciones con el archivo externo `ecosistema.md`.
-- No redefine politicas de release por modulo; eso queda para la fase 3.
+```go
+// Cliente envía refresh token
+claims, err := manager.ValidateMinimalToken(refreshToken)
+if err != nil {
+    return errors.Unauthorized
+}
+
+// Recuperar hash de BD y verificar
+storedHash := getRefreshTokenHash(claims.UserID)
+if !auth.VerifyTokenHash(refreshToken, storedHash) {
+    return errors.Unauthorized
+}
+
+// Generar nuevo access token
+newAccessToken, _ := manager.GenerateTokenWithContext(ctx, claims.UserID, claims.Email, newUserContext)
+```
+
+### 6. Revocar token (logout)
+
+```go
+blacklist := auth.NewInMemoryBlacklist(ctx)
+// En middleware o durante logout
+blacklist.Revoke(claims.ID, claims.ExpiresAt)
+
+// En validación, verificar antes de usar
+if blacklist.IsRevoked(claims.ID) {
+    return errors.TokenRevoked
+}
+```
+
+## Testing
+
+El módulo incluye tests completos y benchmarks:
+- Password hashing/verification
+- Token generation/validation
+- Refresh token flows
+- Blacklist concurrency (race detector)
+- Benchmarks de bcrypt y JWT
+
+Ejecutar:
+```bash
+make test          # Tests básicos
+make test-race     # Tests con race detector
+make check         # Tests + linting + format
+```
+
+## Notas de diseño
+
+- **Access tokens**: Requieren ActiveContext con rol y permisos. Ideales para autorización en handlers.
+- **Refresh tokens**: Flujo mínimal separado, stateless. Ideales para renovación.
+- **Password límite**: 72 bytes es restricción de bcrypt, no del módulo. Usar validación en cliente.
+- **Blacklist**: En memoria para baja latencia. Redis recomendado para múltiples instancias.
+- **Claims personalizados**: UserContext permite RBAC flexible sin JTI externo.

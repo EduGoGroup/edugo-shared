@@ -12,16 +12,16 @@ import (
 // LOGGER FACTORY IMPLEMENTATION
 // =============================================================================
 
-// DefaultLoggerFactory implementa LoggerFactory usando logrus
-type DefaultLoggerFactory struct{}
+// defaultLoggerFactory implementa LoggerFactory usando logrus.
+type defaultLoggerFactory struct{}
 
-// NewDefaultLoggerFactory crea una nueva instancia de DefaultLoggerFactory
-func NewDefaultLoggerFactory() *DefaultLoggerFactory {
-	return &DefaultLoggerFactory{}
+// NewDefaultLoggerFactory crea una instancia de LoggerFactory con implementación logrus.
+func NewDefaultLoggerFactory() LoggerFactory {
+	return &defaultLoggerFactory{}
 }
 
-// CreateLogger crea un logger configurado según el entorno
-func (f *DefaultLoggerFactory) CreateLogger(ctx context.Context, env string, version string) (logger.Logger, error) {
+// CreateLogger crea un logger configurado según el entorno.
+func (f *defaultLoggerFactory) CreateLogger(ctx context.Context, env string, version string) (logger.Logger, error) {
 	logrusLogger := logrus.New()
 
 	// Configurar output
@@ -68,5 +68,5 @@ func (f *DefaultLoggerFactory) CreateLogger(ctx context.Context, env string, ver
 	return wrappedLogger, nil
 }
 
-// Verificar que DefaultLoggerFactory implementa LoggerFactory
-var _ LoggerFactory = (*DefaultLoggerFactory)(nil)
+// Verificar que defaultLoggerFactory implementa LoggerFactory.
+var _ LoggerFactory = (*defaultLoggerFactory)(nil)

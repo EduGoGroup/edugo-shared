@@ -12,7 +12,7 @@ import (
 //   - fieldName: Nombre del campo a extraer
 //
 // Retorna el valor del campo del tipo T o error si no se encuentra.
-func extractConfigField[T any](config interface{}, fieldName string) (T, error) {
+func extractConfigField[T any](config any, fieldName string) (T, error) {
 	var zero T
 
 	// Intentar type assertion directo primero
@@ -22,7 +22,7 @@ func extractConfigField[T any](config interface{}, fieldName string) (T, error) 
 
 	// Usar reflection para extraer el campo
 	v := reflect.ValueOf(config)
-	if v.Kind() == reflect.Ptr {
+	if v.Kind() == reflect.Pointer {
 		if v.IsNil() {
 			return zero, fmt.Errorf("config is nil")
 		}
@@ -45,7 +45,7 @@ func extractConfigField[T any](config interface{}, fieldName string) (T, error) 
 	}
 
 	// Si el campo es un puntero, intentar desreferenciarlo
-	if field.Kind() == reflect.Ptr && !field.IsNil() {
+	if field.Kind() == reflect.Pointer && !field.IsNil() {
 		if typedField, ok := field.Elem().Interface().(T); ok {
 			return typedField, nil
 		}
@@ -60,7 +60,7 @@ func extractConfigField[T any](config interface{}, fieldName string) (T, error) 
 //   - config: Configuración de la aplicación (puede ser struct o puntero)
 //
 // Retorna la configuración de PostgreSQL o error si no se encuentra.
-func extractPostgreSQLConfig(config interface{}) (PostgreSQLConfig, error) {
+func extractPostgreSQLConfig(config any) (PostgreSQLConfig, error) {
 	return extractConfigField[PostgreSQLConfig](config, "PostgreSQL")
 }
 
@@ -70,7 +70,7 @@ func extractPostgreSQLConfig(config interface{}) (PostgreSQLConfig, error) {
 //   - config: Configuración de la aplicación (puede ser struct o puntero)
 //
 // Retorna la configuración de MongoDB o error si no se encuentra.
-func extractMongoDBConfig(config interface{}) (MongoDBConfig, error) {
+func extractMongoDBConfig(config any) (MongoDBConfig, error) {
 	return extractConfigField[MongoDBConfig](config, "MongoDB")
 }
 
@@ -80,7 +80,7 @@ func extractMongoDBConfig(config interface{}) (MongoDBConfig, error) {
 //   - config: Configuración de la aplicación (puede ser struct o puntero)
 //
 // Retorna la configuración de RabbitMQ o error si no se encuentra.
-func extractRabbitMQConfig(config interface{}) (RabbitMQConfig, error) {
+func extractRabbitMQConfig(config any) (RabbitMQConfig, error) {
 	return extractConfigField[RabbitMQConfig](config, "RabbitMQ")
 }
 
@@ -90,7 +90,7 @@ func extractRabbitMQConfig(config interface{}) (RabbitMQConfig, error) {
 //   - config: Configuración de la aplicación (puede ser struct o puntero)
 //
 // Retorna la configuración de S3 o error si no se encuentra.
-func extractS3Config(config interface{}) (S3Config, error) {
+func extractS3Config(config any) (S3Config, error) {
 	return extractConfigField[S3Config](config, "S3")
 }
 
@@ -105,13 +105,13 @@ func extractS3Config(config interface{}) (S3Config, error) {
 // Retorna:
 //   - environment: Valor del campo Environment o "unknown"
 //   - version: Valor del campo Version o "0.0.0"
-func extractEnvAndVersion(config interface{}) (string, string) {
+func extractEnvAndVersion(config any) (string, string) {
 	if config == nil {
 		return "unknown", "0.0.0"
 	}
 
 	v := reflect.ValueOf(config)
-	if v.Kind() == reflect.Ptr {
+	if v.Kind() == reflect.Pointer {
 		if v.IsNil() {
 			return "unknown", "0.0.0"
 		}

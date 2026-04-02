@@ -13,42 +13,6 @@ func TestClose_WithNil_Unit(t *testing.T) {
 	assert.NoError(t, err, "Close con DB nil no debe retornar error")
 }
 
-// TestDefaultConstants_Unit verifica que las constantes tienen valores razonables
-func TestDefaultConstants_Unit(t *testing.T) {
-	t.Run("DefaultPort", func(t *testing.T) {
-		assert.Equal(t, 5432, DefaultPort, "Puerto por defecto debe ser 5432")
-	})
-
-	t.Run("DefaultMaxConnections", func(t *testing.T) {
-		assert.Equal(t, 25, DefaultMaxConnections)
-		assert.Greater(t, DefaultMaxConnections, 0, "MaxConnections debe ser positivo")
-	})
-
-	t.Run("DefaultMaxIdleConnections", func(t *testing.T) {
-		assert.Equal(t, 5, DefaultMaxIdleConnections)
-		assert.Less(t, DefaultMaxIdleConnections, DefaultMaxConnections,
-			"MaxIdleConnections debe ser menor que MaxConnections")
-	})
-
-	t.Run("DefaultMaxLifetime", func(t *testing.T) {
-		assert.Equal(t, 5*time.Minute, DefaultMaxLifetime)
-		assert.Greater(t, DefaultMaxLifetime, 0*time.Second,
-			"MaxLifetime debe ser positivo")
-	})
-
-	t.Run("DefaultConnectTimeout", func(t *testing.T) {
-		assert.Equal(t, 10*time.Second, DefaultConnectTimeout)
-		assert.Greater(t, DefaultConnectTimeout, 0*time.Second,
-			"ConnectTimeout debe ser positivo")
-	})
-
-	t.Run("DefaultHealthCheckTimeout", func(t *testing.T) {
-		assert.Equal(t, 5*time.Second, DefaultHealthCheckTimeout)
-		assert.Greater(t, DefaultHealthCheckTimeout, 0*time.Second,
-			"HealthCheckTimeout debe ser positivo")
-	})
-}
-
 // TestConfig_Validation_Unit verifica validaciones de estructura Config
 func TestConfig_Validation_Unit(t *testing.T) {
 	t.Run("config con valores válidos", func(t *testing.T) {

@@ -197,7 +197,7 @@ func (c *RabbitMQConsumer) Close() error {
 }
 
 // UnmarshalMessage helper para deserializar un mensaje JSON.
-func UnmarshalMessage(body []byte, v interface{}) error {
+func UnmarshalMessage(body []byte, v any) error {
 	if err := json.Unmarshal(body, v); err != nil {
 		return fmt.Errorf("failed to unmarshal message: %w", err)
 	}
@@ -205,7 +205,7 @@ func UnmarshalMessage(body []byte, v interface{}) error {
 }
 
 // HandleWithUnmarshal helper que combina unmarshal y handling.
-func HandleWithUnmarshal(body []byte, v interface{}, handler func(interface{}) error) error {
+func HandleWithUnmarshal(body []byte, v any, handler func(any) error) error {
 	if err := UnmarshalMessage(body, v); err != nil {
 		return err
 	}

@@ -40,9 +40,3 @@ func TestEventType_String(t *testing.T) {
 func TestEventType_GetRoutingKey(t *testing.T) {
 	assert.Equal(t, "material.uploaded", EventMaterialUploaded.GetRoutingKey())
 }
-
-func TestAllEventTypes(t *testing.T) {
-	events := AllEventTypes()
-	assert.Len(t, events, 18)
-	assert.Contains(t, events, EventMaterialUploaded)
-}

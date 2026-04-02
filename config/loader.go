@@ -64,7 +64,7 @@ func NewLoader(opts ...LoaderOption) *Loader {
 }
 
 // Load carga la configuración y la desempaqueta en el struct destino
-func (l *Loader) Load(cfg interface{}) error {
+func (l *Loader) Load(cfg any) error {
 	// Configurar viper
 	viper.AddConfigPath(l.configPath)
 	viper.SetConfigName(l.configName)
@@ -95,7 +95,7 @@ func (l *Loader) Load(cfg interface{}) error {
 }
 
 // LoadFromFile carga configuración solo desde archivo (sin env vars)
-func (l *Loader) LoadFromFile(cfg interface{}) error {
+func (l *Loader) LoadFromFile(cfg any) error {
 	v := viper.New()
 	v.AddConfigPath(l.configPath)
 	v.SetConfigName(l.configName)
@@ -113,7 +113,7 @@ func (l *Loader) LoadFromFile(cfg interface{}) error {
 }
 
 // Get obtiene un valor de configuración por su key
-func (l *Loader) Get(key string) interface{} {
+func (l *Loader) Get(key string) any {
 	return viper.Get(key)
 }
 

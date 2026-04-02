@@ -56,13 +56,13 @@ func AuditMiddleware(logger audit.AuditLogger) gin.HandlerFunc { //nolint:gocycl
 		if claims, err := GetClaims(c); err == nil && claims.ActiveContext != nil {
 			if claims.ActiveContext.SchoolID != "" {
 				if event.Metadata == nil {
-					event.Metadata = make(map[string]interface{})
+					event.Metadata = make(map[string]any)
 				}
 				event.Metadata["school_id"] = claims.ActiveContext.SchoolID
 			}
 			if claims.ActiveContext.AcademicUnitID != "" {
 				if event.Metadata == nil {
-					event.Metadata = make(map[string]interface{})
+					event.Metadata = make(map[string]any)
 				}
 				event.Metadata["unit_id"] = claims.ActiveContext.AcademicUnitID
 			}

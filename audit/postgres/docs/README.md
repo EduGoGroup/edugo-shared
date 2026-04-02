@@ -1,58 +1,122 @@
-# Audit PostgreSQL - Documentacion de fase 1
+# Documentación técnica - Audit PostgreSQL
 
-Esta documentacion cubre solo lo que existe dentro de `audit/postgres` al momento de esta fase. No intenta explicar integraciones externas ni adaptar el modulo a consumidores concretos.
+## Descripción general
 
-## Proposito
+Adaptador de auditoría que implementa `audit.AuditLogger` persistiendo eventos en la tabla `audit.events` mediante GORM. Normaliza datos, aplica defaults y convierte el contrato público `AuditEvent` al modelo GORM interno `AuditEventDB`.
 
-Adaptador de auditoria que normaliza eventos y los persiste en `audit.events` usando GORM.
+## Flujo de operación
 
-## Procesos principales
-
-1. Recibir un `audit.AuditEvent` o extraerlo desde `gin.Context` por conveniencia.
-2. Completar defaults de severidad, categoria y `serviceName` si el llamador no los define.
-3. Transformar el evento al modelo `auditEventDB` con campos opcionales y JSON serializado.
-4. Persistir el registro en la tabla `audit.events` con el contexto de la request.
-
-## Arquitectura local
-
-- La implementacion concreta es `PostgresAuditLogger` y depende del contrato del modulo `audit`.
-- El metodo `LogFromGin` es una capa de conveniencia para entornos HTTP con Gin.
-- La tabla objetivo esperada es `audit.events`; la migracion no vive en este modulo.
-
-```mermaid
-flowchart TD
-A[AuditEvent] --> B[Defaults severity/category/service]
-G[Gin Context] --> H[LogFromGin]
-H --> B
-B --> C[toDBModel]
-C --> D[audit.events]
-D --> E[GORM Create]
+```
+┌─────────────┐
+│ AuditEvent  │
+└──────┬──────┘
+       │
+       ├─→ Defaults (Severity, Category, ServiceName)
+       │
+       ├─→ Actor defaults (si faltan)
+       │
+       ├─→ ToDBModel (conversión a AuditEventDB)
+       │
+       └─→ GORM Create en audit.events
 ```
 
-## Superficie tecnica relevante
+## Componentes principales
 
-- `NewPostgresAuditLogger(db, serviceName)` crea el adaptador.
-- `Log(ctx, event)` persiste un `audit.AuditEvent` normalizado.
-- `LogFromGin(c, action, resourceType, resourceID, opts...)` compone el evento desde una request Gin.
+### types.go - API Pública
 
-## Dependencias observadas
+**PostgresAuditLogger**
+- Implementación de `audit.AuditLogger`
+- Campos: `db *gorm.DB`, `serviceName string`
 
-- Runtime interno: `audit`.
-- Runtime externo: `gorm.io/gorm` y `github.com/gin-gonic/gin`.
+**NewPostgresAuditLogger(db *gorm.DB, serviceName string)**
+- Constructor que vincula la instancia a una conexión GORM y nombre de servicio.
 
-## Operacion actual
+**Log(ctx context.Context, event audit.AuditEvent) error**
+- Aplica defaults de severity, category, serviceName y actor.
+- Convierte a modelo GORM y persiste con contexto.
 
-- `make build`, `make test` y `make check` existen localmente como contrato operativo del modulo.
-- La ejecucion actual no tiene tests dedicados en `audit/postgres`; la validacion efectiva depende de compilacion y consumidores.
+**LogFromGin(c *gin.Context, action, resourceType, resourceID string, opts ...audit.AuditOption) error**
+- Extrae automáticamente: método HTTP, path, IP, user-agent, headers.
+- Busca `user_id`, `email` y `role` del contexto Gin.
+- Delega en `Log` con el evento construido.
 
-## Observaciones actuales
+### internal/models.go - Modelo GORM
 
-- Es un adaptador especifico de almacenamiento, no el contrato general de auditoria.
-- Asume que la tabla `audit.events` y sus serializers existen del lado de la base de datos.
-- No se encontraron archivos `_test.go` propios en este modulo durante esta fase.
+**AuditEventDB**
+- Estructura con tags GORM mapeada a tabla `audit.events`.
+- Campos opcionales como punteros (`ActorIP`, `ResourceID`, etc.).
+- Serialización JSON automática para `Changes` y `Metadata`.
+- Timestamps automáticos con `autoCreateTime`.
 
-## Limites de esta fase
+**TableName()**
+- Retorna `"audit.events"` para mapeo de tabla.
 
-- La creacion de esquema SQL y la integracion con servicios consumidores quedan para la fase 2.
-- No documenta aun integraciones con el archivo externo `ecosistema.md`.
-- No redefine politicas de release por modulo; eso queda para la fase 3.
+### internal/converter.go - Conversión
+
+**ToDBModel(event audit.AuditEvent) AuditEventDB**
+- Convierte `AuditEvent` (público) a `AuditEventDB` (GORM).
+- Maneja conversión de campos obligatorios vs opcionales.
+- Preserva valores no vacíos, ignora ceros.
+
+### internal/defaults.go - Constantes
+
+- `DefaultActorID`: UUID nil para actores anónimos.
+- `DefaultActorEmail`: `"system"` cuando no se proporciona.
+- `DefaultActorRole`: `"unknown"` cuando no se proporciona.
+
+## Esquema esperado
+
+La tabla `audit.events` debe existir con estructura similar:
+
+```sql
+CREATE TABLE audit.events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    actor_id VARCHAR NOT NULL,
+    actor_email VARCHAR NOT NULL,
+    actor_role VARCHAR NOT NULL,
+    actor_ip INET,
+    actor_user_agent TEXT,
+    school_id UUID,
+    unit_id UUID,
+    service_name VARCHAR NOT NULL,
+    action VARCHAR NOT NULL,
+    resource_type VARCHAR NOT NULL,
+    resource_id UUID,
+    permission_used VARCHAR,
+    request_method VARCHAR,
+    request_path TEXT,
+    request_id UUID,
+    status_code INT,
+    changes JSONB,
+    metadata JSONB,
+    error_message TEXT,
+    severity VARCHAR NOT NULL DEFAULT 'info',
+    category VARCHAR NOT NULL DEFAULT 'data',
+    created_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+## Integración
+
+1. **Crear instancia**
+   ```go
+   logger := postgres.NewPostgresAuditLogger(gormDB, "my-service")
+   ```
+
+2. **Usar directamente**
+   ```go
+   logger.Log(ctx, event)
+   ```
+
+3. **Desde Gin**
+   ```go
+   logger.LogFromGin(c, "action", "resourceType", "resourceID")
+   ```
+
+## Notas de diseño
+
+- Implementa estrategia de adaptador: múltiples backends pueden implementar `audit.AuditLogger`.
+- `internal/` previene importaciones accidentales de detalles de implementación.
+- Campos opcionales como punteros permiten distinguir entre "no proporcionado" y "vacío".
+- Serialización JSON automática en GORM para `Changes` y `Metadata`.
+- No incluye migración de esquema: la tabla debe existir previamente.

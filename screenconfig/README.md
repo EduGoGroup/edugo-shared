@@ -1,42 +1,127 @@
 # ScreenConfig
 
-Utilidades para validar templates, resolver slots, aplicar overrides por plataforma y construir arboles de menu.
+Utilidades para validar templates, resolver slots, aplicar overrides por plataforma y construir árboles de menú.
 
-## Alcance
-
-- Modulo Go: `github.com/EduGoGroup/edugo-shared/screenconfig`
-- Carpeta: `screenconfig`
-- Fase documental actual: `fase 1`, solo con evidencia local del repositorio
-
-## Instalacion
+## Instalación
 
 ```bash
 go get github.com/EduGoGroup/edugo-shared/screenconfig
 ```
 
-El modulo se puede versionar y consumir de forma independiente gracias a su `go.mod` propio.
+El módulo se versionan y consume de forma independiente gracias a su `go.mod` propio.
 
-## Procesos documentados
+## Quick Start
 
-1. Validar patrones, screen types, plataformas y definiciones JSON de templates.
-2. Aplicar overrides por plataforma con fallback `ios/android -> mobile`.
-3. Resolver placeholders `slot:*` dentro de definiciones JSON.
-4. Construir arboles de menu jerarquicos a partir de nodos planos.
+### Validar definición de template
 
-## Navegacion
+```go
+import (
+    "github.com/EduGoGroup/edugo-shared/screenconfig"
+)
 
-- [Documentacion del modulo](docs/README.md)
+templateDef := &screenconfig.ScreenTemplateDTO{
+    ID:         "template-123",
+    Name:       "UserProfile",
+    ScreenType: "detail",
+    Platform:   "ios",
+    JSONDef:    json.RawMessage(`{"title": "User", "sections": []}`),
+}
+
+// Validar estructura completa
+if err := screenconfig.ValidateTemplateDefinition(templateDef); err != nil {
+    log.Printf("Template inválido: %v", err)
+}
+```
+
+### Aplicar overrides por plataforma
+
+```go
+// Estructura base
+template := &screenconfig.ScreenTemplateDTO{
+    Platform:   "mobile", // Plataforma genérica
+    JSONDef:    json.RawMessage(`{"color": "blue"}`),
+    Overrides: map[string]json.RawMessage{
+        "ios":     json.RawMessage(`{"color": "red"}`),
+        "android": json.RawMessage(`{"color": "green"}`),
+    },
+}
+
+// Aplicar override para plataforma específica
+overridden := screenconfig.ApplyPlatformOverrides(template, "ios")
+// overridden.JSONDef contiene el override de iOS
+```
+
+### Resolver placeholders de slots
+
+```go
+// Definición con placeholders
+jsonDef := json.RawMessage(`{
+    "title": "Dashboard",
+    "content": "slot:dashboard_content",
+    "sidebar": "slot:navigation"
+}`)
+
+// Resolver slots con diccionario
+slots := map[string]json.RawMessage{
+    "dashboard_content": json.RawMessage(`{"type": "widget", "name": "Analytics"}`),
+    "navigation":       json.RawMessage(`{"type": "menu", "items": []}`),
+}
+
+resolved := screenconfig.ResolveSlots(jsonDef, slots)
+// resolved contiene todos los placeholders reemplazados
+```
+
+### Construir árbol de menú jerárquico
+
+```go
+// Nodos de menú planos
+nodes := []screenconfig.MenuNode{
+    {ID: "root", ParentID: "", Label: "Menu"},
+    {ID: "home", ParentID: "root", Label: "Home", ResourceKey: "screen:view"},
+    {ID: "users", ParentID: "root", Label: "Users", ResourceKey: "users:list"},
+    {ID: "settings", ParentID: "users", Label: "Settings", ResourceKey: "users:edit"},
+}
+
+// Construir árbol jerárquico
+tree, err := screenconfig.BuildMenuTree(nodes)
+if err != nil {
+    log.Printf("Error constructing menu: %v", err)
+}
+
+// Filtrar por permisos
+permissions := []string{"screen:view", "users:list"}
+filtered := screenconfig.FilterMenuByPermissions(tree, permissions)
+// filtered contiene solo nodos con permisos
+```
+
+## Componentes principales
+
+- **ScreenTemplateDTO**: Definición de template con validación y overrides
+- **MenuNode**: Nodo de menú con relaciones jerárquicas
+- **ValidateTemplateDefinition**: Validación completa de estructura de template
+- **ApplyPlatformOverrides**: Aplicación de overrides específicos de plataforma
+- **ResolveSlots**: Resolución de placeholders slot:* en definiciones JSON
+- **BuildMenuTree**: Construcción de árbol jerárquico a partir de nodos planos
+- **FilterMenuByPermissions**: Filtrado de menú basado en permisos
+
+## Documentación
+
+- [Documentación técnica](docs/README.md)
 - [Changelog](CHANGELOG.md)
 
-## Operacion local
+## Operación local
 
-- `make build`
-- `make test`
-- `make check`
-- Revisar `docs/README.md` para notas especificas de tests e integracion
+```bash
+make build    # Compilar módulo
+make test     # Ejecutar tests
+make test-race # Tests con race detector
+make check    # Validar (fmt, vet, lint, test)
+```
 
-## Notas actuales
+## Notas de diseño
 
-- El foco del modulo es declarativo: transforma y valida, pero no persiste.
-- El fallback de plataforma esta explicitamente codificado en `PlatformFallback`.
-- Tiene tests unitarios sobre menu, permisos, overrides, slots y validacion.
+- **Declarativo, no persistente**: Módulo transforma y valida, no persiste datos
+- **JSON agnóstico**: Usa `json.RawMessage` para no acoplarse a estructuras de UI rígidas
+- **Validaciones exhaustivas**: Patrones, tipos de screen, plataformas, definiciones JSON
+- **Fallback de plataforma**: ios/android retroaceden a mobile
+- **Funciones puras**: Todas las transformaciones son determinísticas sin side effects

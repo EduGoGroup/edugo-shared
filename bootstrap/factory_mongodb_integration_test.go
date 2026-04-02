@@ -254,7 +254,7 @@ func TestMongoDBFactory_MultipleConnections(t *testing.T) {
 
 	// Crear múltiples clientes
 	clients := make([]*mongoClient, 3)
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		client, err := factory.CreateConnection(ctx, mongoConfig)
 		require.NoError(t, err)
 		clients[i] = client
@@ -505,7 +505,7 @@ func TestMongoDBFactory_ConcurrentOperations(t *testing.T) {
 
 	// Insertar documentos concurrentemente
 	done := make(chan bool, 10)
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		go func(index int) {
 			doc := bson.M{
 				"id":    index,
@@ -518,7 +518,7 @@ func TestMongoDBFactory_ConcurrentOperations(t *testing.T) {
 	}
 
 	// Esperar a que terminen todas
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		<-done
 	}
 

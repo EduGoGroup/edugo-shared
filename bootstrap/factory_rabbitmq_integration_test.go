@@ -443,7 +443,7 @@ func TestRabbitMQFactory_MultipleChannels(t *testing.T) {
 
 	// Crear múltiples canales
 	channels := make([]*amqp.Channel, 5)
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		ch, err := factory.CreateChannel(conn)
 		require.NoError(t, err)
 		channels[i] = ch

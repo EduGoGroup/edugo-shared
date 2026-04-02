@@ -77,32 +77,32 @@ func NewZapLogger(level, format string) Logger {
 }
 
 // Debug registra un mensaje de nivel debug
-func (l *zapLogger) Debug(msg string, fields ...interface{}) {
+func (l *zapLogger) Debug(msg string, fields ...any) {
 	l.logger.Debugw(msg, fields...)
 }
 
 // Info registra un mensaje de nivel info
-func (l *zapLogger) Info(msg string, fields ...interface{}) {
+func (l *zapLogger) Info(msg string, fields ...any) {
 	l.logger.Infow(msg, fields...)
 }
 
 // Warn registra un mensaje de nivel warning
-func (l *zapLogger) Warn(msg string, fields ...interface{}) {
+func (l *zapLogger) Warn(msg string, fields ...any) {
 	l.logger.Warnw(msg, fields...)
 }
 
 // Error registra un mensaje de nivel error
-func (l *zapLogger) Error(msg string, fields ...interface{}) {
+func (l *zapLogger) Error(msg string, fields ...any) {
 	l.logger.Errorw(msg, fields...)
 }
 
 // Fatal registra un mensaje de nivel fatal y termina la aplicación
-func (l *zapLogger) Fatal(msg string, fields ...interface{}) {
+func (l *zapLogger) Fatal(msg string, fields ...any) {
 	l.logger.Fatalw(msg, fields...)
 }
 
 // With agrega campos contextuales al logger
-func (l *zapLogger) With(fields ...interface{}) Logger {
+func (l *zapLogger) With(fields ...any) Logger {
 	return &zapLogger{
 		logger: l.logger.With(fields...),
 	}

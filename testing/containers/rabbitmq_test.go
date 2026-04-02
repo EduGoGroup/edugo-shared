@@ -125,7 +125,7 @@ func TestRabbitMQContainer_Integration(t *testing.T) {
 		}
 
 		// Publicar mensajes
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			err := ch.Publish("", queue.Name, false, false, amqp.Publishing{
 				Body: []byte("message"),
 			})

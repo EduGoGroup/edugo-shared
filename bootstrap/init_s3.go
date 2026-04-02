@@ -20,10 +20,10 @@ import (
 // Retorna error si el recurso es requerido y falla la inicialización.
 func initS3(
 	ctx context.Context,
-	config interface{},
+	config any,
 	factories *Factories,
 	resources *Resources,
-	lifecycleManager interface{},
+	lifecycleManager any,
 	opts *BootstrapOptions,
 ) error {
 	if factories.S3 == nil {

@@ -154,7 +154,7 @@ type DatabaseClient interface {
 	Close(ctx context.Context) error
 
 	// GetStats obtiene estadísticas de la conexión
-	GetStats(ctx context.Context) (map[string]interface{}, error)
+	GetStats(ctx context.Context) (map[string]any, error)
 }
 
 // =============================================================================

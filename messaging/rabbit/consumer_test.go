@@ -481,7 +481,7 @@ func TestConsumer_Consume_MultipleMessages(t *testing.T) {
 	defer func() { _ = channel.Close() }()
 
 	messageCount := 5
-	for i := 0; i < messageCount; i++ {
+	for i := range messageCount {
 		err = channel.PublishWithContext(
 			ctx,
 			"",
@@ -529,7 +529,7 @@ func TestUnmarshalMessage_Success(t *testing.T) {
 func TestUnmarshalMessage_InvalidJSON(t *testing.T) {
 	invalidJSON := []byte(`{"id": "123", "name": `)
 
-	var result map[string]interface{}
+	var result map[string]any
 	err := UnmarshalMessage(invalidJSON, &result)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "failed to unmarshal message")
@@ -538,7 +538,7 @@ func TestUnmarshalMessage_InvalidJSON(t *testing.T) {
 func TestUnmarshalMessage_EmptyBody(t *testing.T) {
 	emptyBody := []byte(`{}`)
 
-	var result map[string]interface{}
+	var result map[string]any
 	err := UnmarshalMessage(emptyBody, &result)
 	assert.NoError(t, err)
 	assert.Empty(t, result)
@@ -554,7 +554,7 @@ func TestHandleWithUnmarshal_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	handlerCalled := false
-	handler := func(v interface{}) error {
+	handler := func(v any) error {
 		msg, ok := v.(*TestMessage)
 		assert.True(t, ok)
 		assert.Equal(t, 42, msg.Value)
@@ -571,12 +571,12 @@ func TestHandleWithUnmarshal_Success(t *testing.T) {
 func TestHandleWithUnmarshal_UnmarshalError(t *testing.T) {
 	invalidJSON := []byte(`invalid json`)
 
-	handler := func(v interface{}) error {
+	handler := func(v any) error {
 		t.Fatal("Handler should not be called")
 		return nil
 	}
 
-	var result map[string]interface{}
+	var result map[string]any
 	err := HandleWithUnmarshal(invalidJSON, &result, handler)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "failed to unmarshal message")
@@ -592,7 +592,7 @@ func TestHandleWithUnmarshal_HandlerError(t *testing.T) {
 	require.NoError(t, err)
 
 	expectedError := fmt.Errorf("handler error")
-	handler := func(v interface{}) error {
+	handler := func(v any) error {
 		return expectedError
 	}
 

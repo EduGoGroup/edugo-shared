@@ -41,7 +41,7 @@ func TestDLQConfig_LinearBackoff(t *testing.T) {
 	}
 
 	// Sin exponential backoff, siempre retorna RetryDelay
-	for attempt := 0; attempt < 5; attempt++ {
+	for attempt := range 5 {
 		got := config.CalculateBackoff(attempt)
 		if got != 5*time.Second {
 			t.Errorf("CalculateBackoff(%d) = %v, want 5s", attempt, got)
@@ -54,8 +54,8 @@ func TestDefaultDLQConfig(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		got      interface{}
-		want     interface{}
+		got      any
+		want     any
 		errField string
 	}{
 		{"Enabled", config.Enabled, true, "Enabled should be true"},

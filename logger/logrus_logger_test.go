@@ -51,7 +51,7 @@ func TestLogrusLogger_With(t *testing.T) {
 	child := logger.With("context", "child")
 	child.Info("child msg")
 
-	var output map[string]interface{}
+	var output map[string]any
 	err := json.Unmarshal(buffer.Bytes(), &output)
 	assert.NoError(t, err)
 	assert.Equal(t, "child msg", output["msg"])

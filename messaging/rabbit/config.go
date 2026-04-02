@@ -56,7 +56,7 @@ type ExchangeConfig struct {
 
 // QueueConfig configuracion de la cola
 type QueueConfig struct {
-	Args       map[string]interface{} // Argumentos adicionales (prioridad, TTL, etc.)
+	Args       map[string]any // Argumentos adicionales (prioridad, TTL, etc.)
 	Name       string                 // Nombre de la cola
 	Durable    bool                   // Persistente entre reinicios
 	AutoDelete bool                   // Auto-eliminar cuando no hay consumidores
@@ -88,7 +88,7 @@ func DefaultConfig() Config {
 			Durable:    true,
 			AutoDelete: false,
 			Exclusive:  false,
-			Args:       make(map[string]interface{}),
+			Args:       make(map[string]any),
 		},
 		Consumer: ConsumerConfig{
 			Name:      "default_consumer",

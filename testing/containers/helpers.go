@@ -72,7 +72,7 @@ func WaitForHealthy(ctx context.Context, healthCheck func() error, timeout time.
 func RetryOperation(operation func() error, maxRetries int, delay time.Duration) error {
 	var lastErr error
 
-	for i := 0; i < maxRetries; i++ {
+	for i := range maxRetries {
 		if err := operation(); err == nil {
 			return nil
 		} else {

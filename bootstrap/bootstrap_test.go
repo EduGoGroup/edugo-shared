@@ -424,7 +424,7 @@ func TestPerformHealthChecks_ContextTimeout(t *testing.T) {
 func TestExtractEnvAndVersion(t *testing.T) {
 	tests := []struct {
 		name        string
-		config      interface{}
+		config      any
 		wantEnv     string
 		wantVersion string
 	}{

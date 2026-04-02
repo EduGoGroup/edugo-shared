@@ -81,7 +81,7 @@ func TestRequestLogging_LogsFields(t *testing.T) {
 	req := httptest.NewRequest("GET", "/test/42", nil)
 	r.ServeHTTP(w, req)
 
-	var entry map[string]interface{}
+	var entry map[string]any
 	require.NoError(t, json.Unmarshal(buf.Bytes(), &entry))
 
 	assert.Equal(t, "request completed", entry["msg"])
@@ -113,7 +113,7 @@ func TestRequestLogging_FallbackPathFor404(t *testing.T) {
 	req := httptest.NewRequest("GET", "/unknown/path", nil)
 	r.ServeHTTP(w, req)
 
-	var entry map[string]interface{}
+	var entry map[string]any
 	require.NoError(t, json.Unmarshal(buf.Bytes(), &entry))
 
 	// Debe usar la URL real como fallback en vez de string vacío
@@ -129,7 +129,7 @@ func TestRequestLogging_LogsWarnFor4xx(t *testing.T) {
 	req := httptest.NewRequest("GET", "/test", nil)
 	r.ServeHTTP(w, req)
 
-	var entry map[string]interface{}
+	var entry map[string]any
 	require.NoError(t, json.Unmarshal(buf.Bytes(), &entry))
 	assert.Equal(t, "WARN", entry["level"])
 }
@@ -143,7 +143,7 @@ func TestRequestLogging_LogsErrorFor5xx(t *testing.T) {
 	req := httptest.NewRequest("GET", "/test", nil)
 	r.ServeHTTP(w, req)
 
-	var entry map[string]interface{}
+	var entry map[string]any
 	require.NoError(t, json.Unmarshal(buf.Bytes(), &entry))
 	assert.Equal(t, "ERROR", entry["level"])
 }
@@ -214,9 +214,9 @@ func TestPostAuthLogging_EnrichesLoggerWithUserInfo(t *testing.T) {
 	require.GreaterOrEqual(t, len(lines), 2, "debe haber al menos 2 log entries")
 
 	// El log del handler debe tener user_id, role y school_id
-	var handlerEntry map[string]interface{}
+	var handlerEntry map[string]any
 	for _, line := range lines {
-		var entry map[string]interface{}
+		var entry map[string]any
 		require.NoError(t, json.Unmarshal([]byte(line), &entry))
 		if entry["msg"] == "handler log" {
 			handlerEntry = entry
@@ -253,9 +253,9 @@ func TestPostAuthLogging_SummaryLogIncludesAuthFields(t *testing.T) {
 
 	// El log "request completed" debe tener user_id y role
 	lines := strings.Split(strings.TrimSpace(buf.String()), "\n")
-	var summaryEntry map[string]interface{}
+	var summaryEntry map[string]any
 	for _, line := range lines {
-		var entry map[string]interface{}
+		var entry map[string]any
 		require.NoError(t, json.Unmarshal([]byte(line), &entry))
 		if entry["msg"] == "request completed" {
 			summaryEntry = entry

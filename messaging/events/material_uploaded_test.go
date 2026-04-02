@@ -16,7 +16,7 @@ func TestNewMaterialUploadedEvent_Valid(t *testing.T) {
 		FileURL:       "https://s3.amazonaws.com/bucket/file.pdf",
 		FileSizeBytes: 1024000,
 		FileType:      "application/pdf",
-		Metadata: map[string]interface{}{
+		Metadata: map[string]any{
 			"s3_key": "uploads/2024/file.pdf",
 		},
 	}
@@ -141,7 +141,7 @@ func TestMaterialUploadedEvent_Serialization(t *testing.T) {
 		FileURL:       "https://s3.amazonaws.com/bucket/file.pdf",
 		FileSizeBytes: 1024000,
 		FileType:      "application/pdf",
-		Metadata: map[string]interface{}{
+		Metadata: map[string]any{
 			"s3_key":       "uploads/2024/file.pdf",
 			"content_type": "application/pdf",
 		},
@@ -197,7 +197,7 @@ func TestMaterialUploadedEvent_GetS3Key_FromMetadata(t *testing.T) {
 	event := MaterialUploadedEvent{
 		Payload: MaterialUploadedPayload{
 			FileURL: "https://s3.amazonaws.com/bucket/file.pdf",
-			Metadata: map[string]interface{}{
+			Metadata: map[string]any{
 				"s3_key": "uploads/2024/12/file.pdf",
 			},
 		},
@@ -244,7 +244,7 @@ func TestMaterialUploadedEvent_GetS3Key_EmptyMetadata(t *testing.T) {
 	event := MaterialUploadedEvent{
 		Payload: MaterialUploadedPayload{
 			FileURL:  "https://cdn.example.com/storage/file.pdf",
-			Metadata: map[string]interface{}{},
+			Metadata: map[string]any{},
 		},
 	}
 
@@ -316,7 +316,7 @@ func TestMaterialUploadedEvent_CompleteStructure(t *testing.T) {
 				FileURL:       "https://cdn.example.com/materials/document.pdf",
 				FileSizeBytes: 1024768,
 				FileType:      "application/pdf",
-				Metadata: map[string]interface{}{
+				Metadata: map[string]any{
 					"s3_key":       "materials/2024/12/document.pdf",
 					"content_type": "application/pdf",
 					"uploaded_by":  "teacher_001",

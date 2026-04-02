@@ -14,10 +14,6 @@ require (
 	github.com/stretchr/testify v1.11.1
 )
 
-replace github.com/EduGoGroup/edugo-shared/audit => ../../audit
-
-replace github.com/EduGoGroup/edugo-shared/auth => ../../auth
-
 require (
 	github.com/EduGoGroup/edugo-infrastructure/postgres v0.77.1 // indirect
 	github.com/bytedance/gopkg v0.1.4 // indirect
@@ -60,3 +56,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gorm.io/gorm v1.31.1 // indirect
 )
+
+replace github.com/EduGoGroup/edugo-shared/audit => ../../audit
+
+replace github.com/EduGoGroup/edugo-shared/auth => ../../auth

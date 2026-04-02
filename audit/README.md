@@ -1,42 +1,74 @@
 # Audit
 
-Contrato base para construir y despachar eventos de auditoria sin acoplar el almacenamiento.
+Contrato base para construir y despachar eventos de auditoría sin acoplar el almacenamiento.
 
-## Alcance
-
-- Modulo Go: `github.com/EduGoGroup/edugo-shared/audit`
-- Carpeta: `audit`
-- Fase documental actual: `fase 1`, solo con evidencia local del repositorio
-
-## Instalacion
+## Instalación
 
 ```bash
 go get github.com/EduGoGroup/edugo-shared/audit
 ```
 
-El modulo se puede versionar y consumir de forma independiente gracias a su `go.mod` propio.
+## Quick Start
 
-## Procesos documentados
+```go
+// Crear un evento de auditoría
+event := audit.AuditEvent{
+    ActorID:      "user-123",
+    ActorEmail:   "user@example.com",
+    ActorRole:    "admin",
+    ServiceName:  "my-service",
+    Action:       "create",
+    ResourceType: "document",
+    ResourceID:   "doc-456",
+}
 
-1. Construir un `AuditEvent` con datos de actor, accion, recurso, request y metadata.
-2. Enriquecer el evento con `AuditOption` como severidad, categoria, cambios, permisos o error.
-3. Despachar el evento a traves de la interfaz `AuditLogger` sin fijar la implementacion concreta.
-4. Usar `NoopAuditLogger` cuando se requiere un sink inerte para tests o escenarios locales.
+// Enriquecer con opciones
+event.Severity = audit.SeverityInfo
+event.Category = audit.CategoryData
 
-## Navegacion
+// O usar helpers para mayor claridad
+logger.Log(ctx, event)
+```
 
-- [Documentacion del modulo](docs/README.md)
+## API Pública
+
+### AuditEvent
+Estructura que centraliza los datos auditables: actor (ID, email, rol), acción, recurso, request, metadatos y cambios.
+
+### AuditLogger
+Interfaz mínima que define el contrato `Log(ctx context.Context, event AuditEvent) error`. Cualquier backend (PostgreSQL, Kafka, etc.) puede implementarlo.
+
+### AuditOption
+Funciones declarativas para enriquecer eventos:
+- `WithChanges(before, after)` — registra cambios de datos
+- `WithSeverity(level)` — establece nivel de severidad
+- `WithCategory(category)` — establece categoría del evento
+- `WithMetadata(key, value)` — agrega metadatos adicionales
+- `WithPermission(permission)` — registra permiso usado
+- `WithError(err)` — registra error asociado
+
+### NoopAuditLogger
+Implementación inerte que descarta eventos, útil para tests y entornos de desarrollo.
+
+### Constantes
+Severidades: `SeverityInfo`, `SeverityWarning`, `SeverityCritical`
+Categorías: `CategoryAuth`, `CategoryData`, `CategoryConfig`, `CategoryAdmin`
+
+## Documentación
+
+- [Documentación técnica](docs/README.md)
 - [Changelog](CHANGELOG.md)
 
-## Operacion local
+## Operación local
 
-- `make build`
-- `make test`
-- `make check`
-- Revisar `docs/README.md` para notas especificas de tests e integracion
+```bash
+make build    # Compilar módulo
+make test     # Ejecutar tests
+make check    # Validar (fmt, vet, lint, test)
+```
 
-## Notas actuales
+## Notas de diseño
 
-- Este modulo documenta solo el contrato y el logger noop.
-- La persistencia en PostgreSQL y la extraccion desde Gin se documentan aparte.
-- El modulo tiene tests unitarios propios.
+- Este módulo define solo el contrato y una implementación noop.
+- La persistencia en PostgreSQL y la extracción desde Gin viven en adaptadores separados.
+- El módulo es agnóstico al backend, permitiendo múltiples implementaciones de `AuditLogger`.

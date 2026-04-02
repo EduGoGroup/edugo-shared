@@ -1,5 +1,3 @@
-// Package auth provides JWT token generation, validation, and management
-// functionality for authentication and authorization in the EduGo shared library.
 package auth
 
 import (
@@ -12,35 +10,6 @@ import (
 
 	"github.com/EduGoGroup/edugo-shared/common/errors"
 )
-
-// UserContext representa el contexto activo del usuario en el JWT.
-// Encapsula el rol actual, la escuela y unidad académica asociadas, y los permisos
-// específicos del usuario en ese contexto.
-//
-// Campos opcionales (omitempty):
-//   - SchoolID, SchoolName: Solo para usuarios con contexto de escuela
-//   - AcademicUnitID, AcademicUnitName: Solo para usuarios con contexto de unidad académica
-type UserContext struct {
-	RoleID           string   `json:"role_id"`
-	RoleName         string   `json:"role_name"`
-	SchoolID         string   `json:"school_id,omitempty"`
-	SchoolName       string   `json:"school_name,omitempty"`
-	AcademicUnitID   string   `json:"academic_unit_id,omitempty"`
-	AcademicUnitName string   `json:"academic_unit_name,omitempty"`
-	Permissions      []string `json:"permissions"`
-}
-
-// Claims representa los claims personalizados del JWT
-type Claims struct {
-	UserID        string       `json:"user_id"`
-	Email         string       `json:"email"`
-	ActiveContext *UserContext `json:"active_context"`
-	TokenUse      string       `json:"token_use,omitempty"`
-	// SchoolID se incluye en refresh tokens para preservar el contexto de escuela
-	// seleccionado por el usuario a través de toda la vida útil del token.
-	SchoolID string `json:"school_id,omitempty"`
-	jwt.RegisteredClaims
-}
 
 // JWTManager maneja la generación y validación de tokens JWT
 type JWTManager struct {
@@ -121,7 +90,7 @@ func (m *JWTManager) parseAndValidateToken(tokenString string) (*Claims, error) 
 		jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}),
 	)
 
-	token, err := parser.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := parser.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
@@ -219,20 +188,4 @@ func (m *JWTManager) ValidateMinimalToken(tokenString string) (*Claims, error) {
 	}
 
 	return claims, nil
-}
-
-// ExtractUserID extrae el user ID de un token sin validar completamente
-// Útil solo para logging o debugging, NO para autenticación
-func ExtractUserID(tokenString string) (string, error) {
-	token, _, err := new(jwt.Parser).ParseUnverified(tokenString, &Claims{})
-	if err != nil {
-		return "", err
-	}
-
-	claims, ok := token.Claims.(*Claims)
-	if !ok {
-		return "", fmt.Errorf("invalid claims")
-	}
-
-	return claims.UserID, nil
 }

@@ -153,8 +153,7 @@ func TestVerifyPassword_InvalidHash(t *testing.T) {
 func BenchmarkHashPassword(b *testing.B) {
 	password := "benchmarkPassword123"
 
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		_, err := HashPassword(password)
 		if err != nil {
 			b.Fatal(err)
@@ -170,8 +169,7 @@ func BenchmarkVerifyPassword(b *testing.B) {
 		b.Fatal(err)
 	}
 
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		err := VerifyPassword(hash, password)
 		if err != nil {
 			b.Fatal(err)

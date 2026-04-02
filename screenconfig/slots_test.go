@@ -15,7 +15,7 @@ func TestResolveSlots_BasicReplacement(t *testing.T) {
 
 	result := ResolveSlots(definition, slotData)
 
-	var resultMap map[string]interface{}
+	var resultMap map[string]any
 	require.NoError(t, json.Unmarshal(result, &resultMap))
 
 	assert.Equal(t, "My Page Title", resultMap["title"])
@@ -79,7 +79,7 @@ func TestResolveSlots_UnknownSlotKey_KeepsOriginal(t *testing.T) {
 
 	result := ResolveSlots(definition, slotData)
 
-	var resultMap map[string]interface{}
+	var resultMap map[string]any
 	require.NoError(t, json.Unmarshal(result, &resultMap))
 
 	assert.Equal(t, "slot:unknown_key", resultMap["title"])

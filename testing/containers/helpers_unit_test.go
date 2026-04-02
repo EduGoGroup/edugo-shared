@@ -147,7 +147,7 @@ func TestExecSQLFile_VeryLongPath_Unit(t *testing.T) {
 
 	// Crear path muy largo (mayor que PATH_MAX en muchos sistemas)
 	longPath := "/nonexistent/"
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		longPath += "very_long_directory_name_to_exceed_path_limits/"
 	}
 	longPath += "file.sql"

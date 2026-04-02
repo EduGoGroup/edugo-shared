@@ -3,6 +3,7 @@ package gin
 import (
 	"log/slog"
 	"net/http"
+	"slices"
 	"strings"
 
 	"github.com/EduGoGroup/edugo-shared/auth"
@@ -76,13 +77,7 @@ func RequirePermission(permission enum.Permission) gin.HandlerFunc {
 			return
 		}
 
-		hasPermission := false
-		for _, perm := range userClaims.ActiveContext.Permissions {
-			if perm == permission.String() {
-				hasPermission = true
-				break
-			}
-		}
+		hasPermission := slices.Contains(userClaims.ActiveContext.Permissions, permission.String())
 
 		if !hasPermission {
 			reqLogger := GetLogger(c)

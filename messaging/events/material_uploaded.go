@@ -62,7 +62,7 @@ type MaterialUploadedPayload struct {
 	FileURL       string                 `json:"file_url"`
 	FileSizeBytes uint64                 `json:"file_size_bytes"` // uint64 previene valores negativos
 	FileType      string                 `json:"file_type"`
-	Metadata      map[string]interface{} `json:"metadata,omitempty"`
+	Metadata      map[string]any `json:"metadata,omitempty"`
 }
 
 // NewMaterialUploadedEvent crea y valida un nuevo evento de material subido.

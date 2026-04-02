@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -20,7 +21,7 @@ func NewValidator() *Validator {
 }
 
 // Validate valida un struct de configuración
-func (v *Validator) Validate(cfg interface{}) error {
+func (v *Validator) Validate(cfg any) error {
 	if err := v.validate.Struct(cfg); err != nil {
 		var validationErrors validator.ValidationErrors
 		if errors.As(err, &validationErrors) {
@@ -32,7 +33,7 @@ func (v *Validator) Validate(cfg interface{}) error {
 }
 
 // ValidateField valida un campo específico
-func (v *Validator) ValidateField(field interface{}, tag string) error {
+func (v *Validator) ValidateField(field any, tag string) error {
 	if err := v.validate.Var(field, tag); err != nil {
 		return fmt.Errorf("field validation failed: %w", err)
 	}
@@ -48,7 +49,7 @@ type ValidationError struct {
 type FieldError struct {
 	Field   string
 	Tag     string
-	Value   interface{}
+	Value   any
 	Message string
 }
 
@@ -76,12 +77,13 @@ func (e *ValidationError) Error() string {
 		return "config validation failed"
 	}
 
-	msg := fmt.Sprintf("config validation failed with %d error(s):", len(e.Errors))
+	var msg strings.Builder
+	fmt.Fprintf(&msg, "config validation failed with %d error(s):", len(e.Errors))
 	for _, fieldErr := range e.Errors {
-		msg += fmt.Sprintf("\n  - %s: %s", fieldErr.Field, fieldErr.Message)
+		fmt.Fprintf(&msg, "\n  - %s: %s", fieldErr.Field, fieldErr.Message)
 	}
 
-	return msg
+	return msg.String()
 }
 
 // buildErrorMessage construye un mensaje de error amigable

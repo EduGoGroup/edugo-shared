@@ -1,6 +1,9 @@
 package screenconfig
 
-import "strings"
+import (
+	"slices"
+	"strings"
+)
 
 // ExtractResourceKeys extrae las claves unicas de recursos desde un slice de permisos
 // en formato "resource:action".
@@ -35,10 +38,5 @@ func ExtractResourceKeys(permissions []string) []string {
 //	HasPermission(perms, "materials:read")   // true
 //	HasPermission(perms, "materials:delete") // false
 func HasPermission(permissions []string, required string) bool {
-	for _, p := range permissions {
-		if p == required {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(permissions, required)
 }

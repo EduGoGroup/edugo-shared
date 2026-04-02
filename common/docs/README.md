@@ -1,58 +1,186 @@
-# Common - Documentacion de fase 1
+# Common — Documentación técnica
 
-Esta documentacion cubre solo lo que existe dentro de `common` al momento de esta fase. No intenta explicar integraciones externas ni adaptar el modulo a consumidores concretos.
+Módulo base del repositorio: primitivos reutilizables, resolución de configuración, manejo de errores, validación y tipos compartidos.
 
-## Proposito
+## Propósito
 
-Modulo base del repositorio: centraliza primitives reutilizables y subpaquetes de bajo acoplamiento.
+Centralizar contratos y primitivos compartidos con dependencias mínimas, siendo la base sobre la cual se construyen otros módulos.
 
-## Procesos principales
+## Componentes principales
 
-1. Resolver variables de entorno y detectar ambiente con `common/config`.
-2. Construir `AppError` tipados y mapearlos a status HTTP en `common/errors`.
-3. Acumular errores de validacion y helpers de formato en `common/validator`.
-4. Generar, parsear y serializar UUIDs en `common/types`.
-5. Definir enums de permisos, roles, estados y tipos de evento en `common/types/enum`.
+### common/config — Configuración de entorno
 
-## Arquitectura local
+Resolución de variables de entorno con fallbacks y detección de ambiente.
 
-- No es un unico package funcional; el consumo real ocurre por subpaquetes.
-- El modulo prioriza dependencias minimas para ser la base de otras librerias.
-- Los enums del dominio viven junto a tipos genericos para evitar duplicacion transversal.
+**Funciones principales:**
+- `GetEnv(key, defaultValue string) string` — Resuelve variable de entorno con fallback
+- `GetEnvInt(key string, defaultValue int) int` — Resuelve como entero
+- `GetEnvironment() string` — Retorna "dev", "staging" o "prod"
+- `GetEnvBool(key string, defaultValue bool) bool` — Resuelve como booleano
 
-```mermaid
-flowchart TD
-A[common/config] --> E[Servicios consumidores]
-B[common/errors] --> E
-C[common/validator] --> E
-D[common/types + enum] --> E
+### common/errors — Errores tipados
+
+Define `AppError` con constructores tipados y mapeo automático a status HTTP.
+
+**Constructores:**
+- `NewValidationError(msg string) error` — 400 Bad Request
+- `NewUnauthorizedError(msg string) error` — 401 Unauthorized
+- `NewForbiddenError(msg string) error` — 403 Forbidden
+- `NewNotFoundError(msg string) error` — 404 Not Found
+- `NewConflictError(msg string) error` — 409 Conflict
+- `NewInternalError(msg string, err error) error` — 500 Internal Server Error
+
+**Interfaz:**
+```go
+type AppError interface {
+    Error() string
+    HTTPStatus() int
+    Details() map[string]interface{}
+}
 ```
 
-## Superficie tecnica relevante
+### common/validator — Validación de datos
 
-- `common/config` expone `GetEnv`, `GetEnvInt`, `GetEnvironment` y helpers afines.
-- `common/errors` define `AppError`, constructores tipados y mapeo de status HTTP.
-- `common/validator` aporta validaciones comunes y agregacion de errores.
-- `common/types` aporta `UUID` y `common/types/enum` encapsula enums de dominio.
+Agregación de múltiples errores de validación con helpers comunes.
 
-## Dependencias observadas
+**Métodos principales:**
+- `NewValidator() *Validator`
+- `RequireNotEmpty(field, value string) *Validator` — Validar campo no vacío
+- `RequireLength(field string, value string, minLen, maxLen int) *Validator` — Rango de longitud
+- `RequireEmail(field, email string) *Validator` — Formato de email
+- `Require(condition bool, msg string) *Validator` — Validación personalizada
+- `Valid() bool` — Verificar si todas las validaciones pasaron
+- `Error() error` — Retornar error con todos los problemas
 
-- Runtime interno: modulo base, sin dependencias a otros modulos del repositorio.
-- Runtime externo: `github.com/google/uuid` y dependencias ligeras de soporte.
+### common/types — Tipos compartidos
 
-## Operacion actual
+**UUID:**
+- `NewUUID() string` — Generar UUID v4
+- `ParseUUID(s string) (string, error)` — Parsear y validar UUID
+- `IsValidUUID(s string) bool` — Verificar si es UUID válido
 
-- `make build`, `make test`, `make test-race` y `make check` validan el modulo.
-- La cobertura actual se reparte entre varios subpaquetes pequenos y estables.
+### common/types/enum — Enumeraciones de dominio
 
-## Observaciones actuales
+Constantes de roles, permisos, estados y tipos de evento compartidos en toda la aplicación.
 
-- Consumir `common` implica importar subpaquetes concretos; no existe un package raiz unico para toda la API.
-- Aqui estan varios contratos que otros modulos consideran fundacionales.
-- Los tests cubren errores, validator, UUID y enums.
+**Roles:**
+- `RoleAdmin`, `RoleSuperAdmin`, `RoleTeacher`, `RoleStudent`, etc.
 
-## Limites de esta fase
+**Permisos:**
+- `PermissionUserRead`, `PermissionUserWrite`, `PermissionSchoolRead`, etc.
 
-- Esta fase no define una taxonomia compartida con otros repositorios fuera de `edugo-shared`.
-- No documenta aun integraciones con el archivo externo `ecosistema.md`.
-- No redefine politicas de release por modulo; eso queda para la fase 3.
+**Estados:**
+- Estados de usuario, ciclo escolar, eventos, etc.
+
+## Flujos comunes
+
+### 1. Cargar configuración al inicializar
+
+```go
+func loadConfig() {
+    dbHost := common.GetEnv("DB_HOST", "localhost")
+    dbPort := common.GetEnvInt("DB_PORT", 5432)
+    environment := common.GetEnvironment()
+
+    if environment == "prod" {
+        log.Println("Running in production")
+    }
+}
+```
+
+### 2. Validar entrada de usuario
+
+```go
+func validateUser(user *User) error {
+    v := common.NewValidator()
+    v.RequireNotEmpty("email", user.Email)
+    v.RequireEmail("email", user.Email)
+    v.RequireNotEmpty("password", user.Password)
+    v.RequireLength("password", user.Password, 8, 72)
+
+    if !v.Valid() {
+        return v.Error() // AppError con todos los problemas
+    }
+    return nil
+}
+```
+
+### 3. Manejar errores con mapeo HTTP
+
+```go
+func handler(w http.ResponseWriter, r *http.Request) {
+    user, err := getUser(r.Context())
+
+    if err != nil {
+        appErr, ok := err.(common.AppError)
+        if ok {
+            w.WriteHeader(appErr.HTTPStatus())
+            json.NewEncoder(w).Encode(appErr.Details())
+        } else {
+            w.WriteHeader(http.StatusInternalServerError)
+        }
+        return
+    }
+
+    // Éxito...
+}
+```
+
+### 4. Usar tipos compartidos (UUID, Enums)
+
+```go
+// Generar ID único
+userID := common.NewUUID()
+
+// Asignar rol desde enum
+user.Role = common.RoleTeacher
+
+// Validar UUID recibido
+id, err := common.ParseUUID(requestID)
+if err != nil {
+    return common.NewValidationError("invalid user id")
+}
+```
+
+## Arquitectura
+
+No existe un único package raíz; el consumo ocurre via subpaquetes específicos:
+
+```
+common
+├── config/      → Configuración y entorno
+├── errors/      → Errores tipados con mapeo HTTP
+├── validator/   → Validación y agregación de errores
+├── types/       → UUID y tipos compartidos
+└── types/enum/  → Enumeraciones de dominio
+```
+
+Cada subpaquete tiene responsabilidad única y puede ser consumido independientemente.
+
+## Dependencias
+
+- **Internas**: Ninguna (módulo base, no depende de otros módulos de edugo-shared)
+- **Externas**: `github.com/google/uuid` (mínimo necesario)
+
+## Testing
+
+Suite de tests comprensiva:
+- Validación de errores tipados y mapeo HTTP
+- Helpers de validación comunes
+- UUID generation, parsing y validación
+- Enumeraciones y constantes de dominio
+
+Ejecutar:
+```bash
+make test          # Tests básicos
+make test-race     # Tests con race detector
+make check         # Tests + linting + format
+```
+
+## Notas de diseño
+
+- **Modulo fundacional**: Es la base sobre la que otros módulos dependen; cambios aquí impactan toda la aplicación
+- **Bajo acoplamiento**: Cada subpaquete puede usarse independientemente sin importar `common` completo
+- **Contrato estable**: Los tipos y errores aquí son relativamente inmutables para evitar cambios masivos en consumidores
+- **Sin dependencias circulares**: Por diseño, `common` no importa ningún otro módulo de edugo-shared
+- **Enums centralizados**: Roles, permisos y estados viven aquí para evitar duplicación transversal

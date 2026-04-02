@@ -105,7 +105,7 @@ func TestPublisher_Publish_ToDefaultExchange(t *testing.T) {
 	defer func() { _ = publisher.Close() }()
 
 	// Publish to default exchange (empty string) with queue name as routing key
-	testMsg := map[string]interface{}{
+	testMsg := map[string]any{
 		"message": "test message",
 	}
 
@@ -131,7 +131,7 @@ func TestPublisher_PublishWithPriority(t *testing.T) {
 		Durable:    false,
 		AutoDelete: true,
 		Exclusive:  false,
-		Args: map[string]interface{}{
+		Args: map[string]any{
 			"x-max-priority": 10,
 		},
 	}
@@ -146,7 +146,7 @@ func TestPublisher_PublishWithPriority(t *testing.T) {
 	// Publish messages with different priorities
 	priorities := []uint8{0, 5, 10}
 	for _, priority := range priorities {
-		testMsg := map[string]interface{}{
+		testMsg := map[string]any{
 			"priority": priority,
 			"message":  fmt.Sprintf("Message with priority %d", priority),
 		}
@@ -242,8 +242,8 @@ func TestPublisher_Publish_MultipleMessages(t *testing.T) {
 
 	// Publish multiple messages
 	messageCount := 10
-	for i := 0; i < messageCount; i++ {
-		testMsg := map[string]interface{}{
+	for i := range messageCount {
+		testMsg := map[string]any{
 			"index":   i,
 			"message": fmt.Sprintf("Message %d", i),
 		}
@@ -287,12 +287,12 @@ func TestPublisher_Publish_ConcurrentPublishing(t *testing.T) {
 	var wg sync.WaitGroup
 	errors := make(chan error, concurrency*messagesPerGoroutine)
 
-	for g := 0; g < concurrency; g++ {
+	for g := range concurrency {
 		wg.Add(1)
 		go func(goroutineID int) {
 			defer wg.Done()
-			for i := 0; i < messagesPerGoroutine; i++ {
-				testMsg := map[string]interface{}{
+			for i := range messagesPerGoroutine {
+				testMsg := map[string]any{
 					"goroutine": goroutineID,
 					"index":     i,
 				}
@@ -519,7 +519,7 @@ func TestPublisher_PublishWithPriority_MaxPriority(t *testing.T) {
 		Durable:    false,
 		AutoDelete: true,
 		Exclusive:  false,
-		Args: map[string]interface{}{
+		Args: map[string]any{
 			"x-max-priority": 255,
 		},
 	}
@@ -566,7 +566,7 @@ func TestPublisher_Publish_EmptyMessage(t *testing.T) {
 	defer func() { _ = publisher.Close() }()
 
 	// Publish empty map
-	emptyMsg := map[string]interface{}{}
+	emptyMsg := map[string]any{}
 
 	err = publisher.Publish(ctx, "", queueName, emptyMsg)
 	assert.NoError(t, err)
@@ -634,7 +634,7 @@ func TestPublisher_Lifecycle(t *testing.T) {
 	require.NotNil(t, publisher)
 
 	// Publish multiple messages
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		err = publisher.Publish(ctx, "", queueName, map[string]int{"count": i})
 		require.NoError(t, err)
 	}

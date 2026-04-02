@@ -71,7 +71,7 @@ func ValidatePlatform(p string) error {
 // ResolvePlatformOverrideKey retorna la clave a usar para buscar platformOverrides.
 // Intenta la plataforma especifica primero, luego el fallback.
 // Retorna la clave encontrada y true, o string vacio y false si no hay override.
-func ResolvePlatformOverrideKey(platform Platform, availableOverrides map[string]interface{}) (string, bool) {
+func ResolvePlatformOverrideKey(platform Platform, availableOverrides map[string]any) (string, bool) {
 	// 1. Intentar plataforma especifica (ej: "ios")
 	if _, ok := availableOverrides[string(platform)]; ok {
 		return string(platform), true

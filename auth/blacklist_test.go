@@ -10,8 +10,7 @@ import (
 )
 
 func TestInMemoryBlacklist_RevokeAndIsRevoked(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	bl := NewInMemoryBlacklist(ctx)
 
@@ -24,8 +23,7 @@ func TestInMemoryBlacklist_RevokeAndIsRevoked(t *testing.T) {
 }
 
 func TestInMemoryBlacklist_MultipleRevocations(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	bl := NewInMemoryBlacklist(ctx)
 

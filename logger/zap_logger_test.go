@@ -50,7 +50,7 @@ func TestZapLogger_JSONOutput(t *testing.T) {
 
 	logger.Info("test message", "key", "value")
 
-	var output map[string]interface{}
+	var output map[string]any
 	err := json.Unmarshal(buffer.Bytes(), &output)
 	assert.NoError(t, err)
 	assert.Equal(t, "test message", output["msg"])
@@ -114,7 +114,7 @@ func TestZapLogger_With(t *testing.T) {
 	child := logger.With("context", "child")
 	child.Info("child msg")
 
-	var output map[string]interface{}
+	var output map[string]any
 	err := json.Unmarshal(buffer.Bytes(), &output)
 	assert.NoError(t, err)
 	assert.Equal(t, "child msg", output["msg"])

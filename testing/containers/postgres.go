@@ -207,7 +207,7 @@ func connectWithRetry(connStr string, maxRetries int, delay time.Duration) (*sql
 	var db *sql.DB
 	var err error
 
-	for i := 0; i < maxRetries; i++ {
+	for range maxRetries {
 		db, err = sql.Open("postgres", connStr)
 		if err != nil {
 			time.Sleep(delay)

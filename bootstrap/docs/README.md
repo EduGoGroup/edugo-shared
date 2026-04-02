@@ -1,65 +1,142 @@
-# Bootstrap - Documentacion de fase 1
+# Bootstrap — Documentacion tecnica
 
-Esta documentacion cubre solo lo que existe dentro de `bootstrap` al momento de esta fase. No intenta explicar integraciones externas ni adaptar el modulo a consumidores concretos.
+## Descripcion general
 
-## Proposito
+Modulo raiz que define tipos compartidos para la inicializacion de recursos de infraestructura. Contiene config structs, functional options para GORM, interface de lifecycle y tipos de error. **No tiene dependencias externas**.
 
-Orquestador de inicializacion para logger, bases de datos, mensajeria y S3 mediante factories.
+Las implementaciones concretas viven en sub-modulos:
+- `bootstrap/postgres` — PostgreSQL + GORM
+- `bootstrap/mongodb` — MongoDB
+- `bootstrap/rabbitmq` — RabbitMQ
+- `bootstrap/s3` — S3
 
-## Procesos principales
+## Arquitectura
 
-1. Aplicar opciones de bootstrap y mezclar factories reales con mocks si corresponde.
-2. Validar que existan factories para los recursos marcados como requeridos.
-3. Inicializar primero el logger y luego PostgreSQL, MongoDB, RabbitMQ y S3.
-4. Registrar recursos inicializados dentro de `Resources` y sus cleanups asociados.
-5. Ejecutar health checks finales salvo que `SkipHealthCheck` este activo.
-
-## Arquitectura local
-
-- `Bootstrap` trabaja sobre interfaces de factory para desacoplar el origen real de los recursos.
-- `Resources` es el contenedor de salida para logger, conexiones y clientes compartidos.
-- La funcion acepta `config interface{}` para poder extraer configuracion sin amarrarse al modulo `config`.
-
-```mermaid
-flowchart TD
-A[Config + Factories] --> B[ApplyOptions]
-B --> C[Validate factories]
-C --> D[Init logger]
-D --> E[Init PostgreSQL]
-E --> F[Init MongoDB]
-F --> G[Init RabbitMQ]
-G --> H[Init S3]
-H --> I[Health checks]
-I --> J[Resources]
-J --> K[Cleanup registration]
+```
+bootstrap/                     # Configs, options, errores (0 deps)
+├── config.go                  # PostgreSQLConfig, MongoDBConfig, RabbitMQConfig, S3Config
+├── gorm_options.go            # GORMOption, WithGORMLogger, WithSimpleProtocol
+├── lifecycle.go               # LifecycleManager interface
+├── errors.go                  # ErrMissingFactory, ErrConnectionFailed
+│
+├── postgres/                  # Factory PostgreSQL + GORM
+│   └── factory.go             # NewFactory, CreateGORMConnection, CreateRawConnection
+├── mongodb/                   # Factory MongoDB
+│   └── factory.go             # NewFactory, CreateConnection, GetDatabase
+├── rabbitmq/                  # Factory RabbitMQ
+│   └── factory.go             # NewFactory, CreateConnection, CreateChannel
+└── s3/                        # Factory S3
+    └── factory.go             # NewFactory, CreateClient, CreatePresignClient
 ```
 
-## Superficie tecnica relevante
+## Componentes principales
 
-- `Bootstrap` es el punto de entrada principal.
-- `Factories` agrupa los contratos `LoggerFactory`, `PostgreSQLFactory`, `MongoDBFactory`, `RabbitMQFactory` y `S3Factory`.
-- `Resources` expone `HasLogger`, `HasPostgreSQL`, `HasMongoDB`, `HasMessagePublisher` y `HasStorageClient`.
-- `BootstrapOptions` y helpers `WithRequiredResources`, `WithOptionalResources`, `WithSkipHealthCheck`, `WithMockFactories` y `WithStopOnFirstError` controlan la orquestacion.
+### PostgreSQLConfig
 
-## Dependencias observadas
+```go
+type PostgreSQLConfig struct {
+    Host, User, Password, Database, SSLMode string
+    Port                                     int
+    SearchPath                               string        // "auth,iam,public"
+    MaxOpenConns, MaxIdleConns               int           // defaults: 25, 5
+    ConnMaxLifetime, ConnMaxIdleTime         time.Duration // defaults: 1h, 10m
+}
+```
 
-- Runtime interno: `logger`.
-- Tests internos: `testing` para integracion con containers.
-- Runtime externo: AWS S3 SDK, MongoDB driver, GORM y AMQP.
+### GORMOption
 
-## Operacion actual
+```go
+type GORMOption func(*GORMOptions)
 
-- `make build`, `make test`, `make test-race` y `make check` validan el modulo.
-- `make test-all` ejecuta la bateria completa, incluyendo pruebas que requieren Docker y servicios reales.
+type GORMOptions struct {
+    Logger         any  // acepta gorm.logger.Interface
+    SimpleProtocol bool // default: true (PgBouncer/Neon)
+    PrepareStmt    bool // default: false
+}
+```
 
-## Observaciones actuales
+Funciones disponibles:
+- `WithGORMLogger(logger any)` — Configura logger GORM
+- `WithSimpleProtocol(bool)` — Controla pgx SimpleProtocol
+- `WithPrepareStmt(bool)` — Controla GORM PrepareStmt
+- `ApplyGORMOptions(...GORMOption) GORMOptions` — Aplica options sobre defaults
 
-- Es el modulo de mayor acoplamiento tecnico porque coordina recursos heterogeneos.
-- El orden real observado es logger primero, luego bases de datos, mensajeria y finalmente storage.
-- Tiene tests unitarios e integraciones para PostgreSQL, MongoDB, RabbitMQ y S3.
+### LifecycleManager
 
-## Limites de esta fase
+```go
+type LifecycleManager interface {
+    RegisterCleanup(name string, cleanup func() error)
+}
+```
 
-- La integracion con servicios del ecosistema y configuraciones concretas queda fuera de esta fase.
-- No documenta aun integraciones con el archivo externo `ecosistema.md`.
-- No redefine politicas de release por modulo; eso queda para la fase 3.
+Interface tipada para registro de cleanup functions. Reemplaza el parametro `lifecycleManager any` del modulo anterior.
+
+### Errores
+
+```go
+type ErrMissingFactory struct{ Resource string }
+type ErrConnectionFailed struct{ Resource string; Err error }
+```
+
+## Flujos comunes
+
+### 1. API con GORM (IAM, Admin)
+
+```go
+pgFactory := pgbootstrap.NewFactory()
+db, err := pgFactory.CreateGORMConnection(ctx, bootstrap.PostgreSQLConfig{
+    Host: cfg.DB.Host, Port: cfg.DB.Port,
+    User: cfg.DB.User, Password: cfg.DB.Password,
+    Database: cfg.DB.Database, SSLMode: cfg.DB.SSLMode,
+    SearchPath: "auth,iam,academic,public",
+    MaxOpenConns: cfg.DB.MaxOpenConns,
+},
+    bootstrap.WithGORMLogger(customLogger),
+)
+```
+
+### 2. Worker con raw SQL
+
+```go
+pgFactory := pgbootstrap.NewFactory()
+sqlDB, err := pgFactory.CreateRawConnection(ctx, bootstrap.PostgreSQLConfig{...})
+```
+
+### 3. Mobile con PostgreSQL + MongoDB (graceful degradation)
+
+```go
+db, _ := pgFactory.CreateGORMConnection(ctx, bootstrap.PostgreSQLConfig{...})
+mongoClient, err := mongoFactory.CreateConnection(ctx, bootstrap.MongoDBConfig{...})
+if err != nil {
+    log.Warn("MongoDB unavailable, continuing without it")
+}
+```
+
+## Dependencias
+
+### Modulo raiz
+Ninguna dependencia externa. Solo stdlib de Go.
+
+### Sub-modulos
+Cada sub-modulo solo importa lo que necesita:
+- postgres: pgx, gorm
+- mongodb: mongo-driver
+- rabbitmq: amqp091-go
+- s3: aws-sdk-go-v2
+
+## Notas de diseño
+
+- **0 dependencias en raiz**: Configs, options y errores no necesitan librerias externas. Esto elimina el problema del "god module" donde IAM descargaba MongoDB/RabbitMQ/Docker solo por importar bootstrap.
+- **GORMOption en raiz**: Para que consumidores configuren sin importar el sub-modulo directamente.
+- **SimpleProtocol por defecto**: Todos los entornos usan PgBouncer o Neon.
+- **SearchPath configurable**: Cada servicio tiene su propio set de schemas.
+- **Pool desde config**: En vez de hardcoded 25/5, los valores vienen de la configuracion del servicio.
+
+## Operacion
+
+```bash
+make build     # Compilar
+make test      # Tests unitarios
+make test-all  # Tests incluyendo integracion (requiere Docker)
+make check     # Lint + vet + test + build
+```

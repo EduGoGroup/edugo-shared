@@ -2,8 +2,16 @@ package containers
 
 import (
 	"context"
+	"os/exec"
 	"testing"
 )
+
+// dockerAvailable comprueba si Docker está disponible en el sistema.
+// Retorna true si el comando "docker info" se ejecuta correctamente.
+func dockerAvailable() bool {
+	cmd := exec.Command("docker", "info")
+	return cmd.Run() == nil
+}
 
 func TestConfigBuilder(t *testing.T) {
 	config := NewConfig().
@@ -74,6 +82,9 @@ func TestManagerIntegration(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Omitiendo test de integración en modo short")
 	}
+	if !dockerAvailable() {
+		t.Skip("Omitiendo test: Docker no está disponible")
+	}
 
 	config := NewConfig().
 		WithPostgreSQL(nil).
@@ -123,6 +134,9 @@ func TestManager_AccessorMethods_NilSafety(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Omitiendo test de integración en modo short")
 	}
+	if !dockerAvailable() {
+		t.Skip("Omitiendo test: Docker no está disponible")
+	}
 
 	// Manager solo con PostgreSQL
 	config := NewConfig().
@@ -153,6 +167,9 @@ func TestManager_AccessorMethods_NilSafety(t *testing.T) {
 func TestManager_CleanMethods_NotEnabled(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Omitiendo test de integración en modo short")
+	}
+	if !dockerAvailable() {
+		t.Skip("Omitiendo test: Docker no está disponible")
 	}
 
 	ctx := context.Background()
@@ -197,6 +214,9 @@ func TestManager_CleanMethods_NotEnabled(t *testing.T) {
 func TestManager_CleanPostgreSQL_TruncateTables(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Omitiendo test de integración en modo short")
+	}
+	if !dockerAvailable() {
+		t.Skip("Omitiendo test: Docker no está disponible")
 	}
 
 	ctx := context.Background()
@@ -261,6 +281,9 @@ func TestManager_CleanPostgreSQL_TruncateTables(t *testing.T) {
 func TestManager_SingletonBehavior(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Omitiendo test de integración en modo short")
+	}
+	if !dockerAvailable() {
+		t.Skip("Omitiendo test: Docker no está disponible")
 	}
 
 	config := NewConfig().

@@ -84,3 +84,44 @@ func TestResolveSlots_UnknownSlotKey_KeepsOriginal(t *testing.T) {
 
 	assert.Equal(t, "slot:unknown_key", resultMap["title"])
 }
+
+func TestResolveSlots_InvalidSlotDataJSON(t *testing.T) {
+	definition := json.RawMessage(`{"title": "slot:page_title"}`)
+	slotData := json.RawMessage(`{invalid}`)
+
+	result := ResolveSlots(definition, slotData)
+
+	assert.Equal(t, string(definition), string(result), "invalid slotData JSON should return definition unchanged")
+}
+
+func TestResolveSlots_InvalidDefinitionJSON(t *testing.T) {
+	definition := json.RawMessage(`{invalid definition}`)
+	slotData := json.RawMessage(`{"page_title": "My Page"}`)
+
+	result := ResolveSlots(definition, slotData)
+
+	assert.Equal(t, string(definition), string(result), "invalid definition JSON should return definition unchanged")
+}
+
+func TestResolveSlots_NumericValues_PassThrough(t *testing.T) {
+	definition := json.RawMessage(`{"count": 42, "title": "slot:page_title", "active": true}`)
+	slotData := json.RawMessage(`{"page_title": "Home"}`)
+
+	result := ResolveSlots(definition, slotData)
+
+	var resultMap map[string]any
+	require.NoError(t, json.Unmarshal(result, &resultMap))
+
+	assert.Equal(t, float64(42), resultMap["count"], "numeric values should pass through unchanged")
+	assert.Equal(t, true, resultMap["active"], "boolean values should pass through unchanged")
+	assert.Equal(t, "Home", resultMap["title"], "slot reference should be resolved")
+}
+
+func TestResolveSlots_SlotDataArrayValue(t *testing.T) {
+	definition := json.RawMessage(`{"title": "slot:page_title"}`)
+	slotData := json.RawMessage(`[1, 2, 3]`)
+
+	result := ResolveSlots(definition, slotData)
+
+	assert.Equal(t, string(definition), string(result), "non-object slotData should return definition unchanged")
+}

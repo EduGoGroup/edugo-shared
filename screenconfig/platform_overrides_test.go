@@ -184,9 +184,11 @@ func TestApplyPlatformOverrides_ZoneItemNotAMap(t *testing.T) {
 
 	var resultMap map[string]any
 	require.NoError(t, json.Unmarshal(result, &resultMap))
-	zones := resultMap["zones"].([]any)
+	zones, ok := resultMap["zones"].([]any)
+	require.True(t, ok, "zones should be []any")
 	assert.Equal(t, "not a map", zones[0], "non-map zone items should be skipped")
-	zone1 := zones[1].(map[string]any)
+	zone1, ok := zones[1].(map[string]any)
+	require.True(t, ok, "zone1 should be map[string]any")
 	assert.Equal(t, float64(44), zone1["height"], "valid zone should still get override applied")
 }
 
@@ -204,10 +206,13 @@ func TestApplyPlatformOverrides_ZoneWithoutStringID(t *testing.T) {
 
 	var resultMap map[string]any
 	require.NoError(t, json.Unmarshal(result, &resultMap))
-	zones := resultMap["zones"].([]any)
-	zone0 := zones[0].(map[string]any)
+	zones, ok := resultMap["zones"].([]any)
+	require.True(t, ok, "zones should be []any")
+	zone0, ok := zones[0].(map[string]any)
+	require.True(t, ok, "zone0 should be map[string]any")
 	assert.Equal(t, float64(60), zone0["height"], "zone with non-string id should be skipped")
-	zone1 := zones[1].(map[string]any)
+	zone1, ok := zones[1].(map[string]any)
+	require.True(t, ok, "zone1 should be map[string]any")
 	assert.Equal(t, float64(44), zone1["height"], "zone with string id should get override")
 }
 
@@ -225,7 +230,9 @@ func TestApplyPlatformOverrides_ZoneIDNotInOverrides(t *testing.T) {
 
 	var resultMap map[string]any
 	require.NoError(t, json.Unmarshal(result, &resultMap))
-	zones := resultMap["zones"].([]any)
-	zone := zones[0].(map[string]any)
+	zones, ok := resultMap["zones"].([]any)
+	require.True(t, ok, "zones should be []any")
+	zone, ok := zones[0].(map[string]any)
+	require.True(t, ok, "zone should be map[string]any")
 	assert.Equal(t, float64(40), zone["height"], "zone with no matching override should keep original values")
 }

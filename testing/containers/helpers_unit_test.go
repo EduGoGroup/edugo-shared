@@ -218,7 +218,7 @@ func TestRetryOperation_DelayBetweenAttempts(t *testing.T) {
 	}
 
 	delay := 100 * time.Millisecond
-	_ = RetryOperation(operation, 3, delay)
+	_ = RetryOperation(operation, 3, delay) //nolint:errcheck // error is intentionally discarded; test validates timing
 
 	assert.Equal(t, int32(3), attempts.Load())
 	assert.Len(t, timestamps, 3)
@@ -343,6 +343,6 @@ func TestExecSQLFile_ValidFilePath_Unit(t *testing.T) {
 	// Pasamos nil como DB para verificar que el panic/error viene de la ejecución, no de la lectura.
 	// Nota: sql.DB nil causará un panic en ExecContext, lo cual confirma que la lectura fue exitosa.
 	assert.Panics(t, func() {
-		_ = ExecSQLFile(context.Background(), nil, sqlFile)
+		_ = ExecSQLFile(context.Background(), nil, sqlFile) //nolint:errcheck // panic is expected; error is irrelevant
 	}, "Debe hacer panic en ExecContext con nil DB (confirma que la lectura del archivo fue exitosa)")
 }

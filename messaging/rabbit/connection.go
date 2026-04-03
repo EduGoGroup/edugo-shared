@@ -1,13 +1,10 @@
 package rabbit
 
 import (
-	"context"
 	"fmt"
 	"sync"
 	"time"
 
-	"github.com/EduGoGroup/edugo-shared/bootstrap"
-	rabbitbootstrap "github.com/EduGoGroup/edugo-shared/bootstrap/rabbitmq"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -24,10 +21,9 @@ type Connection struct {
 	logger       func(msg string, args ...any)
 }
 
-// Connect establece una conexion a RabbitMQ usando bootstrap/rabbitmq factory.
+// Connect establece una conexion a RabbitMQ
 func Connect(url string) (*Connection, error) {
-	factory := rabbitbootstrap.NewFactory()
-	conn, err := factory.CreateConnection(context.Background(), bootstrap.RabbitMQConfig{URL: url})
+	conn, err := amqp.Dial(url)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to RabbitMQ: %w", err)
 	}
@@ -131,11 +127,9 @@ func (c *Connection) doReconnect() bool {
 	return false
 }
 
-// tryReconnect intenta una reconexion individual usando bootstrap/rabbitmq factory.
-// Retorna true si fue exitosa.
+// tryReconnect intenta una reconexion individual. Retorna true si fue exitosa.
 func (c *Connection) tryReconnect(attempt int) bool {
-	factory := rabbitbootstrap.NewFactory()
-	conn, err := factory.CreateConnection(context.Background(), bootstrap.RabbitMQConfig{URL: c.url})
+	conn, err := amqp.Dial(c.url)
 	if err != nil {
 		c.log("reconexion RabbitMQ fallida", "attempt", attempt, "error", err)
 		return false

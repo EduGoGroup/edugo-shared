@@ -18,6 +18,8 @@ func (e ErrMissingFactory) Error() string {
 }
 
 // ErrConnectionFailed se retorna cuando una conexion a un recurso falla.
+//
+//nolint:errname // Mantener nombre Err* para consistencia con ErrMissingFactory
 type ErrConnectionFailed struct {
 	Resource string
 	Err      error

@@ -53,9 +53,9 @@ Modulo propuesto: `resilience/`
 
 | Componente | Estado | Origen | Servicios que lo usan | Notas |
 |------------|--------|--------|-----------------------|-------|
-| Circuit Breaker | Ready | Worker | Worker (NLP client) | Patron Closed/Open/HalfOpen con conteo de fallos, configurable. Reutilizable para cualquier llamada service-to-service |
-| Rate Limiter | Ready | Worker | Worker | Token bucket + multi-limiter por entidad. Util para APIs (throttling de requests) |
-| Retry Policy | Ready | Worker | Worker (processors) | Backoff exponencial con clasificacion de errores (transient vs permanent). Aplica a cualquier operacion con reintentos |
+| Circuit Breaker | Done | Worker | Worker (NLP client) | `resilience/circuitbreaker/`. MetricsHook interface para metricas opcionales |
+| Rate Limiter | Done | Worker | Worker | `resilience/ratelimiter/`. Token bucket + MultiRateLimiter por entidad |
+| Retry Policy | Done | Worker | Worker (processors) | `resilience/retry/`. Backoff exponencial con ErrorClassifier inyectable. Worker mantiene classifyError local para errores PDF |
 
 ---
 
@@ -65,8 +65,8 @@ Modulo propuesto: `lifecycle/` o directamente en modulos existentes
 
 | Componente | Estado | Origen | Servicios que lo usan | Notas |
 |------------|--------|--------|-----------------------|-------|
-| Graceful Shutdown | Ready | Worker | Worker | Orquestacion ordenada de cleanup con timeout. Escucha SIGTERM/SIGINT. Todos los servicios podrian beneficiarse |
-| Health Check Framework | Ready | Worker | Worker | Interface extensible con checks para Postgres, MongoDB, RabbitMQ. Agrega checks por composicion. APIs actualmente tienen health handlers manuales |
+| Graceful Shutdown | Done | Worker | Worker | `lifecycle/shutdown/`. LIFO task execution con timeout y OS signals |
+| Health Check Framework | Done | Worker | Worker | `health/`. Checks para Postgres, MongoDB, RabbitMQ con metadata (pool stats, response times) |
 | Metrics Server | Evaluate | Worker | Worker | HTTP server para /metrics (Prometheus) y /health. Podria combinarse con Health Check Framework |
 
 ---

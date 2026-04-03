@@ -14,8 +14,16 @@ type PaginationMeta struct {
 	TotalPages int `json:"total_pages"`
 }
 
-// NewPaginatedResponse crea un PaginatedResponse con calculo automatico de TotalPages.
+// NewPaginatedResponse creates a PaginatedResponse with automatic TotalPages calculation.
+// The limit parameter maps to the "per_page" field in the JSON response.
+// Negative values for total and limit are clamped to 0.
 func NewPaginatedResponse(data any, total, page, limit int) PaginatedResponse {
+	if total < 0 {
+		total = 0
+	}
+	if limit < 0 {
+		limit = 0
+	}
 	if page < 1 {
 		page = 1
 	}

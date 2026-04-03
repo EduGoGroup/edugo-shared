@@ -49,3 +49,22 @@ func TestNewPaginatedResponse_ExactFit(t *testing.T) {
 	resp := NewPaginatedResponse(nil, 20, 1, 10)
 	assert.Equal(t, 2, resp.Pagination.TotalPages)
 }
+
+func TestNewPaginatedResponse_NegativeTotal(t *testing.T) {
+	resp := NewPaginatedResponse(nil, -5, 1, 10)
+	assert.Equal(t, 0, resp.Pagination.Total)
+	assert.Equal(t, 0, resp.Pagination.TotalPages)
+}
+
+func TestNewPaginatedResponse_NegativeLimit(t *testing.T) {
+	resp := NewPaginatedResponse(nil, 10, 1, -3)
+	assert.Equal(t, 0, resp.Pagination.PerPage)
+	assert.Equal(t, 0, resp.Pagination.TotalPages)
+}
+
+func TestNewPaginatedResponse_BothNegative(t *testing.T) {
+	resp := NewPaginatedResponse(nil, -5, 1, -3)
+	assert.Equal(t, 0, resp.Pagination.Total)
+	assert.Equal(t, 0, resp.Pagination.PerPage)
+	assert.Equal(t, 0, resp.Pagination.TotalPages)
+}

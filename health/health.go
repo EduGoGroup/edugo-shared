@@ -20,7 +20,7 @@ type CheckResult struct {
 	Component string                 `json:"component"`
 	Message   string                 `json:"message,omitempty"`
 	Timestamp time.Time              `json:"timestamp"`
-	Metadata  map[string]interface{} `json:"metadata,omitempty"`
+	Metadata  map[string]any `json:"metadata,omitempty"`
 }
 
 // HealthCheck representa un health check individual

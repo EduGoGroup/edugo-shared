@@ -59,7 +59,7 @@ func (c *PostgreSQLCheck) Check(ctx context.Context) CheckResult {
 	result := CheckResult{
 		Component: c.Name(),
 		Timestamp: time.Now(),
-		Metadata:  make(map[string]interface{}),
+		Metadata:  make(map[string]any),
 	}
 
 	// Crear contexto con timeout

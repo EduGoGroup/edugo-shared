@@ -17,19 +17,19 @@ type MockLogger struct {
 	messages []string
 }
 
-func (m *MockLogger) Info(msg string, keysAndValues ...interface{}) {
+func (m *MockLogger) Info(msg string, keysAndValues ...any) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.messages = append(m.messages, msg)
 }
 
-func (m *MockLogger) Warn(msg string, keysAndValues ...interface{}) {
+func (m *MockLogger) Warn(msg string, keysAndValues ...any) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.messages = append(m.messages, msg)
 }
 
-func (m *MockLogger) Error(msg string, keysAndValues ...interface{}) {
+func (m *MockLogger) Error(msg string, keysAndValues ...any) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.messages = append(m.messages, msg)

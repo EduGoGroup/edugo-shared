@@ -62,17 +62,39 @@ func (rl *RateLimiter) Allow() bool {
 // Wait espera hasta que haya un token disponible o el contexto se cancele
 // Retorna nil cuando puede proceder, o error si el contexto se cancela
 func (rl *RateLimiter) Wait(ctx context.Context) error {
-	for {
-		if rl.Allow() {
-			return nil
-		}
+	if rl.Allow() {
+		return nil
+	}
 
-		// Esperar un poco antes de reintentar
+	// Calcular el tiempo de espera exacto basado en el déficit de tokens
+	rl.mu.Lock()
+	rl.refill()
+	waitSeconds := (1.0 - rl.tokens) / rl.refillRate
+	if waitSeconds < 0 {
+		waitSeconds = 0
+	}
+	rl.mu.Unlock()
+
+	timer := time.NewTimer(time.Duration(waitSeconds * float64(time.Second)))
+	defer timer.Stop()
+
+	for {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-		case <-time.After(10 * time.Millisecond):
-			// Continuar el loop
+		case <-timer.C:
+			if rl.Allow() {
+				return nil
+			}
+			// Recalcular el tiempo de espera si no se obtuvo token
+			rl.mu.Lock()
+			rl.refill()
+			waitSeconds = (1.0 - rl.tokens) / rl.refillRate
+			if waitSeconds < 0 {
+				waitSeconds = 0
+			}
+			rl.mu.Unlock()
+			timer.Reset(time.Duration(waitSeconds * float64(time.Second)))
 		}
 	}
 }

@@ -2,6 +2,7 @@ package shutdown
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/signal"
@@ -49,7 +50,12 @@ func NewGracefulShutdown(timeout time.Duration, logger Logger) *GracefulShutdown
 
 // Register registra una función de limpieza con un nombre identificativo
 // Las funciones se ejecutarán en orden LIFO (último registrado, primero ejecutado)
+// Si fn es nil, la tarea se ignora silenciosamente
 func (gs *GracefulShutdown) Register(name string, fn ShutdownFunc) {
+	if fn == nil {
+		return
+	}
+
 	gs.mu.Lock()
 	defer gs.mu.Unlock()
 
@@ -78,7 +84,7 @@ func (gs *GracefulShutdown) Shutdown(ctx context.Context) error {
 	defer cancel()
 
 	// Ejecutar tareas en orden LIFO
-	var errors []error
+	var errs []error
 	for i := len(tasks) - 1; i >= 0; i-- {
 		task := tasks[i]
 
@@ -92,7 +98,7 @@ func (gs *GracefulShutdown) Shutdown(ctx context.Context) error {
 					"task", task.Name,
 					"error", err.Error())
 			}
-			errors = append(errors, fmt.Errorf("%s: %w", task.Name, err))
+			errs = append(errs, fmt.Errorf("%s: %w", task.Name, err))
 		} else {
 			if gs.logger != nil {
 				gs.logger.Info("Tarea de shutdown completada", "task", task.Name)
@@ -100,8 +106,8 @@ func (gs *GracefulShutdown) Shutdown(ctx context.Context) error {
 		}
 	}
 
-	if len(errors) > 0 {
-		return fmt.Errorf("errores durante shutdown: %v", errors)
+	if len(errs) > 0 {
+		return errors.Join(errs...)
 	}
 
 	return nil

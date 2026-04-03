@@ -20,7 +20,14 @@ type MongoDBCheck struct {
 }
 
 // NewMongoDBCheck crea un nuevo MongoDB health check
+// Panics if client is nil. Defaults timeout to 5s if <= 0.
 func NewMongoDBCheck(client *mongo.Client, timeout time.Duration) *MongoDBCheck {
+	if client == nil {
+		panic("health: MongoDB client must not be nil")
+	}
+	if timeout <= 0 {
+		timeout = 5 * time.Second
+	}
 	return &MongoDBCheck{
 		client:  client,
 		timeout: timeout,
@@ -29,7 +36,14 @@ func NewMongoDBCheck(client *mongo.Client, timeout time.Duration) *MongoDBCheck 
 
 // NewMongoDBCheckWithClient crea un health check con una interfaz MongoClient
 // Útil para testing con mocks
+// Panics if client is nil. Defaults timeout to 5s if <= 0.
 func NewMongoDBCheckWithClient(client MongoClient, timeout time.Duration) *MongoDBCheck {
+	if client == nil {
+		panic("health: MongoDB client must not be nil")
+	}
+	if timeout <= 0 {
+		timeout = 5 * time.Second
+	}
 	return &MongoDBCheck{
 		client:  client,
 		timeout: timeout,

@@ -42,7 +42,11 @@ func NewChecker() *Checker {
 }
 
 // Register registra un nuevo health check
+// Si check es nil, se ignora silenciosamente
 func (c *Checker) Register(check HealthCheck) {
+	if check == nil {
+		return
+	}
 	c.checks = append(c.checks, check)
 }
 

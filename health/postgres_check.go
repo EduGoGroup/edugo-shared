@@ -19,7 +19,14 @@ type PostgreSQLCheck struct {
 }
 
 // NewPostgreSQLCheck crea un nuevo PostgreSQL health check
+// Panics if db is nil. Defaults timeout to 5s if <= 0.
 func NewPostgreSQLCheck(db *sql.DB, timeout time.Duration) *PostgreSQLCheck {
+	if db == nil {
+		panic("health: PostgreSQL db must not be nil")
+	}
+	if timeout <= 0 {
+		timeout = 5 * time.Second
+	}
 	return &PostgreSQLCheck{
 		db:      db,
 		timeout: timeout,
@@ -28,7 +35,14 @@ func NewPostgreSQLCheck(db *sql.DB, timeout time.Duration) *PostgreSQLCheck {
 
 // NewPostgreSQLCheckWithDB crea un health check con una interfaz PostgresDB
 // Útil para testing con mocks
+// Panics if db is nil. Defaults timeout to 5s if <= 0.
 func NewPostgreSQLCheckWithDB(db PostgresDB, timeout time.Duration) *PostgreSQLCheck {
+	if db == nil {
+		panic("health: PostgreSQL db must not be nil")
+	}
+	if timeout <= 0 {
+		timeout = 5 * time.Second
+	}
 	return &PostgreSQLCheck{
 		db:      db,
 		timeout: timeout,
@@ -73,8 +87,8 @@ func (c *PostgreSQLCheck) Check(ctx context.Context) CheckResult {
 	result.Metadata["wait_count"] = stats.WaitCount
 	result.Metadata["max_open_connections"] = stats.MaxOpenConnections
 
-	// Verificar si hay demasiadas conexiones en uso
-	if stats.OpenConnections >= stats.MaxOpenConnections {
+	// Verificar si hay demasiadas conexiones en uso (skip when MaxOpenConnections==0 means unlimited)
+	if stats.MaxOpenConnections > 0 && stats.OpenConnections >= stats.MaxOpenConnections {
 		result.Status = StatusDegraded
 		result.Message = "connection pool at maximum capacity"
 		return result

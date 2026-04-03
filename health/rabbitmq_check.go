@@ -19,7 +19,14 @@ type RabbitMQCheck struct {
 }
 
 // NewRabbitMQCheck crea un nuevo RabbitMQ health check
+// Panics if channel is nil. Defaults timeout to 5s if <= 0.
 func NewRabbitMQCheck(channel *amqp.Channel, timeout time.Duration) *RabbitMQCheck {
+	if channel == nil {
+		panic("health: RabbitMQ channel must not be nil")
+	}
+	if timeout <= 0 {
+		timeout = 5 * time.Second
+	}
 	return &RabbitMQCheck{
 		channel: channel,
 		timeout: timeout,
@@ -28,7 +35,14 @@ func NewRabbitMQCheck(channel *amqp.Channel, timeout time.Duration) *RabbitMQChe
 
 // NewRabbitMQCheckWithChannel crea un health check con una interfaz RabbitMQChannel
 // Útil para testing con mocks
+// Panics if channel is nil. Defaults timeout to 5s if <= 0.
 func NewRabbitMQCheckWithChannel(channel RabbitMQChannel, timeout time.Duration) *RabbitMQCheck {
+	if channel == nil {
+		panic("health: RabbitMQ channel must not be nil")
+	}
+	if timeout <= 0 {
+		timeout = 5 * time.Second
+	}
 	return &RabbitMQCheck{
 		channel: channel,
 		timeout: timeout,
@@ -48,17 +62,36 @@ func (c *RabbitMQCheck) Check(ctx context.Context) CheckResult {
 		Metadata:  make(map[string]interface{}),
 	}
 
+	// Crear contexto con timeout
+	checkCtx, cancel := context.WithTimeout(ctx, c.timeout)
+	defer cancel()
+
 	start := time.Now()
 
-	// Verificar si el canal está cerrado
-	if c.channel.IsClosed() {
-		result.Status = StatusUnhealthy
-		result.Message = "RabbitMQ channel is closed"
-		return result
+	// Ejecutar IsClosed() en goroutine para respetar timeout/contexto
+	type checkResult struct {
+		closed bool
 	}
+	ch := make(chan checkResult, 1)
+	go func() {
+		ch <- checkResult{closed: c.channel.IsClosed()}
+	}()
 
-	duration := time.Since(start)
-	result.Metadata["response_time_ms"] = duration.Milliseconds()
+	select {
+	case <-checkCtx.Done():
+		result.Status = StatusUnhealthy
+		result.Message = "RabbitMQ health check timed out"
+		return result
+	case res := <-ch:
+		duration := time.Since(start)
+		result.Metadata["response_time_ms"] = duration.Milliseconds()
+
+		if res.closed {
+			result.Status = StatusUnhealthy
+			result.Message = "RabbitMQ channel is closed"
+			return result
+		}
+	}
 
 	result.Status = StatusHealthy
 	result.Message = "RabbitMQ is healthy"

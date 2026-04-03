@@ -50,6 +50,10 @@ func (f *Factory) CreateGORMConnection(
 ) (*gorm.DB, error) {
 	options := bootstrap.ApplyGORMOptions(opts...)
 
+	if options.SimpleProtocol && options.PrepareStmt {
+		return nil, fmt.Errorf("bootstrap/postgres: SimpleProtocol and PrepareStmt are mutually exclusive — disable one of them")
+	}
+
 	pgxCfg, err := f.buildPgxConfig(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("bootstrap/postgres: parse config: %w", err)

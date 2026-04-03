@@ -42,6 +42,6 @@ type FileMetadata struct {
 	Key          string
 	Size         int64
 	ContentType  string
-	LastModified string
+	LastModified time.Time
 	ETag         string
 }

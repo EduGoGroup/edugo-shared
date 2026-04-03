@@ -2,6 +2,7 @@ package s3
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"time"
@@ -9,6 +10,7 @@ import (
 	"github.com/EduGoGroup/edugo-shared/storage"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 )
 
 const (
@@ -56,9 +58,15 @@ func NewClient(s3Client *s3.Client, bucket string, opts ...ClientOption) *Client
 
 func (c *Client) Download(ctx context.Context, key string) (io.ReadCloser, error) {
 	var lastErr error
-	for attempt := range c.maxRetries {
+	maxAttempts := 1 + c.maxRetries
+	for attempt := range maxAttempts {
 		if attempt > 0 {
-			time.Sleep(c.baseBackoff * time.Duration(1<<attempt))
+			delay := c.baseBackoff * time.Duration(1<<(attempt-1))
+			select {
+			case <-ctx.Done():
+				return nil, fmt.Errorf("storage/s3: download %s: %w", key, ctx.Err())
+			case <-time.After(delay):
+			}
 		}
 
 		output, err := c.s3Client.GetObject(ctx, &s3.GetObjectInput{
@@ -74,25 +82,18 @@ func (c *Client) Download(ctx context.Context, key string) (io.ReadCloser, error
 	return nil, fmt.Errorf("storage/s3: download %s after %d retries: %w", key, c.maxRetries, lastErr)
 }
 
+// Upload sube contenido a S3. No hace retry porque io.Reader se consume
+// en el primer intento y no es replayable de forma segura.
 func (c *Client) Upload(ctx context.Context, key string, content io.Reader) error {
-	var lastErr error
-	for attempt := range c.maxRetries {
-		if attempt > 0 {
-			time.Sleep(c.baseBackoff * time.Duration(1<<attempt))
-		}
-
-		_, err := c.s3Client.PutObject(ctx, &s3.PutObjectInput{
-			Bucket: aws.String(c.bucket),
-			Key:    aws.String(key),
-			Body:   content,
-		})
-		if err == nil {
-			return nil
-		}
-		lastErr = err
+	_, err := c.s3Client.PutObject(ctx, &s3.PutObjectInput{
+		Bucket: aws.String(c.bucket),
+		Key:    aws.String(key),
+		Body:   content,
+	})
+	if err != nil {
+		return fmt.Errorf("storage/s3: upload %s: %w", key, err)
 	}
-
-	return fmt.Errorf("storage/s3: upload %s after %d retries: %w", key, c.maxRetries, lastErr)
+	return nil
 }
 
 func (c *Client) Delete(ctx context.Context, key string) error {
@@ -112,7 +113,13 @@ func (c *Client) Exists(ctx context.Context, key string) (bool, error) {
 		Key:    aws.String(key),
 	})
 	if err != nil {
-		return false, nil
+		// Distinguir NotFound/NoSuchKey de errores reales (permisos, red, etc.)
+		var nf *types.NotFound
+		var nsk *types.NoSuchKey
+		if errors.As(err, &nf) || errors.As(err, &nsk) {
+			return false, nil
+		}
+		return false, fmt.Errorf("storage/s3: exists %s: %w", key, err)
 	}
 	return true, nil
 }
@@ -126,11 +133,16 @@ func (c *Client) GetMetadata(ctx context.Context, key string) (*storage.FileMeta
 		return nil, fmt.Errorf("storage/s3: metadata %s: %w", key, err)
 	}
 
+	var lastMod time.Time
+	if output.LastModified != nil {
+		lastMod = *output.LastModified
+	}
+
 	return &storage.FileMetadata{
 		Key:          key,
 		Size:         aws.ToInt64(output.ContentLength),
 		ContentType:  aws.ToString(output.ContentType),
-		LastModified: output.LastModified.String(),
+		LastModified: lastMod,
 		ETag:         aws.ToString(output.ETag),
 	}, nil
 }

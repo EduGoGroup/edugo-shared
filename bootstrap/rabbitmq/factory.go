@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"time"
 
 	"github.com/EduGoGroup/edugo-shared/bootstrap"
@@ -23,29 +24,25 @@ func NewFactory() *Factory {
 }
 
 // CreateConnection crea una conexion a RabbitMQ con timeout.
+// Usa amqp.DialConfig con net.Dialer para que el timeout sea respetado
+// a nivel de red, evitando goroutine leaks en escenarios de red degradada.
 func (f *Factory) CreateConnection(ctx context.Context, cfg bootstrap.RabbitMQConfig) (*amqp.Connection, error) {
-	connChan := make(chan *amqp.Connection, 1)
-	errChan := make(chan error, 1)
-
-	go func() {
-		conn, err := amqp.Dial(cfg.URL)
-		if err != nil {
-			errChan <- err
-			return
-		}
-		connChan <- conn
-	}()
-
-	select {
-	case conn := <-connChan:
-		return conn, nil
-	case err := <-errChan:
+	conn, err := amqp.DialConfig(cfg.URL, amqp.Config{
+		Dial: func(network, addr string) (net.Conn, error) {
+			return net.DialTimeout(network, addr, f.connectionTimeout)
+		},
+	})
+	if err != nil {
 		return nil, fmt.Errorf("bootstrap/rabbitmq: connect: %w", err)
-	case <-time.After(f.connectionTimeout):
-		return nil, fmt.Errorf("bootstrap/rabbitmq: connection timeout after %v", f.connectionTimeout)
-	case <-ctx.Done():
+	}
+
+	// Verificar si el contexto fue cancelado durante la conexion
+	if ctx.Err() != nil {
+		_ = conn.Close()
 		return nil, fmt.Errorf("bootstrap/rabbitmq: cancelled: %w", ctx.Err())
 	}
+
+	return conn, nil
 }
 
 // CreateChannel crea un canal AMQP con QoS configurado.
@@ -106,8 +103,5 @@ func (f *Factory) Close(channel *amqp.Channel, conn *amqp.Connection) error {
 		}
 	}
 
-	if len(errs) > 0 {
-		return fmt.Errorf("close errors: %v", errs)
-	}
-	return nil
+	return errors.Join(errs...)
 }

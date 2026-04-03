@@ -30,8 +30,8 @@ Modulo: `middleware/gin`
 | Permission Auth | Done | — | IAM, Admin | `permission_auth.go` ya en shared |
 | Request Logging | Done | — | IAM, Admin, Mobile | `request_logging.go` ya en shared |
 | Audit Middleware | Done | — | IAM, Admin | `audit.go` ya en shared |
-| Error Handler | Ready | IAM, Admin, Mobile | IAM, Admin, Mobile | 3 variaciones: IAM sin panic recovery, Admin con recovery, Mobile la mas completa (slog + HandleError). Unificar con la version Mobile como base |
-| Remote Auth | Ready | Admin, Mobile | Admin, Mobile | Casi identico en ambos: extrae Bearer token, valida con AuthClient, inyecta context keys. IAM usa JWT Auth directo |
+| Error Handler | Done | IAM, Admin, Mobile | IAM, Admin, Mobile | PR #131. Combina panic recovery + c.Errors + HandleError(). Usa GetLogger(c) para logs correlacionados |
+| Remote Auth | Done | Admin, Mobile | Admin, Mobile | PR #131. Extraido de Admin/Mobile (identicos). IAM usa JWT Auth directo |
 | Metrics (Prometheus) | Evaluate | Mobile | Mobile | Counters y histograms HTTP. Util para estandarizar metricas en todos los servicios |
 
 ---
@@ -42,7 +42,7 @@ Modulo propuesto: `client/auth` y `client/iam`
 
 | Componente | Estado | Origen | Servicios que lo usan | Notas |
 |------------|--------|--------|-----------------------|-------|
-| Auth Client | Ready | Admin, Mobile, Worker | Admin, Mobile, Worker | JWT validation con caching (SHA256 + TTL), fallback local/remoto. Worker tiene version con circuit breaker. Unificar patron base |
+| Auth Client | Done | Admin, Mobile, Worker | Admin, Mobile (Worker usa version propia con circuit breaker) | PR #131. Vive en `middleware/gin/auth_client.go`. JWT local + fallback remoto + cache SHA256+TTL |
 | IAM Client | Evaluate | Admin, Mobile | Admin, Mobile | HTTP client para roles y permisos (grant, revoke, get user roles). Admin y Mobile tienen versiones similares |
 
 ---

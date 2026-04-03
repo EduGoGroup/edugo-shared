@@ -4,6 +4,14 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/middleware/g
 
 ## [Unreleased]
 
+## [0.103.0] - 2026-04-03
+
+### Added
+
+- Defensive input clamping in `NewPaginatedResponse`: `total` and `limit` are clamped to minimum 0, preventing negative values in `TotalPages`, `PerPage`, and `Total`.
+- Godoc on `NewPaginatedResponse` documenting `limit` → `per_page` JSON mapping.
+- Tests for negative input edge cases: `NegativeTotal`, `NegativeLimit`, `BothNegative`.
+
 ## [0.101.0] - 2026-04-02
 
 ### Added

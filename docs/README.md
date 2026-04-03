@@ -28,3 +28,8 @@ Este directorio concentra la documentacion transversal del repositorio. El detal
 - [Roadmap general](roadmap/README.md)
 - [Fase 2: integracion con el ecosistema](roadmap/phase-2-ecosystem.md)
 - [Fase 3: operacion por modulo](roadmap/phase-3-module-operations.md)
+
+## Code Review
+
+- [Hallazgos profundos 2026-04-03](code-review/2026-04-03-hallazgos.md)
+- [Plan de correccion 2026-04-03](code-review/2026-04-03-plan-correccion.md)

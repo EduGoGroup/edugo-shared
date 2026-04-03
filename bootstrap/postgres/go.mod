@@ -3,7 +3,7 @@ module github.com/EduGoGroup/edugo-shared/bootstrap/postgres
 go 1.25.0
 
 require (
-	github.com/EduGoGroup/edugo-shared/bootstrap v0.100.0
+	github.com/EduGoGroup/edugo-shared/bootstrap v0.101.0
 	github.com/jackc/pgx/v5 v5.9.1
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/gorm v1.31.1

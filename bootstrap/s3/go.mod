@@ -3,7 +3,7 @@ module github.com/EduGoGroup/edugo-shared/bootstrap/s3
 go 1.25.0
 
 require (
-	github.com/EduGoGroup/edugo-shared/bootstrap v0.100.0
+	github.com/EduGoGroup/edugo-shared/bootstrap v0.101.0
 	github.com/aws/aws-sdk-go-v2 v1.41.4
 	github.com/aws/aws-sdk-go-v2/config v1.32.12
 	github.com/aws/aws-sdk-go-v2/credentials v1.19.12

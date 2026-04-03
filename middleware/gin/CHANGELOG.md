@@ -4,6 +4,22 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/middleware/g
 
 ## [Unreleased]
 
+## [0.101.0] - 2026-04-02
+
+### Added
+
+- Middleware CORS compartido (`CORSMiddleware`) con `CORSConfig` para unificar comportamiento entre servicios consumidores.
+- Helper `BindJSON` para binding + validación con errores por campo usando `common/errors`.
+- Nuevas pruebas para `auth_client`, `bind` y `cors` para reforzar cobertura del módulo.
+
+### Changed
+
+- CORS: en entornos no `development/local`, el wildcard se maneja en modo fail-closed sin terminar el proceso.
+- CORS: se evita la combinación inválida `Access-Control-Allow-Origin: *` con `Access-Control-Allow-Credentials: true` reflejando `Origin` cuando corresponde.
+- CORS: `Vary` ahora se fusiona (append) en lugar de sobrescribirse.
+- Bind: los errores de validación priorizan el nombre real del campo desde el tag `json` (fallback a `snake_case`).
+- Cobertura del módulo actualizada para cumplir umbral del pipeline (>=95%).
+
 ## [0.100.0] - 2026-04-02
 
 ### Added

@@ -1,33 +1,20 @@
-// Package bootstrap coordina la inicializacion de recursos de infraestructura.
+// Package bootstrap define tipos compartidos para la inicializacion de
+// recursos de infraestructura.
 //
-// # API Publica
+// # Arquitectura
 //
-// Tipos principales:
-//   - [Resources] contiene los recursos inicializados (logger, DB, MQ, storage)
-//   - [Factories] agrupa las factory interfaces para crear recursos
-//   - [BootstrapOptions] configura el comportamiento del bootstrap
+// El modulo raiz contiene configs, opciones y tipos de error.
+// Cada tecnologia tiene su propio sub-modulo con la implementacion:
 //
-// Interfaces de factory:
-//   - [LoggerFactory], [PostgreSQLFactory], [MongoDBFactory], [RabbitMQFactory], [S3Factory]
+//   - [bootstrap/postgres] — Factory PostgreSQL + GORM
+//   - [bootstrap/mongodb]  — Factory MongoDB
+//   - [bootstrap/rabbitmq] — Factory RabbitMQ
+//   - [bootstrap/s3]       — Factory S3
 //
-// Interfaces de recurso:
-//   - [MessagePublisher], [StorageClient], [DatabaseClient], [HealthChecker]
+// # Tipos principales
 //
-// Constructores de factories por defecto:
-//   - [NewDefaultLoggerFactory] — logrus
-//   - [NewDefaultPostgreSQLFactory] — GORM
-//   - [NewDefaultMongoDBFactory] — mongo-driver v2
-//   - [NewDefaultRabbitMQFactory] — amqp091
-//   - [NewDefaultS3Factory] — AWS SDK v2
-//
-// Opciones funcionales:
-//   - [WithRequiredResources], [WithOptionalResources], [WithSkipHealthCheck],
-//     [WithMockFactories], [WithStopOnFirstError]
-//
-// Funcion principal:
-//   - [Bootstrap] orquesta la inicializacion completa
-//
-// Las implementaciones concretas de las factories son tipos no exportados.
-// Los constructores retornan las interfaces correspondientes, permitiendo
-// inyeccion de dependencias y testing sin acoplar a implementaciones especificas.
+//   - [PostgreSQLConfig], [MongoDBConfig], [RabbitMQConfig], [S3Config] — configuracion
+//   - [GORMOption], [WithGORMLogger], [WithSimpleProtocol] — opciones funcionales para GORM
+//   - [LifecycleManager] — interface para registro de cleanup
+//   - [ErrMissingFactory], [ErrConnectionFailed] — errores tipados
 package bootstrap

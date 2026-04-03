@@ -55,7 +55,7 @@ Modulo propuesto: `resilience/`
 |------------|--------|--------|-----------------------|-------|
 | Circuit Breaker | Done | Worker | Worker (NLP client) | `resilience/circuitbreaker/`. MetricsHook interface para metricas opcionales |
 | Rate Limiter | Done | Worker | Worker | `resilience/ratelimiter/`. Token bucket + MultiRateLimiter por entidad |
-| Retry Policy | Ready | Worker | Worker (processors) | Backoff exponencial con clasificacion de errores (transient vs permanent). Aplica a cualquier operacion con reintentos |
+| Retry Policy | Done | Worker | Worker (processors) | `resilience/retry/`. Backoff exponencial con ErrorClassifier inyectable. Worker mantiene classifyError local para errores PDF |
 
 ---
 

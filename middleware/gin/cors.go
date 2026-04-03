@@ -1,7 +1,6 @@
 package gin
 
 import (
-	"log"
 	"slices"
 	"strings"
 
@@ -18,34 +17,28 @@ type CORSConfig struct {
 }
 
 // CORSMiddleware crea un middleware Gin para CORS.
-// Bloquea wildcard (*) en entornos que no sean development/local (fail-closed).
-// En entornos no-development, si se detecta wildcard se llama log.Fatalf.
+// En development/local permite wildcard (*), en otros entornos requiere orígenes explícitos (fail-closed).
 func CORSMiddleware(cfg CORSConfig, environment string) gin.HandlerFunc {
 	allowedOrigins := parseCSV(cfg.AllowedOrigins)
 
 	hasWildcard := slices.Contains(allowedOrigins, "*")
 
-	// Bloquear wildcard CORS en entornos que no sean development (fail-closed: env vacio se trata como non-development)
+	// Normalizar ambiente: env vacío se trata como non-development (fail-closed)
 	normalizedEnv := strings.ToLower(strings.TrimSpace(environment))
-
-	if hasWildcard && normalizedEnv != "development" && normalizedEnv != "local" {
-		envForLog := environment
-		if strings.TrimSpace(environment) == "" {
-			envForLog = "non-development"
-		}
-		log.Fatalf("CORS wildcard (*) is not allowed in %s environment. Set CORS_ALLOWED_ORIGINS explicitly.", envForLog)
-	}
+	allowsWildcard := normalizedEnv == "development" || normalizedEnv == "local"
 
 	return func(c *gin.Context) {
 		origin := c.Request.Header.Get("Origin")
 
-		originAllowed := origin != "" && isOriginAllowed(origin, allowedOrigins)
+		originAllowed := origin != "" && isOriginAllowed(origin, allowedOrigins, allowsWildcard)
 		if originAllowed {
-			if hasWildcard {
+			// Wildcard solo en development/local; otros entornos reflejan el origin
+			if hasWildcard && allowsWildcard {
 				c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 			} else {
+				// Reflejar origin para evitar combinación inválida: * + credentials
 				c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
-				c.Writer.Header().Set("Vary", "Origin")
+				appendVaryHeader(c, "Origin")
 			}
 			c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 			c.Writer.Header().Set("Access-Control-Expose-Headers", "Content-Length,ETag,X-Request-ID,X-Correlation-ID")
@@ -80,14 +73,30 @@ func parseCSV(csv string) []string {
 	return result
 }
 
-func isOriginAllowed(origin string, allowedOrigins []string) bool {
+func isOriginAllowed(origin string, allowedOrigins []string, allowsWildcard bool) bool {
 	if origin == "" {
 		return false
 	}
 	for _, allowed := range allowedOrigins {
-		if allowed == "*" || allowed == origin {
+		switch allowed {
+		case "*":
+			// Solo permito wildcard en dev/local
+			if allowsWildcard {
+				return true
+			}
+		case origin:
 			return true
 		}
 	}
 	return false
+}
+
+// appendVaryHeader agrega "Origin" al header Vary, evitando sobrescribir valores existentes
+func appendVaryHeader(c *gin.Context, value string) {
+	existing := c.Writer.Header().Get("Vary")
+	if existing == "" {
+		c.Writer.Header().Set("Vary", value)
+	} else if !strings.Contains(existing, value) {
+		c.Writer.Header().Set("Vary", existing+","+value)
+	}
 }

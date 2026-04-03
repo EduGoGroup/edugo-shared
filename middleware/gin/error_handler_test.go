@@ -23,8 +23,8 @@ func (l *testLogger) Info(msg string, args ...any)  { l.messages = append(l.mess
 func (l *testLogger) Warn(msg string, args ...any)  { l.messages = append(l.messages, msg) }
 func (l *testLogger) Error(msg string, args ...any) { l.messages = append(l.messages, msg) }
 func (l *testLogger) Fatal(msg string, args ...any) { l.messages = append(l.messages, msg) }
-func (l *testLogger) With(_ ...any) logger.Logger    { return l }
-func (l *testLogger) Sync() error                    { return nil }
+func (l *testLogger) With(_ ...any) logger.Logger   { return l }
+func (l *testLogger) Sync() error                   { return nil }
 
 func TestErrorHandler_PanicRecovery(t *testing.T) {
 	gin.SetMode(gin.TestMode)

@@ -114,7 +114,7 @@ func TestRemoteAuthMiddleware(t *testing.T) {
 			})
 
 			w := httptest.NewRecorder()
-			req, _ := http.NewRequest(http.MethodGet, "/test", nil)
+			req, _ := http.NewRequest(http.MethodGet, "/test", nil) //nolint:errcheck
 			if tt.authHeader != "" {
 				req.Header.Set("Authorization", tt.authHeader)
 			}

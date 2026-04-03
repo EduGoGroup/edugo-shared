@@ -37,7 +37,7 @@ func TestErrorHandler_PanicRecovery(t *testing.T) {
 	})
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/panic", nil)
+	req, _ := http.NewRequest("GET", "/panic", nil) //nolint:errcheck
 	r.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
@@ -56,11 +56,11 @@ func TestErrorHandler_AppError(t *testing.T) {
 	r := gin.New()
 	r.Use(ErrorHandler(log))
 	r.GET("/test", func(c *gin.Context) {
-		_ = c.Error(errors.NewNotFoundError("user"))
+		_ = c.Error(errors.NewNotFoundError("user")) //nolint:errcheck
 	})
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/test", nil)
+	req, _ := http.NewRequest("GET", "/test", nil) //nolint:errcheck
 	r.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusNotFound, w.Code)
@@ -82,11 +82,11 @@ func TestErrorHandler_AppErrorWithFields(t *testing.T) {
 			"name":  "field is required",
 			"email": "invalid email format",
 		})
-		_ = c.Error(appErr)
+		_ = c.Error(appErr) //nolint:errcheck
 	})
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/test", nil)
+	req, _ := http.NewRequest("GET", "/test", nil) //nolint:errcheck
 	r.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -106,11 +106,11 @@ func TestErrorHandler_UnexpectedError(t *testing.T) {
 	r := gin.New()
 	r.Use(ErrorHandler(log))
 	r.GET("/test", func(c *gin.Context) {
-		_ = c.Error(fmt.Errorf("something went wrong"))
+		_ = c.Error(fmt.Errorf("something went wrong")) //nolint:errcheck
 	})
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/test", nil)
+	req, _ := http.NewRequest("GET", "/test", nil) //nolint:errcheck
 	r.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
@@ -132,7 +132,7 @@ func TestErrorHandler_NoError(t *testing.T) {
 	})
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/test", nil)
+	req, _ := http.NewRequest("GET", "/test", nil) //nolint:errcheck
 	r.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Code)
@@ -144,7 +144,7 @@ func TestHandleError_DirectCall(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
-	c.Request, _ = http.NewRequest("GET", "/test", nil)
+	c.Request, _ = http.NewRequest("GET", "/test", nil) //nolint:errcheck
 
 	HandleError(c, errors.NewValidationError("bad input"))
 

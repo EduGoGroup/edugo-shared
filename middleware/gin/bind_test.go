@@ -24,7 +24,7 @@ func TestBindJSON_ValidRequest(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
-	c.Request, _ = http.NewRequest("POST", "/test", bytes.NewBufferString(`{"name":"John","email":"john@example.com","age":25}`))
+	c.Request, _ = http.NewRequest("POST", "/test", bytes.NewBufferString(`{"name":"John","email":"john@example.com","age":25}`)) //nolint:errcheck
 	c.Request.Header.Set("Content-Type", "application/json")
 
 	var req testBindRequest
@@ -41,7 +41,7 @@ func TestBindJSON_MissingRequiredField(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
-	c.Request, _ = http.NewRequest("POST", "/test", bytes.NewBufferString(`{"email":"john@example.com","age":25}`))
+	c.Request, _ = http.NewRequest("POST", "/test", bytes.NewBufferString(`{"email":"john@example.com","age":25}`)) //nolint:errcheck
 	c.Request.Header.Set("Content-Type", "application/json")
 
 	var req testBindRequest
@@ -59,7 +59,7 @@ func TestBindJSON_InvalidEmail(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
-	c.Request, _ = http.NewRequest("POST", "/test", bytes.NewBufferString(`{"name":"John","email":"not-an-email","age":25}`))
+	c.Request, _ = http.NewRequest("POST", "/test", bytes.NewBufferString(`{"name":"John","email":"not-an-email","age":25}`)) //nolint:errcheck
 	c.Request.Header.Set("Content-Type", "application/json")
 
 	var req testBindRequest
@@ -77,7 +77,7 @@ func TestBindJSON_InvalidJSON(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
-	c.Request, _ = http.NewRequest("POST", "/test", bytes.NewBufferString(`{invalid json`))
+	c.Request, _ = http.NewRequest("POST", "/test", bytes.NewBufferString(`{invalid json`)) //nolint:errcheck
 	c.Request.Header.Set("Content-Type", "application/json")
 
 	var req testBindRequest
@@ -128,7 +128,7 @@ func TestValidationMessage_MinMaxDistinguishesKind(t *testing.T) {
 	// String min -> "minimum length is 3"
 	w1 := httptest.NewRecorder()
 	c1, _ := gin.CreateTestContext(w1)
-	c1.Request, _ = http.NewRequest("POST", "/", bytes.NewBufferString(`{"name":"ab"}`))
+	c1.Request, _ = http.NewRequest("POST", "/", bytes.NewBufferString(`{"name":"ab"}`)) //nolint:errcheck
 	c1.Request.Header.Set("Content-Type", "application/json")
 
 	var sr stringMinReq
@@ -141,7 +141,7 @@ func TestValidationMessage_MinMaxDistinguishesKind(t *testing.T) {
 	// Int min -> "minimum value is 1"
 	w2 := httptest.NewRecorder()
 	c2, _ := gin.CreateTestContext(w2)
-	c2.Request, _ = http.NewRequest("POST", "/", bytes.NewBufferString(`{"age":0}`))
+	c2.Request, _ = http.NewRequest("POST", "/", bytes.NewBufferString(`{"age":0}`)) //nolint:errcheck
 	c2.Request.Header.Set("Content-Type", "application/json")
 
 	var ir intMinReq

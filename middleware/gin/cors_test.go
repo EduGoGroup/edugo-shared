@@ -26,7 +26,7 @@ func TestCORSMiddleware_WildcardInDevelopment(t *testing.T) {
 	r.GET("/test", func(c *gin.Context) { c.Status(200) })
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/test", nil)
+	req, _ := http.NewRequest("GET", "/test", nil) //nolint:errcheck
 	req.Header.Set("Origin", "http://localhost:3000")
 	r.ServeHTTP(w, req)
 
@@ -49,7 +49,7 @@ func TestCORSMiddleware_WildcardInLocal(t *testing.T) {
 	r.GET("/test", func(c *gin.Context) { c.Status(200) })
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/test", nil)
+	req, _ := http.NewRequest("GET", "/test", nil) //nolint:errcheck
 	req.Header.Set("Origin", "http://localhost:3000")
 	r.ServeHTTP(w, req)
 
@@ -72,7 +72,7 @@ func TestCORSMiddleware_ExplicitOriginsEmptyEnv(t *testing.T) {
 	r.GET("/test", func(c *gin.Context) { c.Status(200) })
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/test", nil)
+	req, _ := http.NewRequest("GET", "/test", nil) //nolint:errcheck
 	req.Header.Set("Origin", "https://app.edugo.com")
 	r.ServeHTTP(w, req)
 
@@ -96,7 +96,7 @@ func TestCORSMiddleware_ExplicitOriginsInProduction(t *testing.T) {
 
 	// Allowed origin
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/test", nil)
+	req, _ := http.NewRequest("GET", "/test", nil) //nolint:errcheck
 	req.Header.Set("Origin", "https://app.edugo.com")
 	r.ServeHTTP(w, req)
 
@@ -109,7 +109,7 @@ func TestCORSMiddleware_ExplicitOriginsInProduction(t *testing.T) {
 
 	// Disallowed origin
 	w2 := httptest.NewRecorder()
-	req2, _ := http.NewRequest("GET", "/test", nil)
+	req2, _ := http.NewRequest("GET", "/test", nil) //nolint:errcheck
 	req2.Header.Set("Origin", "https://evil.com")
 	r.ServeHTTP(w2, req2)
 
@@ -131,7 +131,7 @@ func TestCORSMiddleware_PreflightResponse(t *testing.T) {
 	r.GET("/test", func(c *gin.Context) { c.Status(200) })
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("OPTIONS", "/test", nil)
+	req, _ := http.NewRequest("OPTIONS", "/test", nil) //nolint:errcheck
 	req.Header.Set("Origin", "https://app.edugo.com")
 	r.ServeHTTP(w, req)
 
@@ -159,7 +159,7 @@ func TestCORSMiddleware_ExposeHeadersOnNormalResponse(t *testing.T) {
 	r.GET("/test", func(c *gin.Context) { c.Status(200) })
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/test", nil)
+	req, _ := http.NewRequest("GET", "/test", nil) //nolint:errcheck
 	req.Header.Set("Origin", "https://app.edugo.com")
 	r.ServeHTTP(w, req)
 
@@ -181,7 +181,7 @@ func TestCORSMiddleware_PreflightDisallowedOrigin(t *testing.T) {
 	r.GET("/test", func(c *gin.Context) { c.Status(200) })
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("OPTIONS", "/test", nil)
+	req, _ := http.NewRequest("OPTIONS", "/test", nil) //nolint:errcheck
 	req.Header.Set("Origin", "https://evil.com")
 	r.ServeHTTP(w, req)
 
@@ -209,7 +209,7 @@ func TestCORSMiddleware_VaryOriginHeader(t *testing.T) {
 	r.GET("/test", func(c *gin.Context) { c.Status(200) })
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/test", nil)
+	req, _ := http.NewRequest("GET", "/test", nil) //nolint:errcheck
 	req.Header.Set("Origin", "https://app.edugo.com")
 	r.ServeHTTP(w, req)
 
@@ -231,7 +231,7 @@ func TestCORSMiddleware_NoOriginHeader(t *testing.T) {
 	r.GET("/test", func(c *gin.Context) { c.Status(200) })
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/test", nil)
+	req, _ := http.NewRequest("GET", "/test", nil) //nolint:errcheck
 	// No Origin header
 	r.ServeHTTP(w, req)
 

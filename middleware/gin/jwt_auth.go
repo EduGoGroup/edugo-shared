@@ -1,7 +1,6 @@
 package gin
 
 import (
-	"log/slog"
 	"net/http"
 
 	"github.com/EduGoGroup/edugo-shared/auth"
@@ -27,9 +26,9 @@ func JWTAuthMiddleware(jwtManager *auth.JWTManager) gin.HandlerFunc {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
 			GetLogger(c).Warn("missing authorization header",
-				slog.String(logger.FieldPath, requestPath(c)),
-				slog.String(logger.FieldMethod, requestMethod(c)),
-				slog.String(logger.FieldIP, c.ClientIP()),
+				logger.FieldPath, requestPath(c),
+				logger.FieldMethod, requestMethod(c),
+				logger.FieldIP, c.ClientIP(),
 			)
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": "authorization header required",
@@ -45,9 +44,9 @@ func JWTAuthMiddleware(jwtManager *auth.JWTManager) gin.HandlerFunc {
 			tokenString = authHeader[7:]
 		} else {
 			GetLogger(c).Warn("invalid authorization header format",
-				slog.String(logger.FieldPath, requestPath(c)),
-				slog.String(logger.FieldMethod, requestMethod(c)),
-				slog.String(logger.FieldIP, c.ClientIP()),
+				logger.FieldPath, requestPath(c),
+				logger.FieldMethod, requestMethod(c),
+				logger.FieldIP, c.ClientIP(),
 			)
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": "invalid authorization header format, expected 'Bearer {token}'",
@@ -61,10 +60,10 @@ func JWTAuthMiddleware(jwtManager *auth.JWTManager) gin.HandlerFunc {
 		claims, err := jwtManager.ValidateToken(tokenString)
 		if err != nil {
 			GetLogger(c).Warn("jwt validation failed",
-				slog.String(logger.FieldPath, requestPath(c)),
-				slog.String(logger.FieldMethod, requestMethod(c)),
-				slog.String(logger.FieldIP, c.ClientIP()),
-				slog.String(logger.FieldError, err.Error()),
+				logger.FieldPath, requestPath(c),
+				logger.FieldMethod, requestMethod(c),
+				logger.FieldIP, c.ClientIP(),
+				logger.FieldError, err.Error(),
 			)
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": "invalid or expired token",
@@ -92,9 +91,9 @@ func JWTAuthMiddlewareWithBlacklist(jwtManager *auth.JWTManager, blacklist auth.
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
 			GetLogger(c).Warn("missing authorization header",
-				slog.String(logger.FieldPath, requestPath(c)),
-				slog.String(logger.FieldMethod, requestMethod(c)),
-				slog.String(logger.FieldIP, c.ClientIP()),
+				logger.FieldPath, requestPath(c),
+				logger.FieldMethod, requestMethod(c),
+				logger.FieldIP, c.ClientIP(),
 			)
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": "authorization header required",
@@ -110,9 +109,9 @@ func JWTAuthMiddlewareWithBlacklist(jwtManager *auth.JWTManager, blacklist auth.
 			tokenString = authHeader[7:]
 		} else {
 			GetLogger(c).Warn("invalid authorization header format",
-				slog.String(logger.FieldPath, requestPath(c)),
-				slog.String(logger.FieldMethod, requestMethod(c)),
-				slog.String(logger.FieldIP, c.ClientIP()),
+				logger.FieldPath, requestPath(c),
+				logger.FieldMethod, requestMethod(c),
+				logger.FieldIP, c.ClientIP(),
 			)
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": "invalid authorization header format, expected 'Bearer {token}'",
@@ -126,10 +125,10 @@ func JWTAuthMiddlewareWithBlacklist(jwtManager *auth.JWTManager, blacklist auth.
 		claims, err := jwtManager.ValidateToken(tokenString)
 		if err != nil {
 			GetLogger(c).Warn("jwt validation failed",
-				slog.String(logger.FieldPath, requestPath(c)),
-				slog.String(logger.FieldMethod, requestMethod(c)),
-				slog.String(logger.FieldIP, c.ClientIP()),
-				slog.String(logger.FieldError, err.Error()),
+				logger.FieldPath, requestPath(c),
+				logger.FieldMethod, requestMethod(c),
+				logger.FieldIP, c.ClientIP(),
+				logger.FieldError, err.Error(),
 			)
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": "invalid or expired token",
@@ -142,10 +141,10 @@ func JWTAuthMiddlewareWithBlacklist(jwtManager *auth.JWTManager, blacklist auth.
 		// 4. Verificar si el token fue revocado
 		if blacklist != nil && blacklist.IsRevoked(claims.ID) {
 			GetLogger(c).Warn("revoked token used",
-				slog.String(logger.FieldPath, requestPath(c)),
-				slog.String(logger.FieldMethod, requestMethod(c)),
-				slog.String(logger.FieldIP, c.ClientIP()),
-				slog.String("jti", claims.ID),
+				logger.FieldPath, requestPath(c),
+				logger.FieldMethod, requestMethod(c),
+				logger.FieldIP, c.ClientIP(),
+				"jti", claims.ID,
 			)
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": "token has been revoked",

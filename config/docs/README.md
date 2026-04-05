@@ -4,74 +4,113 @@ Carga configuración YAML con Viper, la mezcla con variables de entorno y la val
 
 ## Propósito
 
-Proporcionar carga y validación declarativa de configuración usando YAML con soporte para sobrescritura via variables de entorno.
+Proveer un mecanismo de carga y validación declarativa de configuración. El módulo define **cómo** se carga, no **qué** se carga: cada servicio define su propio struct de configuración.
 
 ## Componentes principales
 
 ### Loader — Carga configurable
 
-Constructor con opciones para path, nombre de archivo, tipo (YAML/JSON) y prefijo de variables de entorno.
+Instancia local de Viper por llamada. No usa singleton global.
 
-**Métodos principales:**
-- `NewLoader(options ...LoaderOption) *Loader` — Constructor con opciones
-- `Load(v interface{}) error` — Cargar desde archivo (tolera ausencia) y sobrescribir con env vars
-- `LoadFromFile(path string, v interface{}) error` — Cargar desde archivo específico (exige existencia)
+**Constructor:**
+```go
+loader := config.NewLoader(opts ...config.LoaderOption) *config.Loader
+```
 
-**Opciones (LoaderOption):**
-- `WithPath(path string)` — Directorio donde buscar archivo
-- `WithName(name string)` — Nombre del archivo sin extensión (ej. "app" → "app.yaml")
-- `WithType(typ string)` — Tipo: "yaml", "json", "toml", etc.
-- `WithEnvPrefix(prefix string)` — Prefijo para variables de entorno (ej. "APP_")
+**Opciones disponibles:**
 
-### BaseConfig — Estructura de configuración
+```go
+config.WithConfigPath("./config")          // directorio de búsqueda (apilable)
+config.WithConfigName("config")            // nombre del archivo sin extensión
+config.WithConfigType("yaml")              // formato: yaml, json, toml
+config.WithEnvPrefix("APP")               // prefijo para AutomaticEnv
+config.WithEnvironmentOverride("dev")      // fusiona config-dev.yaml sobre config.yaml
+config.WithEnvFiles(".env", "../.env")     // archivos .env a cargar antes de Viper
+config.WithDefaults(map[string]interface{}{"server.port": 8080})
+config.WithExplicitBindings(map[string]string{"database.password": "POSTGRES_PASSWORD"})
+```
 
-Estructura base que define configuración común para servicios: servidor, logger, base de datos y bootstrap.
+**Métodos de carga:**
 
-**Campos principales:**
-- `Server` — Puerto, host, timeouts HTTP
-- `Logger` — Nivel, formato (JSON/text), salida
-- `Database` — PostgreSQL: host, puerto, usuario, contraseña, base de datos, pool
-- `MongoDB` — (opcional) host, puerto, base de datos
-- `Bootstrap` — Configuración de inicialización específica del servicio
+```go
+// Tolera ausencia del archivo; continúa con env vars y defaults
+err := loader.Load(cfg)
+
+// Exige que el archivo exista; falla si no lo encuentra
+err := loader.LoadFromFile(cfg)
+```
+
+Ambos métodos son simétricos: aplican defaults, explicitBindings, envPrefix y AutomaticEnv.
+
+**Acceso por key tras la carga:**
+
+```go
+loader.Get("server.port")         // any
+loader.GetString("log.level")     // string
+loader.GetInt("server.port")      // int
+loader.GetBool("feature.enabled") // bool
+```
+
+Los métodos `Get*` retornan el zero value si se llaman antes de `Load()` o `LoadFromFile()`.
 
 ### Validator — Validación estructurada
 
-Valida configuración usando tags struct (`required`, `min`, `max`, `email`, etc.).
+```go
+v := config.NewValidator()
 
-**Métodos:**
-- `NewValidator() *Validator`
-- `Validate(v interface{}) error` — Retorna ValidationError si hay problemas
+// Valida un struct completo con tags validate:"..."
+err := v.Validate(cfg)
+
+// Valida un campo puntual
+err := v.ValidateField("user@example.com", "email")
+```
 
 **ValidationError:**
+
 ```go
 type ValidationError struct {
-    Errors map[string][]string // campo -> lista de errores
+    Errors []FieldError
+}
+
+type FieldError struct {
+    Field   string // nombre del campo
+    Tag     string // tag que falló (required, min, oneof, ...)
+    Value   any    // valor que se intentó validar
+    Message string // mensaje legible
 }
 ```
 
+Tags soportados con mensaje legible: `required`, `min`, `max`, `oneof`, `email`, `url`. Cualquier otro tag retorna un mensaje genérico.
+
 ## Flujos comunes
 
-### 1. Cargar y validar configuración al inicializar
+### 1. Carga estándar con archivo YAML y env vars
 
 ```go
-func initConfig() (*config.BaseConfig, error) {
-    // Crear loader
-    loader := config.NewLoader(
-        config.WithPath("./config"),
-        config.WithName("app"),
-        config.WithType("yaml"),
-        config.WithEnvPrefix("APP"),
+// internal/config/config.go
+
+type Config struct {
+    Environment string         `mapstructure:"app_env"      validate:"required,oneof=local dev qa prod"`
+    ServiceName string         `mapstructure:"service_name" validate:"required"`
+    Server      ServerConfig   `mapstructure:"server"`
+    Database    DatabaseConfig `mapstructure:"database"`
+}
+
+func Load() (*Config, error) {
+    loader := sharedconfig.NewLoader(
+        sharedconfig.WithConfigPath("./config"),
+        sharedconfig.WithEnvPrefix(""),
+        sharedconfig.WithEnvFiles(".env", "../.env"),
+        sharedconfig.WithEnvironmentOverride(os.Getenv("APP_ENV")),
     )
 
-    // Cargar configuración
-    cfg := &config.BaseConfig{}
+    cfg := &Config{}
     if err := loader.Load(cfg); err != nil {
-        return nil, fmt.Errorf("failed to load config: %w", err)
+        return nil, fmt.Errorf("loading config: %w", err)
     }
 
-    // Validar
-    validator := config.NewValidator()
-    if err := validator.Validate(cfg); err != nil {
+    v := sharedconfig.NewValidator()
+    if err := v.Validate(cfg); err != nil {
         return nil, fmt.Errorf("invalid config: %w", err)
     }
 
@@ -79,102 +118,131 @@ func initConfig() (*config.BaseConfig, error) {
 }
 ```
 
-### 2. Sobrescribir archivo YAML con variables de entorno
+### 2. Secrets sin prefijo con ExplicitBindings
 
-```yaml
-# config/app.yaml
-server:
-  port: 8080
-  host: localhost
-database:
-  host: localhost
-  port: 5432
-  database: edugo
-```
-
-```bash
-# Al ejecutar:
-export APP_SERVER_PORT=9000
-export APP_DATABASE_HOST=prod.db.com
-
-# El Loader:
-# 1. Lee config/app.yaml
-# 2. Aplica AutomaticEnv() para buscar APP_* variables
-# 3. Sobrescribe: server.port = 9000, database.host = prod.db.com
-```
-
-### 3. Manejar errores de validación
+Para secrets inyectados directamente como variables de entorno (sin prefijo del servicio):
 
 ```go
-validator := config.NewValidator()
+loader := sharedconfig.NewLoader(
+    sharedconfig.WithConfigPath("./config"),
+    sharedconfig.WithEnvPrefix("MYSERVICE"),
+    sharedconfig.WithExplicitBindings(map[string]string{
+        "database.postgres.password": "POSTGRES_PASSWORD",
+        "messaging.rabbitmq.url":     "RABBITMQ_URL",
+        "auth.jwt_secret":            "JWT_SECRET",
+    }),
+)
+```
+
+Con esto, `POSTGRES_PASSWORD` se mapea directamente a `database.postgres.password` independientemente del prefijo `MYSERVICE`.
+
+### 3. Valores por defecto en memoria
+
+```go
+loader := sharedconfig.NewLoader(
+    sharedconfig.WithConfigPath("./config"),
+    sharedconfig.WithDefaults(map[string]interface{}{
+        "server.port":         8080,
+        "server.read_timeout": "30s",
+        "log.level":           "info",
+        "log.format":          "json",
+    }),
+)
+```
+
+Los defaults tienen la prioridad más baja: archivo YAML y env vars los sobrescriben.
+
+### 4. Fusionar archivo de entorno
+
+```go
+// Carga config.yaml, luego fusiona config-prod.yaml encima
+loader := sharedconfig.NewLoader(
+    sharedconfig.WithConfigPath("./config"),
+    sharedconfig.WithEnvironmentOverride("prod"),
+)
+```
+
+Si `config-prod.yaml` no existe, se ignora silenciosamente.
+
+### 5. Cargar solo desde variables de entorno (sin archivo)
+
+`AutomaticEnv()` solo resuelve keys que Viper ya conoce. Sin archivo ni defaults, `Unmarshal` no sabe qué buscar. Usar `WithExplicitBindings` para este caso:
+
+```go
+loader := sharedconfig.NewLoader(
+    sharedconfig.WithExplicitBindings(map[string]string{
+        "environment":        "APP_ENV",
+        "database.host":      "DB_HOST",
+        "database.password":  "DB_PASSWORD",
+    }),
+)
+
+cfg := &Config{}
+_ = loader.Load(cfg) // tolera ausencia de archivo
+```
+
+### 6. Manejar errores de validación
+
+```go
 err := validator.Validate(cfg)
 
-if validationErr, ok := err.(config.ValidationError); ok {
-    for field, messages := range validationErr.Errors {
-        fmt.Printf("Field %q has errors: %v\n", field, messages)
-        // Output: Field "Database.Password" has errors: ["required"]
+var valErr *config.ValidationError
+if errors.As(err, &valErr) {
+    for _, fe := range valErr.Errors {
+        fmt.Printf("campo=%s tag=%s valor=%v mensaje=%s\n",
+            fe.Field, fe.Tag, fe.Value, fe.Message)
     }
-}
-```
-
-### 4. Cargar desde archivo específico
-
-```go
-// LoadFromFile exige que el archivo exista
-err := loader.LoadFromFile("./config/prod.yaml", cfg)
-if err != nil {
-    // El archivo no existe o hay error de parsing
-    return err
 }
 ```
 
 ## Arquitectura
 
-Flujo de carga y validación:
-
 ```
-1. NewLoader(opciones)
-   ↓
-2. Load(cfg)
-   ├─ Lee archivo YAML
-   ├─ Aplica variables de entorno
-   ├─ Unmarshal a struct
-   └─ Retorna error si falla parsing
-   ↓
-3. Validator.Validate(cfg)
-   ├─ Valida tags struct (required, min, max, etc.)
-   └─ Retorna ValidationError si hay problemas
-   ↓
-4. cfg listo para usar
+NewLoader(opciones)
+    ↓
+Load(cfg) / LoadFromFile(cfg)
+    ├─ godotenv.Load(.env files)        ← solo Load()
+    ├─ viper.New()                      ← instancia local, sin singleton
+    ├─ SetConfigType / SetConfigName
+    ├─ AddConfigPath (× n rutas)
+    ├─ SetDefault (× n defaults)
+    ├─ SetEnvPrefix + AutomaticEnv
+    ├─ BindEnv (× n explicitBindings)
+    ├─ ReadInConfig                     ← tolera ausencia en Load()
+    ├─ MergeInConfig (env override)     ← opcional
+    ├─ Unmarshal → struct
+    └─ guarda instancia en l.viper
+    ↓
+Validator.Validate(cfg)
+    ├─ validate.Struct(cfg)
+    ├─ Construye []FieldError
+    └─ Retorna *ValidationError
+    ↓
+cfg listo para usar
 ```
 
 ## Dependencias
 
 - **Internas**: Ninguna (módulo independiente)
 - **Externas**:
-  - `github.com/spf13/viper` — Carga y parsing YAML/JSON
+  - `github.com/spf13/viper` — Carga y parsing YAML/JSON/TOML
   - `github.com/go-playground/validator/v10` — Validación struct
+  - `github.com/joho/godotenv` — Carga de archivos `.env`
 
 ## Testing
 
-Suite de tests completa:
-- Carga de archivos YAML/JSON
-- Sobrescritura de variables de entorno
-- Validación de estructura
-- Manejo de errores
-- Tolerancia a ausencia de archivo en Load
-
-Ejecutar:
 ```bash
 make test          # Tests básicos
-make test-race     # Tests con race detector
+make test-race     # Tests con race detector (verifica ausencia de race conditions)
 make check         # Tests + linting + format
 ```
 
+Dado que cada `Load()` usa `viper.New()`, los tests pueden correr en paralelo sin `viper.Reset()`.
+
 ## Notas de diseño
 
-- **Separación de responsabilidades**: Loader carga, Validator valida
-- **Tolerancia configurada**: `Load()` es lenient (tolera ausencia), `LoadFromFile()` es estricto
-- **Configuración base, no universal**: BaseConfig define shape estándar; servicios pueden extenderla
-- **Variables de entorno**: Mecanismo de override simple: APP_DATABASE_HOST → database.host
-- **Sin secretos**: Este módulo solo carga datos; secretos (API keys, passwords) resueltos externamente
+- **Sin struct base impuesta**: El módulo provee el mecanismo, no el esquema. Cada servicio define sus tipos según sus necesidades reales.
+- **Sin singleton global**: Cada llamada crea su propia instancia de Viper → predecible, testeable, sin estado compartido.
+- **Load vs LoadFromFile**: `Load()` es tolerante (archivo opcional, continúa con env vars). `LoadFromFile()` es estricto (archivo obligatorio).
+- **ExplicitBindings para secrets**: Secrets inyectados sin prefijo del servicio deben vincularse explícitamente. `AutomaticEnv()` solo funciona para keys ya conocidas por Viper.
+- **Sin secretos hardcodeados**: Passwords, tokens y API keys se inyectan via variables de entorno o `WithExplicitBindings`, nunca en YAML versionado.

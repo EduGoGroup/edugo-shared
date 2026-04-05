@@ -39,7 +39,7 @@ func BenchmarkSlogAdapter_With(b *testing.B) {
 
 func BenchmarkFromContext(b *testing.B) {
 	l := NewSlogProvider(SlogConfig{Level: "info", Format: "json"})
-	ctx := NewContext(context.Background(), l)
+	ctx := NewContext(context.Background(), NewSlogAdapter(l))
 	for b.Loop() {
 		_ = FromContext(ctx)
 	}

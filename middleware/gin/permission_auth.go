@@ -1,7 +1,6 @@
 package gin
 
 import (
-	"log/slog"
 	"net/http"
 	"slices"
 	"strings"
@@ -82,9 +81,9 @@ func RequirePermission(permission enum.Permission) gin.HandlerFunc {
 		if !hasPermission {
 			reqLogger := GetLogger(c)
 			reqLogger.Warn("permission denied",
-				slog.String("required_permission", permission.String()),
-				slog.String(logger.FieldPath, requestPath(c)),
-				slog.String(logger.FieldMethod, requestMethod(c)),
+				"required_permission", permission.String(),
+				logger.FieldPath, requestPath(c),
+				logger.FieldMethod, requestMethod(c),
 			)
 			c.JSON(http.StatusForbidden, gin.H{
 				"error": "forbidden",
@@ -125,9 +124,9 @@ func RequireAnyPermission(permissions ...enum.Permission) gin.HandlerFunc {
 		}
 		reqLogger := GetLogger(c)
 		reqLogger.Warn("permission denied",
-			slog.String("required_permissions", strings.Join(permNames, ",")),
-			slog.String(logger.FieldPath, requestPath(c)),
-			slog.String(logger.FieldMethod, requestMethod(c)),
+			"required_permissions", strings.Join(permNames, ","),
+			logger.FieldPath, requestPath(c),
+			logger.FieldMethod, requestMethod(c),
 		)
 		c.JSON(http.StatusForbidden, gin.H{
 			"error": "insufficient permissions",
@@ -161,9 +160,9 @@ func RequireAllPermissions(permissions ...enum.Permission) gin.HandlerFunc {
 		if len(missing) > 0 {
 			reqLogger := GetLogger(c)
 			reqLogger.Warn("permission denied",
-				slog.String("missing_permissions", strings.Join(missing, ",")),
-				slog.String(logger.FieldPath, requestPath(c)),
-				slog.String(logger.FieldMethod, requestMethod(c)),
+				"missing_permissions", strings.Join(missing, ","),
+				logger.FieldPath, requestPath(c),
+				logger.FieldMethod, requestMethod(c),
 			)
 			c.JSON(http.StatusForbidden, gin.H{
 				"error":   "insufficient permissions",

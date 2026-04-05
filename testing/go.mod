@@ -3,7 +3,7 @@ module github.com/EduGoGroup/edugo-shared/testing
 go 1.25.0
 
 require (
-	github.com/lib/pq v1.12.0
+	github.com/lib/pq v1.12.2
 	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/stretchr/testify v1.11.1
 	github.com/testcontainers/testcontainers-go v0.40.0

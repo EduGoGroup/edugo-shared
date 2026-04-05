@@ -16,12 +16,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func setupLoggingTestRouter(buf *bytes.Buffer) (*gin.Engine, *slog.Logger) {
+func setupLoggingTestRouter(buf *bytes.Buffer) (*gin.Engine, logger.Logger) {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
 
 	handler := slog.NewJSONHandler(buf, &slog.HandlerOptions{Level: slog.LevelDebug})
-	testLogger := slog.New(handler)
+	testLogger := logger.NewSlogAdapter(slog.New(handler))
 
 	r.Use(RequestLogging(testLogger))
 	return r, testLogger
@@ -174,7 +174,7 @@ func TestPostAuthLogging_EnrichesLoggerWithUserInfo(t *testing.T) {
 	r := gin.New()
 
 	handler := slog.NewJSONHandler(buf, &slog.HandlerOptions{Level: slog.LevelDebug})
-	testLogger := slog.New(handler)
+	testLogger := logger.NewSlogAdapter(slog.New(handler))
 
 	r.Use(RequestLogging(testLogger))
 
@@ -238,7 +238,7 @@ func TestPostAuthLogging_SummaryLogIncludesAuthFields(t *testing.T) {
 	r := gin.New()
 
 	handler := slog.NewJSONHandler(buf, &slog.HandlerOptions{Level: slog.LevelDebug})
-	testLogger := slog.New(handler)
+	testLogger := logger.NewSlogAdapter(slog.New(handler))
 
 	r.Use(RequestLogging(testLogger))
 	r.Use(func(c *gin.Context) {
@@ -275,7 +275,7 @@ func TestGetLogger_DefaultWhenMissing(t *testing.T) {
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
 	l := GetLogger(c)
-	assert.Equal(t, slog.Default(), l)
+	assert.NotNil(t, l)
 }
 
 func TestGetRequestID_EmptyWhenMissing(t *testing.T) {

@@ -24,16 +24,16 @@ const (
 
 // RequestLogging crea un middleware que:
 //  1. Genera o extrae un request_id y correlation_id
-//  2. Crea un slog.Logger enriquecido con campos contextuales
+//  2. Crea un Logger enriquecido con campos contextuales
 //  3. Inyecta el logger en gin.Context y context.Context
 //  4. Registra la petición completada con status, duración y bytes
 //
 // Coloca este middleware ANTES del middleware de autenticación.
 // Usa PostAuthLogging() DESPUÉS del middleware JWT para enriquecer
 // el logger con user_id, role y school_id.
-func RequestLogging(baseLogger *slog.Logger) gin.HandlerFunc {
+func RequestLogging(baseLogger logger.Logger) gin.HandlerFunc {
 	if baseLogger == nil {
-		baseLogger = slog.Default()
+		baseLogger = logger.NewSlogAdapter(slog.Default())
 	}
 	return func(c *gin.Context) {
 		start := time.Now()
@@ -65,11 +65,11 @@ func RequestLogging(baseLogger *slog.Logger) gin.HandlerFunc {
 
 		// Crear logger enriquecido con contexto de la petición
 		reqLogger := baseLogger.With(
-			slog.String(logger.FieldRequestID, requestID),
-			slog.String(logger.FieldCorrelationID, correlationID),
-			slog.String(logger.FieldMethod, c.Request.Method),
-			slog.String(logger.FieldPath, path),
-			slog.String(logger.FieldIP, c.ClientIP()),
+			logger.FieldRequestID, requestID,
+			logger.FieldCorrelationID, correlationID,
+			logger.FieldMethod, c.Request.Method,
+			logger.FieldPath, path,
+			logger.FieldIP, c.ClientIP(),
 		)
 
 		// Inyectar logger en gin.Context y context.Context
@@ -87,13 +87,13 @@ func RequestLogging(baseLogger *slog.Logger) gin.HandlerFunc {
 		status := c.Writer.Status()
 
 		attrs := []any{
-			slog.Int(logger.FieldStatusCode, status),
-			slog.Int64(logger.FieldDuration, duration.Milliseconds()),
-			slog.Int(logger.FieldBytes, c.Writer.Size()),
+			logger.FieldStatusCode, status,
+			logger.FieldDuration, duration.Milliseconds(),
+			logger.FieldBytes, c.Writer.Size(),
 		}
 
 		if len(c.Errors) > 0 {
-			attrs = append(attrs, slog.String(logger.FieldError, c.Errors.String()))
+			attrs = append(attrs, logger.FieldError, c.Errors.String())
 		}
 
 		switch {
@@ -122,20 +122,20 @@ func PostAuthLogging() gin.HandlerFunc {
 
 		if userID, exists := c.Get(ContextKeyUserID); exists {
 			if uid, ok := userID.(string); ok && uid != "" {
-				reqLogger = reqLogger.With(slog.String(logger.FieldUserID, uid))
+				reqLogger = reqLogger.With(logger.FieldUserID, uid)
 			}
 		}
 
 		if role, exists := c.Get(ContextKeyRole); exists {
 			if r, ok := role.(string); ok && r != "" {
-				reqLogger = reqLogger.With(slog.String(logger.FieldRole, r))
+				reqLogger = reqLogger.With(logger.FieldRole, r)
 			}
 		}
 
 		if claims, exists := c.Get(ContextKeyClaims); exists {
 			if jwtClaims, ok := claims.(*auth.Claims); ok && jwtClaims.ActiveContext != nil {
 				if jwtClaims.ActiveContext.SchoolID != "" {
-					reqLogger = reqLogger.With(slog.String(logger.FieldSchoolID, jwtClaims.ActiveContext.SchoolID))
+					reqLogger = reqLogger.With(logger.FieldSchoolID, jwtClaims.ActiveContext.SchoolID)
 				}
 			}
 		}
@@ -148,21 +148,21 @@ func PostAuthLogging() gin.HandlerFunc {
 }
 
 // setLogger almacena el logger en gin.Context y context.Context.
-func setLogger(c *gin.Context, l *slog.Logger) {
+func setLogger(c *gin.Context, l logger.Logger) {
 	c.Set(ContextKeySlogLogger, l)
 	ctx := logger.NewContext(c.Request.Context(), l)
 	c.Request = c.Request.WithContext(ctx)
 }
 
-// GetLogger extrae el slog.Logger enriquecido del gin.Context.
-// Retorna slog.Default() si no se almacenó ningún logger.
-func GetLogger(c *gin.Context) *slog.Logger {
+// GetLogger extrae el Logger enriquecido del gin.Context.
+// Retorna un adapter de slog.Default() si no se almacenó ningún logger.
+func GetLogger(c *gin.Context) logger.Logger {
 	if l, exists := c.Get(ContextKeySlogLogger); exists {
-		if sl, ok := l.(*slog.Logger); ok {
+		if sl, ok := l.(logger.Logger); ok {
 			return sl
 		}
 	}
-	return slog.Default()
+	return logger.NewSlogAdapter(slog.Default())
 }
 
 // GetRequestID extrae el ID de petición del gin.Context.

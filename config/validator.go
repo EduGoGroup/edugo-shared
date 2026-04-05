@@ -20,6 +20,11 @@ func NewValidator() *Validator {
 	}
 }
 
+// RegisterValidation registra una función de validación custom con un tag
+func (v *Validator) RegisterValidation(tag string, fn validator.Func) error {
+	return v.validate.RegisterValidation(tag, fn)
+}
+
 // Validate valida un struct de configuración
 func (v *Validator) Validate(cfg any) error {
 	if err := v.validate.Struct(cfg); err != nil {
@@ -58,11 +63,12 @@ func NewValidationError(errs validator.ValidationErrors) *ValidationError {
 	fieldErrors := make([]FieldError, 0, len(errs))
 
 	for _, err := range errs {
+		path := structPath(err)
 		fieldErrors = append(fieldErrors, FieldError{
-			Field:   err.Field(),
+			Field:   path,
 			Tag:     err.Tag(),
 			Value:   err.Value(),
-			Message: buildErrorMessage(err),
+			Message: buildErrorMessage(path, err),
 		})
 	}
 
@@ -86,9 +92,18 @@ func (e *ValidationError) Error() string {
 	return msg.String()
 }
 
+// structPath extrae el path del campo sin el nombre del struct raíz.
+// Ejemplo: "Config.Database.Postgres.Password" → "Database.Postgres.Password"
+func structPath(err validator.FieldError) string {
+	ns := err.StructNamespace()
+	if _, after, found := strings.Cut(ns, "."); found {
+		return after
+	}
+	return err.Field()
+}
+
 // buildErrorMessage construye un mensaje de error amigable
-func buildErrorMessage(err validator.FieldError) string {
-	field := err.Field()
+func buildErrorMessage(field string, err validator.FieldError) string {
 	tag := err.Tag()
 	param := err.Param()
 

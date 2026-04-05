@@ -2,7 +2,6 @@ package gin
 
 import (
 	"fmt"
-	"log/slog"
 	"net/http"
 
 	"github.com/EduGoGroup/edugo-shared/common/errors"
@@ -65,22 +64,22 @@ func HandleError(c *gin.Context, err error) {
 			resp.Details = details
 		}
 		reqLogger.Error("request failed",
-			slog.String("error_code", string(appErr.Code)),
-			slog.Int("status", appErr.StatusCode),
-			slog.String("message", appErr.Message),
-			slog.String(logger.FieldPath, requestPath(c)),
-			slog.String(logger.FieldMethod, requestMethod(c)),
+			"error_code", string(appErr.Code),
+			"status", appErr.StatusCode,
+			"message", appErr.Message,
+			logger.FieldPath, requestPath(c),
+			logger.FieldMethod, requestMethod(c),
 		)
 		c.JSON(appErr.StatusCode, resp)
 		return
 	}
 
 	reqLogger.Error("unexpected error",
-		slog.Int("status", http.StatusInternalServerError),
-		slog.String("error_code", "INTERNAL_ERROR"),
-		slog.String("message", err.Error()),
-		slog.String(logger.FieldPath, requestPath(c)),
-		slog.String(logger.FieldMethod, requestMethod(c)),
+		"status", http.StatusInternalServerError,
+		"error_code", "INTERNAL_ERROR",
+		"message", err.Error(),
+		logger.FieldPath, requestPath(c),
+		logger.FieldMethod, requestMethod(c),
 	)
 	c.JSON(http.StatusInternalServerError, ErrorResponse{
 		Error: "internal server error",

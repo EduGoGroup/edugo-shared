@@ -4,15 +4,13 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-
-	"github.com/spf13/viper"
 )
 
 func TestNewLoader_DefaultValues(t *testing.T) {
 	loader := NewLoader()
 
-	if loader.configPath != "./config" {
-		t.Errorf("configPath = %v, want ./config", loader.configPath)
+	if len(loader.configPaths) == 0 || loader.configPaths[0] != "./config" {
+		t.Errorf("configPaths = %v, want [./config]", loader.configPaths)
 	}
 	if loader.configName != "config" {
 		t.Errorf("configName = %v, want config", loader.configName)
@@ -33,9 +31,17 @@ func TestNewLoader_WithOptions(t *testing.T) {
 		WithEnvPrefix("APP"),
 	)
 
-	if loader.configPath != "/custom/path" {
-		t.Errorf("configPath = %v, want /custom/path", loader.configPath)
+	found := false
+	for _, p := range loader.configPaths {
+		if p == "/custom/path" {
+			found = true
+			break
+		}
 	}
+	if !found {
+		t.Errorf("configPaths = %v, want it to contain /custom/path", loader.configPaths)
+	}
+
 	if loader.configName != "custom" {
 		t.Errorf("configName = %v, want custom", loader.configName)
 	}
@@ -50,8 +56,15 @@ func TestNewLoader_WithOptions(t *testing.T) {
 func TestWithConfigPath(t *testing.T) {
 	loader := NewLoader(WithConfigPath("/test/path"))
 
-	if loader.configPath != "/test/path" {
-		t.Errorf("configPath = %v, want /test/path", loader.configPath)
+	found := false
+	for _, p := range loader.configPaths {
+		if p == "/test/path" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Errorf("configPaths = %v, want /test/path included", loader.configPaths)
 	}
 }
 
@@ -80,7 +93,6 @@ func TestWithEnvPrefix(t *testing.T) {
 }
 
 func TestLoader_LoadFromFile(t *testing.T) {
-	// Create a temporary config file
 	tmpDir := t.TempDir()
 	configFile := filepath.Join(tmpDir, "config.yaml")
 
@@ -111,20 +123,30 @@ logger:
 		t.Fatalf("Failed to create test config file: %v", err)
 	}
 
-	// Test loading
 	loader := NewLoader(
 		WithConfigPath(tmpDir),
 		WithConfigName("config"),
 	)
 
-	var cfg BaseConfig
+	var cfg struct {
+		Environment string
+		ServiceName string `mapstructure:"service_name"`
+		Server      struct {
+			Port int
+		}
+		Database struct {
+			Host string
+		}
+		Logger struct {
+			Level string
+		}
+	}
 	err := loader.LoadFromFile(&cfg)
 
 	if err != nil {
 		t.Fatalf("LoadFromFile failed: %v", err)
 	}
 
-	// Verify loaded values
 	if cfg.Environment != "local" {
 		t.Errorf("Environment = %v, want local", cfg.Environment)
 	}
@@ -148,7 +170,7 @@ func TestLoader_LoadFromFile_FileNotFound(t *testing.T) {
 		WithConfigName("config"),
 	)
 
-	var cfg BaseConfig
+	var cfg struct{}
 	err := loader.LoadFromFile(&cfg)
 
 	if err == nil {
@@ -157,10 +179,6 @@ func TestLoader_LoadFromFile_FileNotFound(t *testing.T) {
 }
 
 func TestLoader_Load_WithEnvVars(t *testing.T) {
-	// Reset viper for this test
-	viper.Reset()
-
-	// Create a temporary config file
 	tmpDir := t.TempDir()
 	configFile := filepath.Join(tmpDir, "config.yaml")
 
@@ -188,89 +206,58 @@ logger:
 		t.Fatalf("Failed to create test config file: %v", err)
 	}
 
-	// Set environment variables
-	if err := os.Setenv("APP_ENVIRONMENT", "prod"); err != nil {
-		t.Fatalf("Failed to set APP_ENVIRONMENT: %v", err)
-	}
-	if err := os.Setenv("APP_SERVER_PORT", "9090"); err != nil {
-		t.Fatalf("Failed to set APP_SERVER_PORT: %v", err)
-	}
-	defer func() {
-		if err := os.Unsetenv("APP_ENVIRONMENT"); err != nil {
-			t.Logf("Failed to unset APP_ENVIRONMENT: %v", err)
-		}
-		if err := os.Unsetenv("APP_SERVER_PORT"); err != nil {
-			t.Logf("Failed to unset APP_SERVER_PORT: %v", err)
-		}
-		viper.Reset()
-	}()
+	t.Setenv("APP_ENVIRONMENT", "prod")
+	t.Setenv("APP_SERVER_PORT", "9090")
 
-	// Test loading with env vars
 	loader := NewLoader(
 		WithConfigPath(tmpDir),
 		WithConfigName("config"),
 		WithEnvPrefix("APP"),
 	)
 
-	var cfg BaseConfig
+	var cfg struct {
+		Environment string
+		ServiceName string `mapstructure:"service_name"`
+		Server      struct {
+			Port int
+		}
+	}
 	err := loader.Load(&cfg)
 
 	if err != nil {
 		t.Fatalf("Load failed: %v", err)
 	}
 
-	// Env vars should override file values
 	if cfg.Environment != "prod" {
 		t.Errorf("Environment = %v, want prod (from env)", cfg.Environment)
 	}
 	if cfg.Server.Port != 9090 {
 		t.Errorf("Server.Port = %v, want 9090 (from env)", cfg.Server.Port)
 	}
-	// Values not overridden should come from file
 	if cfg.ServiceName != "test-service" {
 		t.Errorf("ServiceName = %v, want test-service (from file)", cfg.ServiceName)
 	}
 }
 
 func TestLoader_Load_FileNotFoundContinuesWithEnv(t *testing.T) {
-	// Reset viper for this test
-	viper.Reset()
+	// AutomaticEnv solo resuelve keys que Viper ya conoce.
+	// Sin archivo de config ni defaults, se deben usar WithExplicitBindings
+	// para que Viper pueda leer env vars al hacer Unmarshal.
+	t.Setenv("MY_ENVIRONMENT", "qa")
+	t.Setenv("MY_SERVICE_NAME", "env-service")
 
-	// Set environment variables - Viper usa mayúsculas para todo el key
-	if err := os.Setenv("APP_ENVIRONMENT", "qa"); err != nil {
-		t.Fatalf("Failed to set APP_ENVIRONMENT: %v", err)
-	}
-	if err := os.Setenv("APP_SERVICE_NAME", "env-service"); err != nil {
-		t.Fatalf("Failed to set APP_SERVICE_NAME: %v", err)
-	}
-	defer func() {
-		if err := os.Unsetenv("APP_ENVIRONMENT"); err != nil {
-			t.Logf("Failed to unset APP_ENVIRONMENT: %v", err)
-		}
-		if err := os.Unsetenv("APP_SERVICE_NAME"); err != nil {
-			t.Logf("Failed to unset APP_SERVICE_NAME: %v", err)
-		}
-		viper.Reset()
-	}()
-
-	// Load with non-existent file should still work with env vars
 	loader := NewLoader(
 		WithConfigPath("/nonexistent"),
 		WithConfigName("config"),
-		WithEnvPrefix("APP"),
+		WithExplicitBindings(map[string]string{
+			"environment":  "MY_ENVIRONMENT",
+			"service_name": "MY_SERVICE_NAME",
+		}),
 	)
 
 	var cfg struct {
 		Environment string `mapstructure:"environment"`
 		ServiceName string `mapstructure:"service_name"`
-	}
-
-	// Bind env vars before loading (needed for viper to recognize them)
-	if err := viper.BindEnv("environment", "APP_ENVIRONMENT"); err != nil {
-		t.Fatalf("Failed to bind environment: %v", err)
-	}
-	if err := viper.BindEnv("service_name", "APP_SERVICE_NAME"); err != nil {
-		t.Fatalf("Failed to bind service_name: %v", err)
 	}
 
 	err := loader.Load(&cfg)
@@ -288,15 +275,27 @@ func TestLoader_Load_FileNotFoundContinuesWithEnv(t *testing.T) {
 }
 
 func TestLoader_GetMethods(t *testing.T) {
-	// Reset viper and set test values
-	viper.Reset()
-	defer viper.Reset()
+	tmpDir := t.TempDir()
+	configFile := filepath.Join(tmpDir, "config.yaml")
 
-	viper.Set("string_key", "test_value")
-	viper.Set("int_key", 42)
-	viper.Set("bool_key", true)
+	yamlContent := `
+string_key: test_value
+int_key: 42
+bool_key: true
+`
+	if err := os.WriteFile(configFile, []byte(yamlContent), 0600); err != nil {
+		t.Fatalf("Failed to create test config file: %v", err)
+	}
 
-	loader := NewLoader()
+	loader := NewLoader(
+		WithConfigPath(tmpDir),
+		WithConfigName("config"),
+	)
+
+	var cfg map[string]any
+	if err := loader.Load(&cfg); err != nil {
+		t.Fatalf("Load failed: %v", err)
+	}
 
 	t.Run("Get", func(t *testing.T) {
 		val := loader.Get("string_key")
@@ -334,22 +333,182 @@ func TestLoader_GetMethods(t *testing.T) {
 	})
 }
 
+func TestLoader_GetMethods_BeforeLoad(t *testing.T) {
+	loader := NewLoader()
+
+	if val := loader.Get("key"); val != nil {
+		t.Errorf("Get before Load = %v, want nil", val)
+	}
+	if val := loader.GetString("key"); val != "" {
+		t.Errorf("GetString before Load = %v, want empty", val)
+	}
+	if val := loader.GetInt("key"); val != 0 {
+		t.Errorf("GetInt before Load = %v, want 0", val)
+	}
+	if val := loader.GetBool("key"); val != false {
+		t.Errorf("GetBool before Load = %v, want false", val)
+	}
+}
+
 func TestLoader_MultipleOptions(t *testing.T) {
 	loader := NewLoader(
 		WithConfigPath("/path1"),
 		WithConfigName("name1"),
-		WithConfigPath("/path2"), // Should override previous
+		WithConfigPath("/path2"),
 		WithConfigType("json"),
 	)
 
-	// Last option should win
-	if loader.configPath != "/path2" {
-		t.Errorf("configPath = %v, want /path2", loader.configPath)
+	if len(loader.configPaths) < 2 {
+		t.Fatalf("Expected at least 2 config paths, got %d", len(loader.configPaths))
 	}
+
+	found1, found2 := false, false
+	for _, p := range loader.configPaths {
+		if p == "/path1" {
+			found1 = true
+		}
+		if p == "/path2" {
+			found2 = true
+		}
+	}
+
+	if !found1 || !found2 {
+		t.Errorf("configPaths = %v, want /path1 and /path2", loader.configPaths)
+	}
+
 	if loader.configName != "name1" {
 		t.Errorf("configName = %v, want name1", loader.configName)
 	}
 	if loader.configType != "json" {
 		t.Errorf("configType = %v, want json", loader.configType)
 	}
+}
+
+func TestLoader_WithDefaults(t *testing.T) {
+	loader := NewLoader(
+		WithConfigPath("/nonexistent"),
+		WithDefaults(map[string]interface{}{
+			"server.port": 8080,
+			"log.level":   "info",
+		}),
+	)
+
+	var cfg struct {
+		Server struct {
+			Port int `mapstructure:"port"`
+		} `mapstructure:"server"`
+		Log struct {
+			Level string `mapstructure:"level"`
+		} `mapstructure:"log"`
+	}
+
+	if err := loader.Load(&cfg); err != nil {
+		t.Fatalf("Load failed: %v", err)
+	}
+
+	if cfg.Server.Port != 8080 {
+		t.Errorf("Server.Port = %v, want 8080 (from defaults)", cfg.Server.Port)
+	}
+	if cfg.Log.Level != "info" {
+		t.Errorf("Log.Level = %v, want info (from defaults)", cfg.Log.Level)
+	}
+}
+
+func TestLoader_WithExplicitBindings(t *testing.T) {
+	t.Setenv("MY_SECRET_PASSWORD", "supersecret")
+
+	loader := NewLoader(
+		WithConfigPath("/nonexistent"),
+		WithExplicitBindings(map[string]string{
+			"database.password": "MY_SECRET_PASSWORD",
+		}),
+	)
+
+	var cfg struct {
+		Database struct {
+			Password string `mapstructure:"password"`
+		} `mapstructure:"database"`
+	}
+
+	if err := loader.Load(&cfg); err != nil {
+		t.Fatalf("Load failed: %v", err)
+	}
+
+	if cfg.Database.Password != "supersecret" {
+		t.Errorf("Database.Password = %v, want supersecret (from explicit binding)", cfg.Database.Password)
+	}
+}
+
+func TestLoader_LoadFromFile_WithDefaults(t *testing.T) {
+	tmpDir := t.TempDir()
+	configFile := filepath.Join(tmpDir, "config.yaml")
+
+	yamlContent := `server:
+  host: myhost
+`
+	if err := os.WriteFile(configFile, []byte(yamlContent), 0600); err != nil {
+		t.Fatalf("Failed to create test config file: %v", err)
+	}
+
+	loader := NewLoader(
+		WithConfigPath(tmpDir),
+		WithDefaults(map[string]interface{}{
+			"server.port": 9000,
+		}),
+	)
+
+	var cfg struct {
+		Server struct {
+			Host string `mapstructure:"host"`
+			Port int    `mapstructure:"port"`
+		} `mapstructure:"server"`
+	}
+
+	if err := loader.LoadFromFile(&cfg); err != nil {
+		t.Fatalf("LoadFromFile failed: %v", err)
+	}
+
+	if cfg.Server.Host != "myhost" {
+		t.Errorf("Server.Host = %v, want myhost", cfg.Server.Host)
+	}
+	if cfg.Server.Port != 9000 {
+		t.Errorf("Server.Port = %v, want 9000 (from defaults)", cfg.Server.Port)
+	}
+}
+
+func TestLoader_ParallelSafety(t *testing.T) {
+	tmpDir := t.TempDir()
+	configFile := filepath.Join(tmpDir, "config.yaml")
+
+	yamlContent := `environment: local`
+	if err := os.WriteFile(configFile, []byte(yamlContent), 0600); err != nil {
+		t.Fatalf("Failed to create test config file: %v", err)
+	}
+
+	t.Run("parallel1", func(t *testing.T) {
+		t.Parallel()
+		loader := NewLoader(WithConfigPath(tmpDir), WithEnvPrefix("P1"))
+		var cfg struct{ Environment string }
+		if err := loader.Load(&cfg); err != nil {
+			t.Errorf("Load failed: %v", err)
+		}
+	})
+
+	t.Run("parallel2", func(t *testing.T) {
+		t.Parallel()
+		loader := NewLoader(WithConfigPath(tmpDir), WithEnvPrefix("P2"))
+		var cfg struct{ Environment string }
+		if err := loader.Load(&cfg); err != nil {
+			t.Errorf("Load failed: %v", err)
+		}
+	})
+
+	t.Run("parallel3", func(t *testing.T) {
+		t.Parallel()
+		loader := NewLoader(WithConfigPath(tmpDir), WithEnvPrefix("P3"))
+		var cfg struct{ Environment string }
+		if err := loader.Load(&cfg); err != nil {
+			t.Errorf("Load failed: %v", err)
+		}
+	})
 }

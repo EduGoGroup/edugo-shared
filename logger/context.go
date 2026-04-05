@@ -7,22 +7,22 @@ import (
 
 type contextKey struct{}
 
-// NewContext retorna un nuevo contexto con el slog.Logger proporcionado embebido.
+// NewContext retorna un nuevo contexto con el Logger proporcionado embebido.
 // Usar en middleware para propagar un logger enriquecido a lo largo de la petición.
-func NewContext(ctx context.Context, l *slog.Logger) context.Context {
+func NewContext(ctx context.Context, l Logger) context.Context {
 	return context.WithValue(ctx, contextKey{}, l)
 }
 
-// FromContext extrae el *slog.Logger del contexto.
-// Retorna slog.Default() si no se almacenó ningún logger en el contexto.
-func FromContext(ctx context.Context) *slog.Logger {
-	if l, ok := ctx.Value(contextKey{}).(*slog.Logger); ok {
+// FromContext extrae el Logger del contexto.
+// Retorna un adapter de slog.Default() si no se almacenó ningún logger en el contexto.
+func FromContext(ctx context.Context) Logger {
+	if l, ok := ctx.Value(contextKey{}).(Logger); ok {
 		return l
 	}
-	return slog.Default()
+	return NewSlogAdapter(slog.Default())
 }
 
 // L es un alias abreviado de FromContext.
-func L(ctx context.Context) *slog.Logger {
+func L(ctx context.Context) Logger {
 	return FromContext(ctx)
 }

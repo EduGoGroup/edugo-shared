@@ -12,12 +12,12 @@ import (
 func TestContext_NestedOverwrite(t *testing.T) {
 	buf1 := &bytes.Buffer{}
 	buf2 := &bytes.Buffer{}
-	logger1 := slog.New(slog.NewJSONHandler(buf1, nil))
-	logger2 := slog.New(slog.NewJSONHandler(buf2, nil))
+	adapter1 := NewSlogAdapter(slog.New(slog.NewJSONHandler(buf1, nil)))
+	adapter2 := NewSlogAdapter(slog.New(slog.NewJSONHandler(buf2, nil)))
 
-	ctx := NewContext(context.Background(), logger1)
-	ctx = NewContext(ctx, logger2)
+	ctx := NewContext(context.Background(), adapter1)
+	ctx = NewContext(ctx, adapter2)
 
 	extracted := FromContext(ctx)
-	assert.Equal(t, logger2, extracted)
+	assert.Equal(t, adapter2, extracted)
 }

@@ -3,7 +3,7 @@ module github.com/EduGoGroup/edugo-shared/database/postgres
 go 1.25.0
 
 require (
-	github.com/EduGoGroup/edugo-shared/testing v0.100.0
+	github.com/EduGoGroup/edugo-shared/testing v0.1.0
 	github.com/lib/pq v1.12.0
 	github.com/stretchr/testify v1.11.1
 	gorm.io/driver/postgres v1.6.0

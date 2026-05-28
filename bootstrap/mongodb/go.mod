@@ -3,7 +3,7 @@ module github.com/EduGoGroup/edugo-shared/bootstrap/mongodb
 go 1.25.0
 
 require (
-	github.com/EduGoGroup/edugo-shared/bootstrap v0.101.0
+	github.com/EduGoGroup/edugo-shared/bootstrap v0.1.0
 	go.mongodb.org/mongo-driver/v2 v2.5.0
 )
 

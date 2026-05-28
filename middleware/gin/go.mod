@@ -3,10 +3,10 @@ module github.com/EduGoGroup/edugo-shared/middleware/gin
 go 1.25.0
 
 require (
-	github.com/EduGoGroup/edugo-shared/audit v0.100.0
-	github.com/EduGoGroup/edugo-shared/auth v0.100.0
-	github.com/EduGoGroup/edugo-shared/common v0.100.0
-	github.com/EduGoGroup/edugo-shared/logger v0.100.0
+	github.com/EduGoGroup/edugo-shared/audit v0.1.0
+	github.com/EduGoGroup/edugo-shared/auth v0.1.0
+	github.com/EduGoGroup/edugo-shared/common v0.1.0
+	github.com/EduGoGroup/edugo-shared/logger v0.1.0
 	github.com/EduGoGroup/edugo-shared/repository v0.1.0
 	github.com/gin-gonic/gin v1.12.0
 	github.com/go-playground/validator/v10 v10.30.2

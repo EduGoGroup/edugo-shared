@@ -2,6 +2,15 @@
 
 Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/repository` se registran aquí.
 
+## [Unreleased]
+
+## [0.1.0] - 2026-05-28
+
+### Added
+- **Postgres v0.1.0**: Actualizada la dependencia fundamental de base de datos a `github.com/EduGoGroup/edugo-infrastructure/postgres` en su versión limpia `v0.1.0`.
+- Reinicio de la versión del módulo a `v0.1.0` (borrón y cuenta nueva).
+- Conservación de toda la superficie de repositorios Postgres basada en GORM (UserRepository, SchoolRepository, MembershipRepository, ListFilters) desacoplada y lista para producción.
+
 ## [0.100.0] - 2026-04-02
 
 ### Added

@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(make help:*)",
+      "Bash(ls -la /Users/jhoanmedina/source/EduGo/ /Users/jhoanmedina/source/EduGo/EduBack/ 2>&1 | head -100)",
+      "Bash(find /Users/jhoanmedina/source/EduGo -maxdepth 3 -type d -name \"contenedores\" -o -name \"docker\" -o -name \"infra*\" -o -name \"deploy*\" -o -name \".github\" 2>/dev/null | head -50)",
+      "Bash(ls /Users/jhoanmedina/source/EduGo/EduBack/)",
+      "Bash(ls /Users/jhoanmedina/source/EduGo/)"
+    ]
+  }
+}

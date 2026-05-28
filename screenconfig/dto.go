@@ -1,0 +1,75 @@
+package screenconfig
+
+import (
+	"encoding/json"
+	"time"
+)
+
+// ScreenTemplateDTO represents a screen template data transfer object
+type ScreenTemplateDTO struct {
+	ID          string          `json:"id"`
+	Pattern     Pattern         `json:"pattern"`
+	Name        string          `json:"name"`
+	Description string          `json:"description,omitempty"`
+	Version     int             `json:"version"`
+	Definition  json.RawMessage `json:"definition"`
+	IsActive    bool            `json:"is_active"`
+	CreatedAt   time.Time       `json:"created_at"`
+	UpdatedAt   time.Time       `json:"updated_at"`
+}
+
+// ScreenInstanceDTO represents a screen instance data transfer object
+type ScreenInstanceDTO struct {
+	ID                 string          `json:"id"`
+	ScreenKey          string          `json:"screen_key"`
+	TemplateID         string          `json:"template_id"`
+	Name               string          `json:"name"`
+	Description        string          `json:"description,omitempty"`
+	SlotData           json.RawMessage `json:"slot_data"`
+	Scope              string          `json:"scope"`
+	RequiredPermission string          `json:"required_permission,omitempty"`
+	HandlerKey         *string         `json:"handler_key,omitempty"`
+	IsActive           bool            `json:"is_active"`
+	CreatedAt          time.Time       `json:"created_at"`
+	UpdatedAt          time.Time       `json:"updated_at"`
+}
+
+// CombinedScreenDTO represents the combined template and instance data for a screen
+type CombinedScreenDTO struct {
+	ScreenID        string          `json:"screenId"`
+	ScreenKey       string          `json:"screenKey"`
+	ScreenName      string          `json:"screenName"`
+	Pattern         Pattern         `json:"pattern"`
+	Version         int             `json:"version"`
+	Template        json.RawMessage `json:"template"`
+	SlotData        json.RawMessage `json:"slotData,omitempty"`
+	HandlerKey      *string         `json:"handlerKey,omitempty"`
+	UserPreferences json.RawMessage `json:"userPreferences,omitempty"`
+	UpdatedAt       time.Time       `json:"updatedAt"`
+}
+
+// ResourceScreenDTO represents the association between a resource and a screen
+type ResourceScreenDTO struct {
+	ResourceID  string `json:"resource_id"`
+	ResourceKey string `json:"resource_key"`
+	ScreenKey   string `json:"screen_key"`
+	ScreenType  string `json:"screen_type"`
+	IsDefault   bool   `json:"is_default"`
+}
+
+// NavigationItemDTO represents a menu/navigation item
+type NavigationItemDTO struct {
+	Key       string              `json:"key"`
+	Label     string              `json:"label"`
+	Icon      string              `json:"icon,omitempty"`
+	ScreenKey string              `json:"screenKey,omitempty"`
+	SortOrder int                 `json:"sortOrder"`
+	Children  []NavigationItemDTO `json:"children,omitempty"`
+}
+
+// NavigationConfigDTO represents the complete navigation configuration
+type NavigationConfigDTO struct {
+	BottomNav   []NavigationItemDTO `json:"bottomNav"`
+	DrawerItems []NavigationItemDTO `json:"drawerItems"`
+	Version     int                 `json:"version"`
+}

@@ -4,6 +4,12 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/messaging/ev
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-05-28
+
+### Added
+- Reinicio de la versión del módulo a `v0.1.0` (borrón y cuenta nueva).
+- Conservación del código de producción estable del módulo.
+
 ## [v0.52.0] - 2026-03-28
 
 ### Added

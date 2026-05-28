@@ -4,6 +4,13 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/middleware/g
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-05-28
+
+### Added
+- **Repository v0.1.0**: Actualizada la dependencia interna fundamental `github.com/EduGoGroup/edugo-shared/repository` a la versión `v0.1.0`.
+- Reinicio de la versión del módulo a `v0.1.0` (borrón y cuenta nueva).
+- Conservación de todos los middlewares HTTP de producción (JWT Auth, RequirePermission, RequestLogging, AuditMiddleware, CORSMiddleware) 100% estables.
+
 ### Added
 
 - `StatusClientClosedRequest` (499, convención nginx) en `error_handler.go`.

@@ -14,6 +14,12 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/messaging/ra
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-05-28
+
+### Added
+- Reinicio de la versión del módulo a `v0.1.0` (borrón y cuenta nueva).
+- Conservación del código de producción estable del módulo.
+
 ### Added
 
 - Baseline de documentacion de fase 1 con `README.md`, `docs/README.md` y organizacion local por modulo.

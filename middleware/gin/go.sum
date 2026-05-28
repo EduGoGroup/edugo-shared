@@ -1,9 +1,9 @@
-github.com/EduGoGroup/edugo-infrastructure/postgres v0.77.1 h1:THWMkgpcVwr1UQf9bYrWAGUroNw19LY55VJnfTW9ypI=
-github.com/EduGoGroup/edugo-infrastructure/postgres v0.77.1/go.mod h1:h9dD6t1LbuMWqrG37ZNoNnxcq/ne+u8tDzYNheTwAKw=
-github.com/EduGoGroup/edugo-shared/common v0.100.0 h1:Dxchu0ZoCAbAB8aD1FLrgHmflOfLK9uv66lsh3rPxyY=
-github.com/EduGoGroup/edugo-shared/common v0.100.0/go.mod h1:Y0TuHzMPyVYP/SJwH0bR9VpGqSBvuJtlzbCHAAmu9eM=
-github.com/EduGoGroup/edugo-shared/logger v0.100.0 h1:75nJ3eMum06SMHlf5uWvVkp/gEBg+e8msYhV9dUxTb4=
-github.com/EduGoGroup/edugo-shared/logger v0.100.0/go.mod h1:MxMk6Yy4H7UrdwdO4H5CYvU6AFTBHc8IyiwSAHXCfPk=
+github.com/EduGoGroup/edugo-infrastructure/postgres v0.1.0 h1:/jlG9Wf3Yi2CxiuhEBARbcmNaXFZHvMpxITWb4bBOAo=
+github.com/EduGoGroup/edugo-infrastructure/postgres v0.1.0/go.mod h1:NiuhgH8Ec0e5Hu5ias5ji8a/MbTaIcQ8VKALBkSsvNQ=
+github.com/EduGoGroup/edugo-shared/common v0.1.0 h1:4UIjaXNz5CBF4JYYjM1t0VppRCewM4xAqxT6W3U+NgU=
+github.com/EduGoGroup/edugo-shared/common v0.1.0/go.mod h1:NMBRyufKBKFtp/S/p63xGAJz1VtqRymH0VJrsQWnBoM=
+github.com/EduGoGroup/edugo-shared/logger v0.1.0 h1:AioYxx2G88KhbuHDI+1jEmxggLbB9Daw54SYHqcW5vw=
+github.com/EduGoGroup/edugo-shared/logger v0.1.0/go.mod h1:5Y55HvdOlVvvhokdGJauj50eg4xrpEjo/0tvHnDH594=
 github.com/EduGoGroup/edugo-shared/repository v0.1.0 h1:iIeV5Q6RiNg1j/oLUAF4jmsYSDKzrFFTsEIy4dpxjdM=
 github.com/EduGoGroup/edugo-shared/repository v0.1.0/go.mod h1:s5qe1D7tzQgsz2++enO23xcUNIOMqP7KE20McbnihU4=
 github.com/bytedance/gopkg v0.1.4 h1:oZnQwnX82KAIWb7033bEwtxvTqXcYMxDBaQxo5JJHWM=

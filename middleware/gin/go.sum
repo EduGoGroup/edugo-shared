@@ -4,7 +4,7 @@ github.com/EduGoGroup/edugo-shared/common v0.1.0 h1:4UIjaXNz5CBF4JYYjM1t0VppRCew
 github.com/EduGoGroup/edugo-shared/common v0.1.0/go.mod h1:NMBRyufKBKFtp/S/p63xGAJz1VtqRymH0VJrsQWnBoM=
 github.com/EduGoGroup/edugo-shared/logger v0.1.0 h1:AioYxx2G88KhbuHDI+1jEmxggLbB9Daw54SYHqcW5vw=
 github.com/EduGoGroup/edugo-shared/logger v0.1.0/go.mod h1:5Y55HvdOlVvvhokdGJauj50eg4xrpEjo/0tvHnDH594=
-github.com/EduGoGroup/edugo-shared/repository v0.1.0 h1:iIeV5Q6RiNg1j/oLUAF4jmsYSDKzrFFTsEIy4dpxjdM=
+github.com/EduGoGroup/edugo-shared/repository v0.1.0 h1:jxBc5dtjqJJhYRcnphxKv1nXMk/NXRGYxHpfk///ZuE=
 github.com/EduGoGroup/edugo-shared/repository v0.1.0/go.mod h1:s5qe1D7tzQgsz2++enO23xcUNIOMqP7KE20McbnihU4=
 github.com/bytedance/gopkg v0.1.4 h1:oZnQwnX82KAIWb7033bEwtxvTqXcYMxDBaQxo5JJHWM=
 github.com/bytedance/gopkg v0.1.4/go.mod h1:v1zWfPm21Fb+OsyXN2VAHdL6TBb2L88anLQgdyje6R4=

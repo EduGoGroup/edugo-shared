@@ -72,7 +72,10 @@ func ComposeActions(templateDef map[string]any, slotData map[string]any, require
 	// override-de-added; luego concatenar added en su orden de declaracion.
 	out := make([]map[string]any, 0, len(defaults)+len(added))
 	for _, def := range defaults {
-		id, _ := def["id"].(string)
+		id, ok := def["id"].(string)
+		if !ok {
+			id = ""
+		}
 		if _, isRemoved := removedSet[id]; isRemoved {
 			continue
 		}
@@ -82,9 +85,7 @@ func ComposeActions(templateDef map[string]any, slotData map[string]any, require
 		}
 		out = append(out, def)
 	}
-	for _, a := range added {
-		out = append(out, a)
-	}
+	out = append(out, added...)
 
 	return sortStableByOrder(out), nil
 }
@@ -108,7 +109,12 @@ func ComposeActionsForResolve(slotDataRaw, templateDef json.RawMessage, required
 	}
 	var tplDef map[string]any
 	if len(templateDef) > 0 {
-		_ = json.Unmarshal(templateDef, &tplDef)
+		// Tolerante: si el template no es JSON valido, tplDef queda nil y
+		// ComposeActions opera sin defaults (pantallas legacy siguen
+		// funcionando).
+		if err := json.Unmarshal(templateDef, &tplDef); err != nil {
+			tplDef = nil
+		}
 	}
 	actions, err := ComposeActions(tplDef, slot, requiredPerm)
 	if err != nil {

@@ -38,18 +38,18 @@ type ContractMetadata struct {
 //   - transforms     <- slot_data["transforms"] casteado a map[string]any.
 //     Si no es map, se devuelve un mapa vacio (no nil) para serializar "{}".
 func ExtractContractMetadata(slotData map[string]any, requiredPermission string) *ContractMetadata {
-	apiPrefix, _ := slotData["api_prefix"].(string)
-	if apiPrefix == "" {
+	apiPrefix, ok := slotData["api_prefix"].(string)
+	if !ok || apiPrefix == "" {
 		return nil
 	}
 
-	resource, _ := slotData["resource"].(string)
-	if resource == "" {
+	resource, ok := slotData["resource"].(string)
+	if !ok || resource == "" {
 		resource = parseResourceFromPermission(requiredPermission)
 	}
 
-	basePath, _ := slotData["api_base_path"].(string)
-	if basePath == "" && resource != "" {
+	basePath, ok := slotData["api_base_path"].(string)
+	if (!ok || basePath == "") && resource != "" {
 		basePath = "/api/v1/" + resource
 	}
 

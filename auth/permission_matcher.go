@@ -43,8 +43,8 @@ func PermissionMatches(pattern, request string) bool {
 	}
 	// prefix.*.suffix  → request startsWith `prefix.` + algo + `.suffix`
 	if i := strings.Index(pattern, ".*."); i > 0 {
-		head := pattern[:i+1]      // `prefix.`
-		tail := pattern[i+2:]      // `.suffix`
+		head := pattern[:i+1] // `prefix.`
+		tail := pattern[i+2:] // `.suffix`
 		// Validar que no haya otro `*` (los patterns soportados son
 		// los listados arriba; ya descartamos `prefix.*`).
 		if strings.Contains(head, "*") || strings.Contains(tail, "*") {

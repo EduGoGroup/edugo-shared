@@ -33,11 +33,11 @@ func TestGenerateTokenWithContext(t *testing.T) {
 	expiresIn := 24 * time.Hour
 
 	activeContext := &UserContext{
-		RoleID:      "role-123",
-		RoleName:    "Teacher",
-		SchoolID:    "school-456",
-		SchoolName:  "Test School",
-		Grants: Grants{Allow: []string{"admin.users.read", "content.materials.create", "content.assessments.grade"}},
+		RoleID:     "role-123",
+		RoleName:   "Teacher",
+		SchoolID:   "school-456",
+		SchoolName: "Test School",
+		Grants:     Grants{Allow: []string{"admin.users.read", "content.materials.create", "content.assessments.grade"}},
 	}
 
 	t.Run("genera token con contexto válido exitosamente", func(t *testing.T) {
@@ -113,9 +113,9 @@ func TestGenerateTokenWithContext(t *testing.T) {
 
 	t.Run("token sin SchoolID (context mínimo)", func(t *testing.T) {
 		minimalContext := &UserContext{
-			RoleID:      "role-789",
-			RoleName:    "Admin",
-			Grants: Grants{Allow: []string{"admin.users.create", "admin.schools.manage"}},
+			RoleID:   "role-789",
+			RoleName: "Admin",
+			Grants:   Grants{Allow: []string{"admin.users.create", "admin.schools.manage"}},
 		}
 
 		token, _, err := manager.GenerateTokenWithContext(userID, email, minimalContext, expiresIn)
@@ -139,7 +139,7 @@ func TestGenerateTokenWithContext(t *testing.T) {
 			SchoolName:       "Test School",
 			AcademicUnitID:   "unit-ghi",
 			AcademicUnitName: "Computer Science",
-			Grants: Grants{Allow: []string{"academic.units.create", "content.materials.create"}},
+			Grants:           Grants{Allow: []string{"academic.units.create", "content.materials.create"}},
 		}
 
 		token, _, err := manager.GenerateTokenWithContext(userID, email, contextWithUnit, expiresIn)
@@ -187,9 +187,9 @@ func TestValidateToken(t *testing.T) {
 	userID := uuid.New().String()
 	email := testEmail
 	activeContext := &UserContext{
-		RoleID:      "role-123",
-		RoleName:    "Teacher",
-		Grants: Grants{Allow: []string{"admin.users.read"}},
+		RoleID:   "role-123",
+		RoleName: "Teacher",
+		Grants:   Grants{Allow: []string{"admin.users.read"}},
 	}
 
 	t.Run("valida token válido exitosamente", func(t *testing.T) {
@@ -411,9 +411,9 @@ func TestValidateMinimalToken(t *testing.T) {
 
 	t.Run("rechaza access token (sin token_use refresh)", func(t *testing.T) {
 		activeContext := &UserContext{
-			RoleID:      "role-123",
-			RoleName:    "Teacher",
-			Grants: Grants{Allow: []string{"admin.users.read"}},
+			RoleID:   "role-123",
+			RoleName: "Teacher",
+			Grants:   Grants{Allow: []string{"admin.users.read"}},
 		}
 		accessToken, _, err := manager.GenerateTokenWithContext(userID, email, activeContext, 24*time.Hour)
 		require.NoError(t, err)
@@ -474,9 +474,9 @@ func TestExtractUserID(t *testing.T) {
 	userID := uuid.New().String()
 	email := testEmail
 	activeContext := &UserContext{
-		RoleID:      "role-123",
-		RoleName:    "Teacher",
-		Grants: Grants{Allow: []string{"admin.users.read"}},
+		RoleID:   "role-123",
+		RoleName: "Teacher",
+		Grants:   Grants{Allow: []string{"admin.users.read"}},
 	}
 
 	t.Run("extrae userID de token válido", func(t *testing.T) {
@@ -534,7 +534,7 @@ func TestUserContext(t *testing.T) {
 			SchoolName:       "Test School",
 			AcademicUnitID:   "unit-789",
 			AcademicUnitName: "Mathematics",
-			Grants: Grants{Allow: []string{"admin.users.read", "content.materials.create"}},
+			Grants:           Grants{Allow: []string{"admin.users.read", "content.materials.create"}},
 		}
 
 		assert.NotNil(t, ctx)
@@ -549,9 +549,9 @@ func TestUserContext(t *testing.T) {
 
 	t.Run("UserContext solo con campos requeridos", func(t *testing.T) {
 		ctx := &UserContext{
-			RoleID:      "role-abc",
-			RoleName:    "Admin",
-			Grants: Grants{Allow: []string{"admin.users.create"}},
+			RoleID:   "role-abc",
+			RoleName: "Admin",
+			Grants:   Grants{Allow: []string{"admin.users.create"}},
 		}
 
 		assert.Equal(t, "role-abc", ctx.RoleID)
@@ -567,9 +567,9 @@ func TestUserContext(t *testing.T) {
 func TestConcurrentTokenGeneration(t *testing.T) {
 	manager := NewJWTManager(testSecretKey, testIssuer)
 	activeContext := &UserContext{
-		RoleID:      "role-123",
-		RoleName:    "Teacher",
-		Grants: Grants{Allow: []string{"admin.users.read"}},
+		RoleID:   "role-123",
+		RoleName: "Teacher",
+		Grants:   Grants{Allow: []string{"admin.users.read"}},
 	}
 
 	t.Run("genera tokens concurrentemente sin errores", func(t *testing.T) {
@@ -612,9 +612,9 @@ func TestTokenSecurity(t *testing.T) {
 
 	userID := uuid.New().String()
 	activeContext := &UserContext{
-		RoleID:      "role-123",
-		RoleName:    "Teacher",
-		Grants: Grants{Allow: []string{"admin.users.read"}},
+		RoleID:   "role-123",
+		RoleName: "Teacher",
+		Grants:   Grants{Allow: []string{"admin.users.read"}},
 	}
 
 	t.Run("tokens con diferentes secrets no son intercambiables", func(t *testing.T) {

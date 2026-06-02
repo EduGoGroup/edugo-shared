@@ -3,8 +3,8 @@ package gin
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	stderrors "errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"

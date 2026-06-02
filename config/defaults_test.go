@@ -6,17 +6,17 @@ import (
 )
 
 type testDefaultsConfig struct {
-	Environment string `mapstructure:"environment" default:"development"`
+	Environment string             `mapstructure:"environment" default:"development"`
 	Server      testDefaultsServer `mapstructure:"server"`
 	NoTag       string
 }
 
 type testDefaultsServer struct {
-	Port         int           `mapstructure:"port"          default:"8080"`
-	Host         string        `mapstructure:"host"          default:"0.0.0.0"`
-	ReadTimeout  time.Duration `mapstructure:"read_timeout"  default:"15s"`
-	Debug        bool          `mapstructure:"debug"         default:"true"`
-	SwaggerHost  string        `mapstructure:"swagger_host"`
+	Port        int           `mapstructure:"port"          default:"8080"`
+	Host        string        `mapstructure:"host"          default:"0.0.0.0"`
+	ReadTimeout time.Duration `mapstructure:"read_timeout"  default:"15s"`
+	Debug       bool          `mapstructure:"debug"         default:"true"`
+	SwaggerHost string        `mapstructure:"swagger_host"`
 }
 
 func TestExtractDefaults_Basic(t *testing.T) {

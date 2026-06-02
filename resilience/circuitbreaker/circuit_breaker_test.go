@@ -254,8 +254,8 @@ func TestCircuitBreaker_WithMetrics(t *testing.T) {
 
 	// Assert
 	assert.Equal(t, StateOpen, cb.State())
-	assert.Equal(t, 2, hook.setStateCalls)       // initial + open
-	assert.Equal(t, 1, hook.transitionCalls)      // closed -> open
+	assert.Equal(t, 2, hook.setStateCalls)   // initial + open
+	assert.Equal(t, 1, hook.transitionCalls) // closed -> open
 	assert.Equal(t, StateClosed, hook.lastFrom)
 	assert.Equal(t, StateOpen, hook.lastTo)
 }

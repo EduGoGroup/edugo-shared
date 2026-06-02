@@ -329,10 +329,10 @@ var AllPermissions = map[Permission]bool{
 	PermissionUnitsUpdate: true,
 	PermissionUnitsDelete: true,
 	// academic.memberships
-	PermissionMembershipsCreate:  true,
-	PermissionMembershipsRead:    true,
-	PermissionMembershipsUpdate:  true,
-	PermissionMembershipsDelete:  true,
+	PermissionMembershipsCreate: true,
+	PermissionMembershipsRead:   true,
+	PermissionMembershipsUpdate: true,
+	PermissionMembershipsDelete: true,
 	// academic.my_memberships
 	PermissionMyMembershipsReadOwn: true,
 	// academic.subjects

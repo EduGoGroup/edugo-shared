@@ -16,10 +16,10 @@ const (
 
 // CheckResult representa el resultado de un health check
 type CheckResult struct {
-	Status    Status                 `json:"status"`
-	Component string                 `json:"component"`
-	Message   string                 `json:"message,omitempty"`
-	Timestamp time.Time              `json:"timestamp"`
+	Status    Status         `json:"status"`
+	Component string         `json:"component"`
+	Message   string         `json:"message,omitempty"`
+	Timestamp time.Time      `json:"timestamp"`
 	Metadata  map[string]any `json:"metadata,omitempty"`
 }
 

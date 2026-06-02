@@ -164,7 +164,7 @@ func TestValidator_Validate_NestedFieldPath(t *testing.T) {
 		Environment: "local",
 		ServiceName: "test",
 		Server: testServerConfig{
-			Port: 0, // fails required
+			Port: 0,  // fails required
 			Host: "", // fails required
 		},
 	}

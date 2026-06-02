@@ -2,6 +2,18 @@
 
 Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/messaging/rabbit` deben registrarse aqui.
 
+## [Unreleased]
+
+## [0.900.0] - 2026-06-02
+
+### Changed
+
+- Reversionado a la serie `0.900.x` para escapar del fantasma de checksum del tag `v0.1.0`
+  (su contenido cambió tras la limpieza de historial del repo, dejando go.sum de consumidores
+  desincronizado; ver bug 0022 / ADR 0015). No hay cambios de código ni de API respecto al
+  contenido actual de `main`: es una versión fresca con hash limpio para los consumidores
+  (`edugo-api-learning`, `edugo-worker`).
+
 ## [0.100.0] - 2026-04-02
 
 ### Removed

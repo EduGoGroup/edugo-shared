@@ -201,7 +201,10 @@ func TestComposeActions_PlaceholderExpansion(t *testing.T) {
 		"delete":   "academic.announcements.delete",
 	}
 	for _, a := range got {
-		id := a["id"].(string)
+		id, ok := a["id"].(string)
+		if !ok {
+			t.Fatalf("action id no es string: %v", a["id"])
+		}
 		if a["permission"] != expected[id] {
 			t.Errorf("%s.permission = %v, want %v", id, a["permission"], expected[id])
 		}
@@ -230,7 +233,11 @@ func TestComposeActions_SortByOrderStable(t *testing.T) {
 	}
 	gotIDs := make([]string, len(got))
 	for i, a := range got {
-		gotIDs[i] = a["id"].(string)
+		id, ok := a["id"].(string)
+		if !ok {
+			t.Fatalf("action id no es string: %v", a["id"])
+		}
+		gotIDs[i] = id
 	}
 	want := []string{"save", "detail", "publish", "archive", "delete"}
 	if len(gotIDs) != len(want) {

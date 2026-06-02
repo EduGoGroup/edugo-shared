@@ -35,7 +35,10 @@ func TestRequireActiveSchool_AllowsValidContext(t *testing.T) {
 		RequireActiveSchool(),
 		func(c *gin.Context) {
 			s := MustActiveSchoolID(c)
-			u, _ := GetActiveUnitID(c)
+			u, err := GetActiveUnitID(c)
+			if err != nil {
+				t.Fatalf("GetActiveUnitID: %v", err)
+			}
 			c.JSON(http.StatusOK, gin.H{"school": s, "unit": u})
 		},
 	)

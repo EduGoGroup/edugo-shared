@@ -35,7 +35,10 @@ func loadPermissionMetricsRecorder() PermissionMetricsRecorder {
 	if v == nil {
 		return nil
 	}
-	r, _ := v.(PermissionMetricsRecorder)
+	r, ok := v.(PermissionMetricsRecorder)
+	if !ok {
+		return nil
+	}
 	return r
 }
 

@@ -126,7 +126,12 @@ func (l *Loader) newViper() *viper.Viper {
 	v.AutomaticEnv()
 
 	for viperKey, envKey := range l.explicitBindings {
-		_ = v.BindEnv(viperKey, envKey)
+		if err := v.BindEnv(viperKey, envKey); err != nil {
+			// BindEnv solo falla si no se pasa ninguna llave; aquí siempre
+			// recibe (viperKey, envKey), así que el error no es alcanzable.
+			// Se ignora explícitamente para no propagar un fallo imposible.
+			continue
+		}
 	}
 
 	return v
@@ -135,7 +140,13 @@ func (l *Loader) newViper() *viper.Viper {
 // Load carga la configuración y la desempaqueta en el struct destino
 func (l *Loader) Load(cfg any) error {
 	if len(l.envFiles) > 0 {
-		_ = godotenv.Load(l.envFiles...)
+		// Los archivos .env son opcionales: si no existen (o fallan al leerse)
+		// se continúa con las variables de entorno ya presentes y la
+		// configuración por archivo. No se propaga el error para no romper
+		// entornos sin .env.
+		if err := godotenv.Load(l.envFiles...); err != nil {
+			_ = err // .env opcional: error ignorado a propósito.
+		}
 	}
 
 	v := l.newViper()

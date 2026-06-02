@@ -462,6 +462,74 @@ func TestGetValidatedClaims(t *testing.T) {
 	})
 }
 
+// fakePermissionRecorder captura las observaciones de RecordPermissionCheck
+// para verificar que el middleware emite métricas cuando hay recorder.
+type fakePermissionRecorder struct {
+	calls []struct {
+		permission string
+		granted    bool
+	}
+}
+
+func (f *fakePermissionRecorder) RecordPermissionCheck(permission string, granted bool) {
+	f.calls = append(f.calls, struct {
+		permission string
+		granted    bool
+	}{permission, granted})
+}
+
+func TestPermissionMetricsRecorder(t *testing.T) {
+	t.Run("sin recorder registrado recordPermissionCheck es no-op", func(t *testing.T) {
+		// El estado inicial (Load() == nil) hace que loadPermissionMetricsRecorder
+		// devuelva nil y recordPermissionCheck no haga nada ni panic.
+		recordPermissionCheck("admin.users.read", true)
+	})
+
+	t.Run("RequirePermission emite la observación al recorder registrado", func(t *testing.T) {
+		rec := &fakePermissionRecorder{}
+		SetPermissionMetricsRecorder(rec)
+		assert.Same(t, rec, loadPermissionMetricsRecorder())
+
+		// Permiso concedido.
+		granted := createTestContextWithClaims(&auth.Claims{
+			UserID: "user-123",
+			Email:  "test@edugo.com",
+			ActiveContext: &auth.UserContext{
+				RoleID: "role-admin",
+				Grants: auth.Grants{Allow: []string{"admin.users.read"}},
+			},
+		})
+		RequirePermission(enum.PermissionUsersRead)(granted)
+
+		// Permiso denegado.
+		denied := createTestContextWithClaims(&auth.Claims{
+			UserID: "user-456",
+			Email:  "denied@edugo.com",
+			ActiveContext: &auth.UserContext{
+				RoleID: "role-student",
+				Grants: auth.Grants{Allow: []string{"content.materials.read"}},
+			},
+		})
+		RequirePermission(enum.PermissionUsersCreate)(denied)
+
+		require.Len(t, rec.calls, 2)
+		assert.Equal(t, enum.PermissionUsersRead.String(), rec.calls[0].permission)
+		assert.True(t, rec.calls[0].granted)
+		assert.Equal(t, enum.PermissionUsersCreate.String(), rec.calls[1].permission)
+		assert.False(t, rec.calls[1].granted)
+	})
+
+	t.Run("SetPermissionMetricsRecorder reemplaza el recorder previo", func(t *testing.T) {
+		first := &fakePermissionRecorder{}
+		SetPermissionMetricsRecorder(first)
+		assert.Same(t, first, loadPermissionMetricsRecorder())
+
+		second := &fakePermissionRecorder{}
+		SetPermissionMetricsRecorder(second)
+		assert.Same(t, second, loadPermissionMetricsRecorder())
+	})
+}
+
 func TestPermissionMiddleware_Integration(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 

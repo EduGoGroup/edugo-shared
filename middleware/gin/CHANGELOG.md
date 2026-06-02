@@ -4,6 +4,20 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/middleware/g
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-06-02
+
+### Added
+
+- `APIVersionHeader(version, build string) gin.HandlerFunc`: middleware que agrega en cada
+  respuesta los headers `X-Edugo-Api-Version` y `X-Edugo-Api-Build` (constantes exportadas
+  `HeaderAPIVersion` y `HeaderAPIBuild`). Permite que los consumidores expongan la versión/commit
+  del binario en el response. Cubierto por tests.
+
+### Changed
+
+- Bump de la dependencia `github.com/EduGoGroup/edugo-infrastructure/postgres` a `v0.4.0` (indirect).
+- Saneo de lint interno (errcheck en `permission_auth.go`) sin cambios de comportamiento ni de API.
+
 ## [0.1.0] - 2026-05-28
 
 ### Added

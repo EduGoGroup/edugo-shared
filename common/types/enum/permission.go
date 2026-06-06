@@ -108,6 +108,17 @@ const (
 	PermissionMyMembershipsReadOwn Permission = "academic.my_memberships.read:own"
 )
 
+// academic.my_grades
+const (
+	// PermissionMyGradesReadOwn permite al alumno leer SOLO sus propias
+	// calificaciones ("mis notas"), sin listar las de otros alumnos ni el
+	// roster completo. Lo usa el rol student vía GET /me/grades, que fuerza
+	// student_id = user_id del JWT (N3 / F4). Vive bajo un path propio
+	// (academic.my_grades.*) para que el gate de menú por path-prefix NO haga
+	// aparecer el item admin "grades".
+	PermissionMyGradesReadOwn Permission = "academic.my_grades.read:own"
+)
+
 // academic.subjects
 const (
 	PermissionSubjectsCreate Permission = "academic.subjects.create"
@@ -335,6 +346,8 @@ var AllPermissions = map[Permission]bool{
 	PermissionMembershipsDelete: true,
 	// academic.my_memberships
 	PermissionMyMembershipsReadOwn: true,
+	// academic.my_grades
+	PermissionMyGradesReadOwn: true,
 	// academic.subjects
 	PermissionSubjectsCreate: true,
 	PermissionSubjectsRead:   true,

@@ -2,6 +2,13 @@
 
 Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/common` se registran aquí.
 
+## [Unreleased]
+
+## [0.900.0] - 2026-06-06
+
+### Added
+- Permiso `academic.my_grades.read:own` (enum `PermissionMyGradesReadOwn`) para que el alumno consulte sus propias notas vía `GET /me/grades` (N3 F4 'Mis Notas').
+
 ## [0.1.0] - 2026-05-28
 
 ### Added

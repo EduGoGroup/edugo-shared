@@ -4,6 +4,14 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/messaging/ev
 
 ## [Unreleased]
 
+### Changed
+
+- **Breaking** en `AssessmentAttemptRecordedPayload`: rename `student_id → student_membership_id` (re-llaveo de `auth.users.id` a `academic.memberships`, ADR 0019) y `total_points → max_score`. Los consumidores del payload (worker, learning) deben migrar al nuevo contrato.
+
+### Added
+
+- Campos `subject_id` (permite al worker resolver la oferta de la materia cross-schema) y `status` (gate `completed`/`pending_review`) en `AssessmentAttemptRecordedPayload`.
+
 ## [0.1.0] - 2026-05-28
 
 ### Added

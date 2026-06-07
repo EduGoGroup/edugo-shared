@@ -4,6 +4,17 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/common` se r
 
 ## [Unreleased]
 
+## [0.900.1] - 2026-06-07
+
+### Added
+- Permisos del recurso `academic.grades_detail` (modo DETALLADO de notas, N4 / ADR 0020) en `types/enum/permission.go` y en `AllPermissions`:
+  - `academic.grades_detail.create` (enum `PermissionGradesDetailCreate`).
+  - `academic.grades_detail.read` (enum `PermissionGradesDetailRead`).
+  - `academic.grades_detail.update` (enum `PermissionGradesDetailUpdate`).
+  - `academic.grades_detail.delete` (enum `PermissionGradesDetailDelete`).
+
+  Gestionan los componentes de nota (`academic.grade_item`) y habilitan el desglose transparente en "Mis Notas". El modo BÁSICO usa solo `academic.grades`; el modo DETALLADO los otorga vía grant condicional según el perfil de la escuela (`academic.schools.grade_profile`).
+
 ## [0.900.0] - 2026-06-06
 
 ### Added

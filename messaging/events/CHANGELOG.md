@@ -4,6 +4,17 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/messaging/ev
 
 ## [Unreleased]
 
+## [0.900.0] - 2026-06-07
+
+### Changed
+
+- **Breaking** en `AssessmentAssignedPayload`: redefinido para apuntar a una sesión de materia (N4 F3, ADR 0019). Se elimina el targeting genérico `target_type` (`"student"`/`"unit"`) + `target_id` y se reemplaza por `subject_offering_id` (los destinatarios son los alumnos inscritos en la oferta); rename `assigned_by_id → assigned_by_membership_id` (re-llaveo a `academic.memberships`); se agrega `due_date` opcional (`*time.Time`, omitempty). El constructor `NewAssessmentAssignedEvent` ahora exige `SubjectOfferingID` y `AssignedByMembershipID`. Los consumidores deben migrar al nuevo contrato.
+- **Breaking** en `AssessmentAttemptRecordedPayload`: rename `student_id → student_membership_id` (re-llaveo de `auth.users.id` a `academic.memberships`, ADR 0019) y `total_points → max_score`. Los consumidores del payload (worker, learning) deben migrar al nuevo contrato.
+
+### Added
+
+- Campos `subject_id` (permite al worker resolver la oferta de la materia cross-schema) y `status` (gate `completed`/`pending_review`) en `AssessmentAttemptRecordedPayload`.
+
 ## [0.1.0] - 2026-05-28
 
 ### Added

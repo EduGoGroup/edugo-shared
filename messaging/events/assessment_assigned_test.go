@@ -3,20 +3,22 @@ package events
 import (
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestNewAssessmentAssignedEvent_Valid(t *testing.T) {
+	due := time.Now().Add(72 * time.Hour)
 	payload := AssessmentAssignedPayload{
-		AssessmentID: "assess_001",
-		AssignmentID: "assign_001",
-		SchoolID:     "school_001",
-		AssignedByID: "teacher_001",
-		TargetType:   "student",
-		TargetID:     "student_001",
-		Title:        "Examen de Lengua",
+		AssessmentID:           "assess_001",
+		AssignmentID:           "assign_001",
+		SchoolID:               "school_001",
+		AssignedByMembershipID: "membership_001",
+		SubjectOfferingID:      "offering_001",
+		DueDate:                &due,
+		Title:                  "Examen de Lengua",
 	}
 
 	event, err := NewAssessmentAssignedEvent("evt_001", "assessment.assigned", "1.0", payload)
@@ -27,14 +29,14 @@ func TestNewAssessmentAssignedEvent_Valid(t *testing.T) {
 	assert.Equal(t, "1.0", event.EventVersion)
 	assert.False(t, event.Timestamp.IsZero())
 	assert.Equal(t, "assess_001", event.Payload.AssessmentID)
-	assert.Equal(t, "student", event.Payload.TargetType)
+	assert.Equal(t, "offering_001", event.Payload.SubjectOfferingID)
 	assert.Equal(t, "Examen de Lengua", event.Payload.Title)
 }
 
 func TestNewAssessmentAssignedEvent_EmptyFields(t *testing.T) {
 	base := AssessmentAssignedPayload{
 		AssessmentID: "a", AssignmentID: "ai", SchoolID: "s",
-		AssignedByID: "ab", TargetType: "student", TargetID: "t",
+		AssignedByMembershipID: "ab", SubjectOfferingID: "so",
 	}
 
 	tests := []struct {
@@ -63,19 +65,14 @@ func TestNewAssessmentAssignedEvent_EmptyFields(t *testing.T) {
 			wantErr: "SchoolID",
 		},
 		{
-			name: "AssignedByID vacio", eventID: "evt_1",
-			payload: func() AssessmentAssignedPayload { p := base; p.AssignedByID = ""; return p }(),
-			wantErr: "AssignedByID",
+			name: "AssignedByMembershipID vacio", eventID: "evt_1",
+			payload: func() AssessmentAssignedPayload { p := base; p.AssignedByMembershipID = ""; return p }(),
+			wantErr: "AssignedByMembershipID",
 		},
 		{
-			name: "TargetType vacio", eventID: "evt_1",
-			payload: func() AssessmentAssignedPayload { p := base; p.TargetType = ""; return p }(),
-			wantErr: "TargetType",
-		},
-		{
-			name: "TargetID vacio", eventID: "evt_1",
-			payload: func() AssessmentAssignedPayload { p := base; p.TargetID = ""; return p }(),
-			wantErr: "TargetID",
+			name: "SubjectOfferingID vacio", eventID: "evt_1",
+			payload: func() AssessmentAssignedPayload { p := base; p.SubjectOfferingID = ""; return p }(),
+			wantErr: "SubjectOfferingID",
 		},
 	}
 
@@ -90,12 +87,11 @@ func TestNewAssessmentAssignedEvent_EmptyFields(t *testing.T) {
 
 func TestAssessmentAssignedEvent_Serialization(t *testing.T) {
 	payload := AssessmentAssignedPayload{
-		AssessmentID: "assess_001",
-		AssignmentID: "assign_001",
-		SchoolID:     "school_001",
-		AssignedByID: "teacher_001",
-		TargetType:   "unit",
-		TargetID:     "unit_3A",
+		AssessmentID:           "assess_001",
+		AssignmentID:           "assign_001",
+		SchoolID:               "school_001",
+		AssignedByMembershipID: "membership_001",
+		SubjectOfferingID:      "offering_3A",
 	}
 
 	event, err := NewAssessmentAssignedEvent("evt_001", "assessment.assigned", "1.0", payload)
@@ -110,19 +106,20 @@ func TestAssessmentAssignedEvent_Serialization(t *testing.T) {
 
 	assert.Equal(t, event.EventID, decoded.EventID)
 	assert.Equal(t, event.Payload.AssessmentID, decoded.Payload.AssessmentID)
-	assert.Equal(t, event.Payload.TargetType, decoded.Payload.TargetType)
-	assert.Equal(t, event.Payload.TargetID, decoded.Payload.TargetID)
+	assert.Equal(t, event.Payload.SubjectOfferingID, decoded.Payload.SubjectOfferingID)
+	assert.Equal(t, event.Payload.AssignedByMembershipID, decoded.Payload.AssignedByMembershipID)
 }
 
-func TestAssessmentAssignedEvent_TitleSerialization(t *testing.T) {
+func TestAssessmentAssignedEvent_DueDateSerialization(t *testing.T) {
+	due := time.Date(2026, 6, 30, 23, 59, 0, 0, time.UTC)
 	payload := AssessmentAssignedPayload{
-		AssessmentID: "assess_001",
-		AssignmentID: "assign_001",
-		SchoolID:     "school_001",
-		AssignedByID: "teacher_001",
-		TargetType:   "student",
-		TargetID:     "student_001",
-		Title:        "Evaluacion Parcial",
+		AssessmentID:           "assess_001",
+		AssignmentID:           "assign_001",
+		SchoolID:               "school_001",
+		AssignedByMembershipID: "membership_001",
+		SubjectOfferingID:      "offering_001",
+		DueDate:                &due,
+		Title:                  "Evaluacion Parcial",
 	}
 
 	event, err := NewAssessmentAssignedEvent("evt_001", "assessment.assigned", "1.0", payload)
@@ -135,11 +132,13 @@ func TestAssessmentAssignedEvent_TitleSerialization(t *testing.T) {
 	err = json.Unmarshal(data, &decoded)
 	require.NoError(t, err)
 
+	require.NotNil(t, decoded.Payload.DueDate)
+	assert.True(t, decoded.Payload.DueDate.Equal(due))
 	assert.Equal(t, "Evaluacion Parcial", decoded.Payload.Title)
 }
 
-func TestAssessmentAssignedEvent_BackwardCompatibility(t *testing.T) {
-	jsonWithoutTitle := `{
+func TestAssessmentAssignedEvent_OptionalFieldsOmitted(t *testing.T) {
+	jsonWithoutOptionals := `{
 		"event_id": "evt_001",
 		"event_type": "assessment.assigned",
 		"event_version": "1.0",
@@ -148,14 +147,14 @@ func TestAssessmentAssignedEvent_BackwardCompatibility(t *testing.T) {
 			"assessment_id": "assess_001",
 			"assignment_id": "assign_001",
 			"school_id": "school_001",
-			"assigned_by_id": "teacher_001",
-			"target_type": "student",
-			"target_id": "student_001"
+			"assigned_by_membership_id": "membership_001",
+			"subject_offering_id": "offering_001"
 		}
 	}`
 
 	var decoded AssessmentAssignedEvent
-	err := json.Unmarshal([]byte(jsonWithoutTitle), &decoded)
+	err := json.Unmarshal([]byte(jsonWithoutOptionals), &decoded)
 	require.NoError(t, err)
 	assert.Equal(t, "", decoded.Payload.Title)
+	assert.Nil(t, decoded.Payload.DueDate)
 }

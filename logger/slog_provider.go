@@ -45,6 +45,11 @@ func NewSlogProvider(cfg SlogConfig) *slog.Logger {
 		handler = slog.NewJSONHandler(os.Stdout, opts)
 	}
 
+	// Envolver con el wrapper que agrega el campo top-level `severity` exigido
+	// por Google Cloud Logging. Es aditivo: el campo `level` de slog se conserva.
+	// Aplica a ambos formatos; el objetivo prioritario es el JSON (cloud).
+	handler = newGCPSeverityHandler(handler)
+
 	l := slog.New(handler)
 
 	// Agregar campos base si fueron proporcionados

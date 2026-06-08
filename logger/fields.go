@@ -130,6 +130,11 @@ const (
 
 	// FieldBytes es el tamaño de la respuesta HTTP en bytes
 	FieldBytes = "bytes"
+
+	// FieldSeverity es el campo top-level que Google Cloud Logging usa para
+	// clasificar la entrada (LogSeverity). Coexiste con el campo `level` de slog;
+	// no lo reemplaza. Ver gcp_severity_handler.go.
+	FieldSeverity = "severity"
 )
 
 // WithRequestID retorna un slog.Attr con el ID de petición.

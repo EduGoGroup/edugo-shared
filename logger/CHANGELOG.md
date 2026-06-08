@@ -2,6 +2,13 @@
 
 Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/logger` se registran aquí.
 
+## [0.900.0] - 2026-06-08
+
+### Added
+- `gcpSeverityHandler`: wrapper de `slog.Handler` que inyecta el campo top-level `severity` compatible con Google Cloud Logging; mapea `slog.Level` a `LogSeverity` de GCP (`DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`).
+- Constante `FieldSeverity` para el nombre canónico del campo (`"severity"`).
+- Integración en `slog_provider.go`: el handler GCP se encadena automáticamente cuando el entorno no es local, de modo que Cloud Logging agrupa los registros con el nivel correcto sin configuración adicional en los consumidores.
+
 ## [0.1.0] - 2026-05-28
 
 ### Added

@@ -2,6 +2,13 @@
 
 Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/screenconfig` se registran aquí.
 
+## [Unreleased]
+
+## [0.900.0] - 2026-06-09
+
+### Removed
+- Elimina el valor `Pattern` `search` del contrato (espejo del enum SDUI muerto, plan 019 WI-2).
+
 ## [0.1.0] - 2026-05-28
 
 ### Added

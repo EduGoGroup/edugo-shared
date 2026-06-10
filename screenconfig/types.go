@@ -11,7 +11,6 @@ const (
 	PatternDashboard    Pattern = "dashboard"
 	PatternSettings     Pattern = "settings"
 	PatternDetail       Pattern = "detail"
-	PatternSearch       Pattern = "search"
 	PatternProfile      Pattern = "profile"
 	PatternModal        Pattern = "modal"
 	PatternNotification Pattern = "notification"

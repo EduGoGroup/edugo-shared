@@ -12,7 +12,6 @@ var validPatterns = map[Pattern]bool{
 	PatternDashboard:    true,
 	PatternSettings:     true,
 	PatternDetail:       true,
-	PatternSearch:       true,
 	PatternProfile:      true,
 	PatternModal:        true,
 	PatternNotification: true,

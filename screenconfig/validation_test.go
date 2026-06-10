@@ -7,7 +7,7 @@ import (
 func TestValidatePattern_ValidPatterns(t *testing.T) {
 	validPatterns := []string{
 		"login", "form", "list", "dashboard", "settings",
-		"detail", "search", "profile", "modal", "notification",
+		"detail", "profile", "modal", "notification",
 		"onboarding", "empty-state",
 	}
 	for _, p := range validPatterns {

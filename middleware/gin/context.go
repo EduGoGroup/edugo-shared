@@ -9,11 +9,13 @@ import (
 
 // Errores de contexto
 var (
-	ErrUserIDNotFound = errors.New("user_id not found in context")
-	ErrEmailNotFound  = errors.New("email not found in context")
-	ErrRoleNotFound   = errors.New("role not found in context")
-	ErrClaimsNotFound = errors.New("claims not found in context")
-	ErrInvalidType    = errors.New("invalid type in context")
+	ErrUserIDNotFound        = errors.New("user_id not found in context")
+	ErrEmailNotFound         = errors.New("email not found in context")
+	ErrRoleNotFound          = errors.New("role not found in context")
+	ErrClaimsNotFound        = errors.New("claims not found in context")
+	ErrClientIDNotFound      = errors.New("client_id not found in context")
+	ErrServiceClaimsNotFound = errors.New("service claims not found in context")
+	ErrInvalidType           = errors.New("invalid type in context")
 )
 
 // GetUserID extrae el user_id del contexto Gin

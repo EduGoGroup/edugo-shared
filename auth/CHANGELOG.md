@@ -2,6 +2,15 @@
 
 Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/auth` se registran aquí.
 
+## [Unreleased]
+
+### Added
+- `ServiceClaims`: claims de un service JWT (M2M / B2B) con `token_use="service"`, `client_id`, `scopes` y `aud`; SIN `active_context` ni `user_id` (el caller ya resolvió destinatarios). Método `HasScope(scope)`.
+- `ServiceJWTManager` (firma/valida HS256 con su PROPIO secret `SERVICE_JWT_SECRET`, distinto del de usuarios): `NewServiceJWTManager(secret, issuer, audience)`, `GenerateServiceToken`, `ParseServiceToken` (valida firma + iss + aud + exp) y `ValidateServiceToken` (además exige `token_use == "service"`).
+- Constante `TokenUseService = "service"`.
+
+Habilita la autenticación M2M del plan 020 N5 (D14/D17): platform valida el token en `/api/v1/internal/*` y los callers (worker, learning) lo firman. Un JWT de usuario NO valida como service token y viceversa.
+
 ## [0.1.0] - 2026-05-28
 
 ### Added

@@ -88,6 +88,14 @@ func (m *JWTManager) parseAndValidateToken(tokenString string) (*Claims, error) 
 	parser := jwt.NewParser(
 		jwt.WithIssuer(m.issuer),
 		jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}),
+		// SH-1: exige claim `exp`. Un token sin expiración (aunque esté bien
+		// firmado) se rechaza. Los tres generadores (GenerateTokenWithContext,
+		// GenerateMinimalToken) siempre fijan `exp`, así que no rompe tokens
+		// legítimos; solo cierra el hueco de aceptar un token eterno.
+		jwt.WithExpirationRequired(),
+		// SH-2: tolerancia de reloj para evitar rechazos por skew de pocos
+		// segundos en `nbf`/`iat`/`exp` entre instancias.
+		jwt.WithLeeway(30*time.Second),
 	)
 
 	token, err := parser.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (any, error) {

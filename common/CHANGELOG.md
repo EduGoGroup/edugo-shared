@@ -4,6 +4,9 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/common` se r
 
 ## [Unreleased]
 
+### Added
+- Tipo `Scope` y constante `ScopeNotificationsDispatch` (`notifications.dispatch`) en `types/enum/scope.go`, con catálogo cerrado `AllScopes` y método `IsValid()`. Es el scope M2M que autoriza a un cliente de servicio a invocar el Notification Gateway (`POST /api/v1/internal/notifications/dispatch`); única fuente de verdad del scope, análoga a `Permission*` (plan 020 N5, D14/D17).
+
 ## [0.900.1] - 2026-06-07
 
 ### Added

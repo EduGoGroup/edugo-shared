@@ -59,6 +59,7 @@ func TestProcessingStatus_IsValid(t *testing.T) {
 		{"Pending", ProcessingStatusPending, true},
 		{"Processing", ProcessingStatusProcessing, true},
 		{"Completed", ProcessingStatusCompleted, true},
+		{"Ready", ProcessingStatusReady, true},
 		{"Failed", ProcessingStatusFailed, true},
 		{"Invalid", "invalid_status", false},
 	}
@@ -71,4 +72,5 @@ func TestProcessingStatus_IsValid(t *testing.T) {
 
 func TestProcessingStatus_String(t *testing.T) {
 	assert.Equal(t, "pending", ProcessingStatusPending.String())
+	assert.Equal(t, "ready", ProcessingStatusReady.String())
 }

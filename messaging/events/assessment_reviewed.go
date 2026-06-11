@@ -16,15 +16,19 @@ type AssessmentReviewedEvent struct {
 
 // AssessmentReviewedPayload contiene los datos de la revision.
 type AssessmentReviewedPayload struct {
-	AttemptID    string  `json:"attempt_id"`
-	AssessmentID string  `json:"assessment_id"`
-	ReviewerID   string  `json:"reviewer_id"`
-	SchoolID     string  `json:"school_id"`
-	FinalScore   float64 `json:"final_score"`
-	TotalPoints  float64 `json:"total_points"`
-	Status       string  `json:"status"`
-	StudentID    string  `json:"student_id,omitempty"`
-	Title        string  `json:"title,omitempty"`
+	AttemptID    string `json:"attempt_id"`
+	AssessmentID string `json:"assessment_id"`
+	ReviewerID   string `json:"reviewer_id"`
+	SchoolID     string `json:"school_id"`
+	// AcademicUnitID es la unidad académica activa del emisor (F4.6). Viaja para que
+	// el push lleve unit_id y el deep-link multi-tenant cambie al contexto exacto
+	// (escuela+unidad). omitempty: un evento viejo sin el campo deserializa a vacío.
+	AcademicUnitID string  `json:"academic_unit_id,omitempty"`
+	FinalScore     float64 `json:"final_score"`
+	TotalPoints    float64 `json:"total_points"`
+	Status         string  `json:"status"`
+	StudentID      string  `json:"student_id,omitempty"`
+	Title          string  `json:"title,omitempty"`
 }
 
 // NewAssessmentReviewedEvent crea y valida un nuevo evento de revision de evaluacion.

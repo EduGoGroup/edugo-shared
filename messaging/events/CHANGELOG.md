@@ -4,6 +4,12 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/messaging/ev
 
 ## [Unreleased]
 
+## [0.900.1] - 2026-06-11
+
+### Added
+
+- Campo `academic_unit_id` (omitempty) en `AssessmentAttemptRecordedPayload` y `AssessmentReviewedPayload`: lleva la unidad académica activa del emisor para que el worker propague el tenant al push, habilitando el deep-link multi-tenant (plan 020 N5, F4.6). Un evento viejo sin el campo deserializa a vacío sin romper compatibilidad.
+
 ## [0.900.0] - 2026-06-07
 
 ### Changed

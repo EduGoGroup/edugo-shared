@@ -62,6 +62,11 @@ const (
 	ProcessingStatusProcessing ProcessingStatus = "processing"
 	// ProcessingStatusCompleted represents successfully processed content
 	ProcessingStatusCompleted ProcessingStatus = "completed"
+	// ProcessingStatusReady represents content whose summary is consolidated and
+	// available. Es el estado terminal que exige el CHECK de content.materials
+	// (IN ('draft','uploaded','processing','ready','failed')); NO existe
+	// 'completed' en esa tabla. W-2 del plan 020.
+	ProcessingStatusReady ProcessingStatus = "ready"
 	// ProcessingStatusFailed represents content that failed processing
 	ProcessingStatusFailed ProcessingStatus = "failed"
 )
@@ -69,7 +74,7 @@ const (
 // IsValid verifica si el status es válido
 func (p ProcessingStatus) IsValid() bool {
 	switch p {
-	case ProcessingStatusPending, ProcessingStatusProcessing, ProcessingStatusCompleted, ProcessingStatusFailed:
+	case ProcessingStatusPending, ProcessingStatusProcessing, ProcessingStatusCompleted, ProcessingStatusReady, ProcessingStatusFailed:
 		return true
 	}
 	return false

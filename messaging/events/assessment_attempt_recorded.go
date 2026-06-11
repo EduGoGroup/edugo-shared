@@ -16,17 +16,21 @@ type AssessmentAttemptRecordedEvent struct {
 
 // AssessmentAttemptRecordedPayload contiene los datos del intento registrado.
 type AssessmentAttemptRecordedPayload struct {
-	AttemptID           string    `json:"attempt_id"`
-	AssessmentID        string    `json:"assessment_id"`
-	StudentMembershipID string    `json:"student_membership_id"`
-	SubjectID           string    `json:"subject_id"`
-	SchoolID            string    `json:"school_id"`
-	Score               float64   `json:"score"`
-	MaxScore            float64   `json:"max_score"`
-	Status              string    `json:"status"`
-	SubmittedAt         time.Time `json:"submitted_at"`
-	TeacherID           string    `json:"teacher_id,omitempty"`
-	Title               string    `json:"title,omitempty"`
+	AttemptID           string `json:"attempt_id"`
+	AssessmentID        string `json:"assessment_id"`
+	StudentMembershipID string `json:"student_membership_id"`
+	SubjectID           string `json:"subject_id"`
+	SchoolID            string `json:"school_id"`
+	// AcademicUnitID es la unidad académica activa del emisor (F4.6). Viaja para que
+	// el push lleve unit_id y el deep-link multi-tenant cambie al contexto exacto
+	// (escuela+unidad). omitempty: un evento viejo sin el campo deserializa a vacío.
+	AcademicUnitID string    `json:"academic_unit_id,omitempty"`
+	Score          float64   `json:"score"`
+	MaxScore       float64   `json:"max_score"`
+	Status         string    `json:"status"`
+	SubmittedAt    time.Time `json:"submitted_at"`
+	TeacherID      string    `json:"teacher_id,omitempty"`
+	Title          string    `json:"title,omitempty"`
 }
 
 // NewAssessmentAttemptRecordedEvent crea y valida un nuevo evento de intento de evaluacion.

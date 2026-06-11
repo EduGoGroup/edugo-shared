@@ -4,6 +4,15 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/middleware/g
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-06-11
+
+### Added
+- `ServiceJWTAuthMiddleware(validator ServiceTokenValidator, requiredScope string)`: middleware de autenticación M2M para rutas internas (`/api/v1/internal/*`), INDEPENDIENTE del middleware de usuario (no se mezclan). Rechaza con 401 header ausente/mal formado, token inválido/expirado y token que no es de servicio (`token_use != "service"`, p. ej. JWT de usuario); rechaza con 403 (`INSUFFICIENT_SCOPE`) si falta el scope requerido. Inyecta `client_id`, `scopes` y los claims en el contexto Gin.
+- Interfaz `ServiceTokenValidator` (la implementa `auth.ServiceJWTManager`).
+- Helpers `GetClientID(c)` y `GetServiceClaims(c)`; keys de contexto `ContextKeyClientID`, `ContextKeyScopes`, `ContextKeyServiceClaims`; errores `ErrClientIDNotFound`, `ErrServiceClaimsNotFound`.
+
+Habilita el Notification Gateway del plan 020 N5 (D14): platform expone `POST /api/v1/internal/notifications/dispatch` protegido con este middleware y scope `notifications.dispatch`.
+
 ## [0.2.0] - 2026-06-02
 
 ### Added

@@ -20,7 +20,14 @@ type UserContext struct {
 	SchoolName       string `json:"school_name,omitempty"`
 	AcademicUnitID   string `json:"academic_unit_id,omitempty"`
 	AcademicUnitName string `json:"academic_unit_name,omitempty"`
-	Grants           Grants `json:"grants"`
+	// Landing es el screen_key de la pantalla de aterrizaje (landing) del
+	// contexto activo, resuelto data-driven en el backend (ADR 0024):
+	// role.landing_screen_key ?? school.default_landing_screen_key ??
+	// "dashboard-home". Viaja en el claim active_context del JWT y en el body
+	// HTTP; el cliente lo usa para decidir el destino inicial al activar el
+	// contexto.
+	Landing string `json:"landing,omitempty"`
+	Grants  Grants `json:"grants"`
 }
 
 // Grants es el wire format D2: lista de patterns allow + lista de

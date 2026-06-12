@@ -199,38 +199,12 @@ const (
 	PermissionAttendanceUpdate Permission = "academic.attendance.update"
 )
 
-// academic.schedules
-const (
-	PermissionSchedulesCreate Permission = "academic.schedules.create"
-	PermissionSchedulesRead   Permission = "academic.schedules.read"
-	PermissionSchedulesUpdate Permission = "academic.schedules.update"
-	PermissionSchedulesDelete Permission = "academic.schedules.delete"
-)
-
-// academic.calendar
-const (
-	PermissionCalendarEventsCreate Permission = "academic.calendar.create"
-	PermissionCalendarEventsRead   Permission = "academic.calendar.read"
-	PermissionCalendarEventsUpdate Permission = "academic.calendar.update"
-	PermissionCalendarEventsDelete Permission = "academic.calendar.delete"
-)
-
 // academic.announcements
 const (
 	PermissionAnnouncementsCreate Permission = "academic.announcements.create"
 	PermissionAnnouncementsRead   Permission = "academic.announcements.read"
 	PermissionAnnouncementsUpdate Permission = "academic.announcements.update"
 	PermissionAnnouncementsDelete Permission = "academic.announcements.delete"
-)
-
-// platform.colors
-// Recurso CRUD plano demo introducido en la Fase 3 SDUI (F3-REQ-4) para
-// validar que crear un CRUD nuevo en EduGo NO requiere código Kotlin.
-const (
-	PermissionColorsCreate Permission = "platform.colors.create"
-	PermissionColorsRead   Permission = "platform.colors.read"
-	PermissionColorsUpdate Permission = "platform.colors.update"
-	PermissionColorsDelete Permission = "platform.colors.delete"
 )
 
 // content.materials
@@ -407,26 +381,11 @@ var AllPermissions = map[Permission]bool{
 	PermissionAttendanceCreate: true,
 	PermissionAttendanceRead:   true,
 	PermissionAttendanceUpdate: true,
-	// academic.schedules
-	PermissionSchedulesCreate: true,
-	PermissionSchedulesRead:   true,
-	PermissionSchedulesUpdate: true,
-	PermissionSchedulesDelete: true,
-	// academic.calendar
-	PermissionCalendarEventsCreate: true,
-	PermissionCalendarEventsRead:   true,
-	PermissionCalendarEventsUpdate: true,
-	PermissionCalendarEventsDelete: true,
 	// academic.announcements
 	PermissionAnnouncementsCreate: true,
 	PermissionAnnouncementsRead:   true,
 	PermissionAnnouncementsUpdate: true,
 	PermissionAnnouncementsDelete: true,
-	// platform.colors
-	PermissionColorsCreate: true,
-	PermissionColorsRead:   true,
-	PermissionColorsUpdate: true,
-	PermissionColorsDelete: true,
 	// content.materials
 	PermissionMaterialsCreate:   true,
 	PermissionMaterialsRead:     true,

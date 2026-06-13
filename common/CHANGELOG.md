@@ -4,6 +4,14 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/common` se r
 
 ## [Unreleased]
 
+## [0.900.3] - 2026-06-13
+
+### Added
+- Nuevo package `common/timeutil`: helpers de tiempo para el estándar de fechas UTC (bug 0001, MP-05 F1). `NowUTC()`, `FormatISO()`/`ParseISO()` (instantes en UTC con sufijo `Z`) y `FormatDate()`/`ParseDate()` (fechas puras `YYYY-MM-DD` sin zona). Tests round-trip verdes. Cambio aditivo.
+
+### Removed
+- **BREAKING** — Eliminadas las 12 constantes de permisos de features muertas en `types/enum/permission.go` (defs + entradas en el mapa `AllPermissions`): `PermissionColors*`, `PermissionSchedules*` y `PermissionCalendarEvents*` (CRUD `color`/`schedule`/`calendar_event` podados en platform, MP-01 F3). Cualquier consumidor que referencie estas constantes deja de compilar.
+
 ## [0.900.2] - 2026-06-11
 
 ### Added

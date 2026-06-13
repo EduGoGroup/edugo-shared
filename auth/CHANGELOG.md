@@ -4,6 +4,11 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/auth` se reg
 
 ## [Unreleased]
 
+## [0.900.1] - 2026-06-13
+
+### Added
+- Campo aditivo `landing` (`json:"landing,omitempty"`) en el contexto activo del claim JWT (`auth/jwt_claims.go`): el `UserContext` transporta el `screen_key` de aterrizaje resuelto data-driven (ADR 0024 F1). No rompe consumidores existentes (omitempty); las 4 APIs reiniciaron verde.
+
 ## [0.900.0] - 2026-06-11
 
 Migración a banda `0.900.x` (ADR 0015 / bug 0022). Misma base que `v0.2.0`.

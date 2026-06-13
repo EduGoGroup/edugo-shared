@@ -80,8 +80,6 @@ func TestAllPermissions_MapIntegrity(t *testing.T) {
 		PermissionPeriodsCreate, PermissionPeriodsRead, PermissionPeriodsUpdate,
 		PermissionPeriodsDelete, PermissionPeriodsActivate,
 		PermissionGradesCreate, PermissionGradesRead, PermissionGradesUpdate, PermissionGradesFinalize,
-		PermissionGradesDetailCreate, PermissionGradesDetailRead,
-		PermissionGradesDetailUpdate, PermissionGradesDetailDelete,
 		PermissionAttendanceCreate, PermissionAttendanceRead, PermissionAttendanceUpdate,
 		PermissionAnnouncementsCreate, PermissionAnnouncementsRead,
 		PermissionAnnouncementsUpdate, PermissionAnnouncementsDelete,

@@ -127,6 +127,7 @@ const (
 	PermissionMyWardsAttendanceReadOwn    Permission = "academic.my_wards_attendance.read:own"
 	PermissionMyWardsAnnouncementsReadOwn Permission = "academic.my_wards_announcements.read:own"
 	PermissionMyWardsMaterialsReadOwn     Permission = "academic.my_wards_materials.read:own"
+	PermissionMyWardsAssessmentsReadOwn   Permission = "academic.my_wards_assessments.read:own"
 )
 
 // academic.subjects

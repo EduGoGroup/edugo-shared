@@ -119,6 +119,16 @@ const (
 	PermissionMyGradesReadOwn Permission = "academic.my_grades.read:own"
 )
 
+// academic.my_wards — vistas `:own` del acudido para el rol guardián (plan 024 F1).
+// El lector real que las sirve (handler que fuerza subject = ward, validado por
+// vínculo guardian_relations) llega en F3; aquí solo se declaran.
+const (
+	PermissionMyWardsGradesReadOwn        Permission = "academic.my_wards_grades.read:own"
+	PermissionMyWardsAttendanceReadOwn    Permission = "academic.my_wards_attendance.read:own"
+	PermissionMyWardsAnnouncementsReadOwn Permission = "academic.my_wards_announcements.read:own"
+	PermissionMyWardsMaterialsReadOwn     Permission = "academic.my_wards_materials.read:own"
+)
+
 // academic.subjects
 const (
 	PermissionSubjectsCreate Permission = "academic.subjects.create"
@@ -322,6 +332,11 @@ var AllPermissions = map[Permission]bool{
 	PermissionMyMembershipsReadOwn: true,
 	// academic.my_grades
 	PermissionMyGradesReadOwn: true,
+	// academic.my_wards
+	PermissionMyWardsGradesReadOwn:        true,
+	PermissionMyWardsAttendanceReadOwn:    true,
+	PermissionMyWardsAnnouncementsReadOwn: true,
+	PermissionMyWardsMaterialsReadOwn:     true,
 	// academic.subjects
 	PermissionSubjectsCreate: true,
 	PermissionSubjectsRead:   true,

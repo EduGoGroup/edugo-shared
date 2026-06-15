@@ -23,6 +23,17 @@ const (
 	ContextKeySlogLogger = "slog_logger"
 	// ContextKeyRequestID es la clave en gin.Context para el ID de petición.
 	ContextKeyRequestID = "request_id"
+
+	// fieldActorMode es el campo de log con el modo de actor del contexto activo
+	// (ADR 0026 DEC-R-A.1): "ward" cuando un representante ve a un acudido.
+	// Mismo nombre snake_case que el claim del JWT (auth.ActorMode*).
+	// Se define localmente porque el módulo logger consumido (v0.1.0) aún no
+	// expone una constante Field para él.
+	fieldActorMode = "actor_mode"
+	// fieldSubjectStudentID es el campo de log con el ID del alumno-sujeto que
+	// el representante está viendo (ADR 0026 DEC-R-A.1). Mismo nombre snake_case
+	// que el claim del JWT.
+	fieldSubjectStudentID = "subject_student_id"
 )
 
 // RequestLogging crea un middleware que:
@@ -166,6 +177,16 @@ func PostAuthLogging() gin.HandlerFunc {
 			if jwtClaims, ok := claims.(*auth.Claims); ok && jwtClaims.ActiveContext != nil {
 				if jwtClaims.ActiveContext.SchoolID != "" {
 					reqLogger = reqLogger.With(logger.FieldSchoolID, jwtClaims.ActiveContext.SchoolID)
+				}
+				// Terna de auditoría del representante (ADR 0026 DEC-R-A.1): solo
+				// cuando el contexto activo trae modo de actor / sujeto, para no
+				// ensuciar los logs del 99% de requests propios (ActorModeSelf se
+				// omite en el JWT, así que ActorMode llega vacío en contexto propio).
+				if jwtClaims.ActiveContext.ActorMode != "" {
+					reqLogger = reqLogger.With(fieldActorMode, jwtClaims.ActiveContext.ActorMode)
+				}
+				if jwtClaims.ActiveContext.SubjectStudentID != "" {
+					reqLogger = reqLogger.With(fieldSubjectStudentID, jwtClaims.ActiveContext.SubjectStudentID)
 				}
 			}
 		}

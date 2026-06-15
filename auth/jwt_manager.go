@@ -145,11 +145,17 @@ func (m *JWTManager) ValidateToken(tokenString string) (*Claims, error) {
 // claims raíz — no en ActiveContext — para que el refresh use case lo lea y emita
 // el siguiente access_token con los mismos claims, sin reconstruir nada.
 //
-// Los tres pueden venir vacíos (ej. super_admin recién logueado que todavía no
-// eligió escuela). En ese caso el siguiente access_token también irá sin esos
-// claims y el cliente deberá completar la cascada con switch-context.
+// La terna sujeto + modo de actor (subjectStudentID + actorMode, ADR 0026)
+// también se persiste en el snapshot para que la rotación del access token
+// preserve al acudido que el representante está viendo. Ambos pueden venir
+// vacíos en contexto propio (actorMode = ActorModeSelf, que se omite por
+// omitempty).
+//
+// Los demás snapshot pueden venir vacíos (ej. super_admin recién logueado que
+// todavía no eligió escuela). En ese caso el siguiente access_token también irá
+// sin esos claims y el cliente deberá completar la cascada con switch-context.
 func (m *JWTManager) GenerateMinimalToken(
-	userID, email, schoolID, academicUnitID, roleID string,
+	userID, email, schoolID, academicUnitID, roleID, subjectStudentID, actorMode string,
 	expiresIn time.Duration,
 ) (string, time.Time, error) {
 	if userID == "" {
@@ -166,13 +172,15 @@ func (m *JWTManager) GenerateMinimalToken(
 	expiresAt := now.Add(expiresIn)
 
 	claims := Claims{
-		UserID:         userID,
-		Email:          email,
-		ActiveContext:  nil,
-		TokenUse:       "refresh",
-		SchoolID:       schoolID,
-		AcademicUnitID: academicUnitID,
-		RoleID:         roleID,
+		UserID:           userID,
+		Email:            email,
+		ActiveContext:    nil,
+		TokenUse:         "refresh",
+		SchoolID:         schoolID,
+		AcademicUnitID:   academicUnitID,
+		RoleID:           roleID,
+		SubjectStudentID: subjectStudentID,
+		ActorMode:        actorMode,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ID:        uuid.New().String(),
 			Issuer:    m.issuer,

@@ -283,7 +283,7 @@ func TestGenerateMinimalToken(t *testing.T) {
 	email := testEmail
 
 	t.Run("genera token minimal válido exitosamente", func(t *testing.T) {
-		token, expiresAt, err := manager.GenerateMinimalToken(userID, email, "", "", "", 24*time.Hour)
+		token, expiresAt, err := manager.GenerateMinimalToken(userID, email, "", "", "", "", "", 24*time.Hour)
 
 		require.NoError(t, err)
 		assert.NotEmpty(t, token)
@@ -292,7 +292,7 @@ func TestGenerateMinimalToken(t *testing.T) {
 	})
 
 	t.Run("token contiene claims correctos sin ActiveContext", func(t *testing.T) {
-		token, _, err := manager.GenerateMinimalToken(userID, email, "", "", "", 24*time.Hour)
+		token, _, err := manager.GenerateMinimalToken(userID, email, "", "", "", "", "", 24*time.Hour)
 		require.NoError(t, err)
 
 		claims, err := manager.ValidateMinimalToken(token)
@@ -305,21 +305,21 @@ func TestGenerateMinimalToken(t *testing.T) {
 	})
 
 	t.Run("rechaza userID vacío", func(t *testing.T) {
-		_, _, err := manager.GenerateMinimalToken("", email, "", "", "", 24*time.Hour)
+		_, _, err := manager.GenerateMinimalToken("", email, "", "", "", "", "", 24*time.Hour)
 
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "userID no puede estar vacío")
 	})
 
 	t.Run("rechaza email vacío", func(t *testing.T) {
-		_, _, err := manager.GenerateMinimalToken(userID, "", "", "", "", 24*time.Hour)
+		_, _, err := manager.GenerateMinimalToken(userID, "", "", "", "", "", "", 24*time.Hour)
 
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "email no puede estar vacío")
 	})
 
 	t.Run("rechaza expiresIn menor a 1 minuto", func(t *testing.T) {
-		_, _, err := manager.GenerateMinimalToken(userID, email, "", "", "", 30*time.Second)
+		_, _, err := manager.GenerateMinimalToken(userID, email, "", "", "", "", "", 30*time.Second)
 
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "expiresIn debe ser mayor a 1 minuto")
@@ -327,7 +327,7 @@ func TestGenerateMinimalToken(t *testing.T) {
 
 	t.Run("tiempo de expiración es correcto", func(t *testing.T) {
 		expiresIn := 7 * 24 * time.Hour
-		_, expiresAt, err := manager.GenerateMinimalToken(userID, email, "", "", "", expiresIn)
+		_, expiresAt, err := manager.GenerateMinimalToken(userID, email, "", "", "", "", "", expiresIn)
 
 		require.NoError(t, err)
 
@@ -336,9 +336,9 @@ func TestGenerateMinimalToken(t *testing.T) {
 	})
 
 	t.Run("genera tokens únicos", func(t *testing.T) {
-		token1, _, err1 := manager.GenerateMinimalToken(userID, email, "", "", "", 24*time.Hour)
+		token1, _, err1 := manager.GenerateMinimalToken(userID, email, "", "", "", "", "", 24*time.Hour)
 		time.Sleep(10 * time.Millisecond)
-		token2, _, err2 := manager.GenerateMinimalToken(userID, email, "", "", "", 24*time.Hour)
+		token2, _, err2 := manager.GenerateMinimalToken(userID, email, "", "", "", "", "", 24*time.Hour)
 
 		require.NoError(t, err1)
 		require.NoError(t, err2)
@@ -346,7 +346,7 @@ func TestGenerateMinimalToken(t *testing.T) {
 	})
 	t.Run("preserva schoolID en el token y lo recupera al validar", func(t *testing.T) {
 		schoolID := uuid.New().String()
-		token, _, err := manager.GenerateMinimalToken(userID, email, schoolID, "", "", 24*time.Hour)
+		token, _, err := manager.GenerateMinimalToken(userID, email, schoolID, "", "", "", "", 24*time.Hour)
 		require.NoError(t, err)
 
 		claims, err := manager.ValidateMinimalToken(token)
@@ -357,7 +357,7 @@ func TestGenerateMinimalToken(t *testing.T) {
 	})
 
 	t.Run("schoolID vacío no rompe el token", func(t *testing.T) {
-		token, _, err := manager.GenerateMinimalToken(userID, email, "", "", "", 24*time.Hour)
+		token, _, err := manager.GenerateMinimalToken(userID, email, "", "", "", "", "", 24*time.Hour)
 		require.NoError(t, err)
 
 		claims, err := manager.ValidateMinimalToken(token)
@@ -373,7 +373,7 @@ func TestValidateMinimalToken(t *testing.T) {
 	email := testEmail
 
 	t.Run("valida token minimal válido exitosamente", func(t *testing.T) {
-		token, _, err := manager.GenerateMinimalToken(userID, email, "", "", "", 24*time.Hour)
+		token, _, err := manager.GenerateMinimalToken(userID, email, "", "", "", "", "", 24*time.Hour)
 		require.NoError(t, err)
 
 		claims, err := manager.ValidateMinimalToken(token)
@@ -461,7 +461,7 @@ func TestValidateMinimalToken(t *testing.T) {
 
 	t.Run("rechaza token con firma incorrecta", func(t *testing.T) {
 		wrongManager := NewJWTManager("wrong-secret-key", testIssuer)
-		token, _, err := wrongManager.GenerateMinimalToken(userID, email, "", "", "", 24*time.Hour)
+		token, _, err := wrongManager.GenerateMinimalToken(userID, email, "", "", "", "", "", 24*time.Hour)
 		require.NoError(t, err)
 
 		_, err = manager.ValidateMinimalToken(token)

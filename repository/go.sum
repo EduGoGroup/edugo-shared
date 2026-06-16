@@ -1,5 +1,5 @@
-github.com/EduGoGroup/edugo-infrastructure/postgres v0.4.0 h1:1GDDwsI7VTkT3e5EnVl9MGliuG4izYDEWMqhFfV6r6Y=
-github.com/EduGoGroup/edugo-infrastructure/postgres v0.4.0/go.mod h1:NiuhgH8Ec0e5Hu5ias5ji8a/MbTaIcQ8VKALBkSsvNQ=
+github.com/EduGoGroup/edugo-infrastructure/postgres v0.900.10 h1:p9dXAlrCt183/l9nGCPSyiRvYiruXrp9CpcwuIkad9k=
+github.com/EduGoGroup/edugo-infrastructure/postgres v0.900.10/go.mod h1:ROf5CVNnHHvo4GznlV3oSXxuNx5MbO5iMB2SnVxzj1k=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
 github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/jinzhu/inflection v1.0.0 h1:K317FqzuhWc8YvSVlFMCCUb36O/S9MCKRDI7QkRKD/E=

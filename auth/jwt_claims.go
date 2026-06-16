@@ -28,7 +28,21 @@ type UserContext struct {
 	// contexto.
 	Landing string `json:"landing,omitempty"`
 	Grants  Grants `json:"grants"`
+	// Dimensión "sujeto" + "modo de actor" del representante/guardián (ADR 0026).
+	// El guardián que "actúa" sigue siendo el UserID (raíz del token); estos
+	// campos marcan al acudido que se está viendo y el modo, para auditoría
+	// (ADR 0026 DEC-R-A.1). En contexto propio van omitidos (ActorModeSelf).
+	SubjectStudentID   string `json:"subject_student_id,omitempty"`
+	SubjectStudentName string `json:"subject_student_name,omitempty"`
+	ActorMode          string `json:"actor_mode,omitempty"`
 }
+
+// ActorMode describe el modo de actuación del usuario sobre el contexto activo
+// (ADR 0026 DEC-R-A.1). ActorModeSelf se OMITE en el JWT por omitempty.
+const (
+	ActorModeSelf = "self" // contexto propio; se OMITE en el JWT (omitempty)
+	ActorModeWard = "ward" // el representante ve a un acudido
+)
 
 // Grants es el wire format D2: lista de patterns allow + lista de
 // patterns deny. Idéntica en estructura a domain.Grants (cada módulo
@@ -57,5 +71,9 @@ type Claims struct {
 	SchoolID       string       `json:"school_id,omitempty"`
 	AcademicUnitID string       `json:"academic_unit_id,omitempty"`
 	RoleID         string       `json:"role_id,omitempty"`
+	// Viven en la raíz para que el snapshot del refresh preserve la terna
+	// (sujeto + modo de actor) al rotar el access token (ADR 0026).
+	SubjectStudentID string `json:"subject_student_id,omitempty"`
+	ActorMode        string `json:"actor_mode,omitempty"`
 	jwt.RegisteredClaims
 }

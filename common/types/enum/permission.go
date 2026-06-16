@@ -119,6 +119,17 @@ const (
 	PermissionMyGradesReadOwn Permission = "academic.my_grades.read:own"
 )
 
+// academic.my_wards — vistas `:own` del acudido para el rol guardián (plan 024 F1).
+// El lector real que las sirve (handler que fuerza subject = ward, validado por
+// vínculo guardian_relations) llega en F3; aquí solo se declaran.
+const (
+	PermissionMyWardsGradesReadOwn        Permission = "academic.my_wards_grades.read:own"
+	PermissionMyWardsAttendanceReadOwn    Permission = "academic.my_wards_attendance.read:own"
+	PermissionMyWardsAnnouncementsReadOwn Permission = "academic.my_wards_announcements.read:own"
+	PermissionMyWardsMaterialsReadOwn     Permission = "academic.my_wards_materials.read:own"
+	PermissionMyWardsAssessmentsReadOwn   Permission = "academic.my_wards_assessments.read:own"
+)
+
 // academic.subjects
 const (
 	PermissionSubjectsCreate Permission = "academic.subjects.create"
@@ -174,22 +185,6 @@ const (
 	PermissionGradesRead     Permission = "academic.grades.read"
 	PermissionGradesUpdate   Permission = "academic.grades.update"
 	PermissionGradesFinalize Permission = "academic.grades.finalize"
-)
-
-// academic.grades_detail (N4 / ADR 0020 — MODO DETALLADO).
-//
-// Recurso del desglose por componente: gestiona los componentes de nota
-// (academic.grade_item) y habilita el desglose transparente en "Mis Notas". El
-// modo BÁSICO usa solo academic.grades (sin estos permisos); el modo DETALLADO
-// los otorga vía grant condicional según el perfil de la escuela
-// (academic.schools.grade_profile). El grant condicional lo emite identity; aquí
-// solo se DEFINEN y se USAN en los endpoints. La variante *:own la consume el
-// alumno en GET /me/grades para recibir el desglose de sus propios componentes.
-const (
-	PermissionGradesDetailCreate Permission = "academic.grades_detail.create"
-	PermissionGradesDetailRead   Permission = "academic.grades_detail.read"
-	PermissionGradesDetailUpdate Permission = "academic.grades_detail.update"
-	PermissionGradesDetailDelete Permission = "academic.grades_detail.delete"
 )
 
 // academic.attendance
@@ -338,6 +333,12 @@ var AllPermissions = map[Permission]bool{
 	PermissionMyMembershipsReadOwn: true,
 	// academic.my_grades
 	PermissionMyGradesReadOwn: true,
+	// academic.my_wards
+	PermissionMyWardsGradesReadOwn:        true,
+	PermissionMyWardsAttendanceReadOwn:    true,
+	PermissionMyWardsAnnouncementsReadOwn: true,
+	PermissionMyWardsMaterialsReadOwn:     true,
+	PermissionMyWardsAssessmentsReadOwn:   true,
 	// academic.subjects
 	PermissionSubjectsCreate: true,
 	PermissionSubjectsRead:   true,
@@ -372,11 +373,6 @@ var AllPermissions = map[Permission]bool{
 	PermissionGradesRead:     true,
 	PermissionGradesUpdate:   true,
 	PermissionGradesFinalize: true,
-	// academic.grades_detail
-	PermissionGradesDetailCreate: true,
-	PermissionGradesDetailRead:   true,
-	PermissionGradesDetailUpdate: true,
-	PermissionGradesDetailDelete: true,
 	// academic.attendance
 	PermissionAttendanceCreate: true,
 	PermissionAttendanceRead:   true,

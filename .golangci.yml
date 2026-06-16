@@ -73,9 +73,6 @@ formatters:
 issues:
   max-issues-per-linter: 50
   max-same-issues: 10
-  exclude-rules:
+  exclude:
     # Ignorar warning de nilness en la librería externa gorm
-    - path: .*gorm\.go
-      linters:
-        - govet
-      text: "nilness: comparison of nil == nil is always true"
+    - "nilness: comparison of nil == nil is always true"

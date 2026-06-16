@@ -4,6 +4,21 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/common` se r
 
 ## [Unreleased]
 
+## [v0.900.4] - 2026-06-16
+
+### Added
+- Permisos del rol guardián para vistas `:own` del acudido (`academic.my_wards_*`) en `types/enum/permission.go` y `AllPermissions` (plan 024 F1 + F6·S2):
+  - `PermissionMyWardsGradesReadOwn` (`academic.my_wards_grades.read:own`)
+  - `PermissionMyWardsAttendanceReadOwn` (`academic.my_wards_attendance.read:own`)
+  - `PermissionMyWardsAnnouncementsReadOwn` (`academic.my_wards_announcements.read:own`)
+  - `PermissionMyWardsMaterialsReadOwn` (`academic.my_wards_materials.read:own`)
+  - `PermissionMyWardsAssessmentsReadOwn` (`academic.my_wards_assessments.read:own`)
+
+  Declaran el contrato RBAC del representante; los handlers que los consumen llegan en plan 024 F3+.
+
+### Removed
+- **BREAKING** — Eliminadas las 4 constantes `PermissionGradesDetail*` (`academic.grades_detail.create/read/update/delete`) de `types/enum/permission.go` y `AllPermissions` (plan 022 / ADR 0024 foco 3): el modo detallado de notas lo decide la escuela vía `grade_profile`, no un permiso. Consumidores que referencien estas constantes dejan de compilar.
+
 ## [0.900.3] - 2026-06-13
 
 ### Added

@@ -338,6 +338,7 @@ var AllPermissions = map[Permission]bool{
 	PermissionMyWardsAttendanceReadOwn:    true,
 	PermissionMyWardsAnnouncementsReadOwn: true,
 	PermissionMyWardsMaterialsReadOwn:     true,
+	PermissionMyWardsAssessmentsReadOwn:   true,
 	// academic.subjects
 	PermissionSubjectsCreate: true,
 	PermissionSubjectsRead:   true,

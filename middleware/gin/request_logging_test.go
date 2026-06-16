@@ -348,3 +348,54 @@ func TestRequestLogging_LogsGinErrors(t *testing.T) {
 	output := buf.String()
 	assert.True(t, strings.Contains(output, logger.FieldError))
 }
+
+func TestPostAuthLogging_EnrichesLoggerWithGuardianAuditFields(t *testing.T) {
+	buf := &bytes.Buffer{}
+	gin.SetMode(gin.TestMode)
+	r := gin.New()
+
+	handler := slog.NewJSONHandler(buf, &slog.HandlerOptions{Level: slog.LevelDebug})
+	testLogger := logger.NewSlogAdapter(slog.New(handler))
+
+	r.Use(RequestLogging(testLogger))
+	r.Use(func(c *gin.Context) {
+		c.Set(ContextKeyUserID, "guardian-123")
+		c.Set(ContextKeyRole, "guardian")
+		c.Set(ContextKeyClaims, &auth.Claims{
+			UserID: "guardian-123",
+			ActiveContext: &auth.UserContext{
+				RoleName:         "guardian",
+				SchoolID:         "school-xyz",
+				ActorMode:        auth.ActorModeWard,
+				SubjectStudentID: "student-456",
+			},
+		})
+		c.Next()
+	})
+	r.Use(PostAuthLogging())
+
+	r.GET("/test", func(c *gin.Context) {
+		ctxLogger := logger.FromContext(c.Request.Context())
+		ctxLogger.Info("guardian handler log")
+		c.Status(http.StatusOK)
+	})
+
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest("GET", "/test", nil)
+	r.ServeHTTP(w, req)
+
+	lines := strings.Split(strings.TrimSpace(buf.String()), "\n")
+	var handlerEntry map[string]any
+	for _, line := range lines {
+		var entry map[string]any
+		require.NoError(t, json.Unmarshal([]byte(line), &entry))
+		if entry["msg"] == "guardian handler log" {
+			handlerEntry = entry
+			break
+		}
+	}
+	require.NotNil(t, handlerEntry, "debe existir el log del handler del guardián")
+	assert.Equal(t, auth.ActorModeWard, handlerEntry[fieldActorMode])
+	assert.Equal(t, "student-456", handlerEntry[fieldSubjectStudentID])
+	assert.Equal(t, "school-xyz", handlerEntry[logger.FieldSchoolID])
+}

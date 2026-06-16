@@ -4,6 +4,11 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/repository` 
 
 ## [Unreleased]
 
+## [v0.900.1] - 2026-06-16
+
+### Changed
+- Bump de dependencia indirecta `github.com/EduGoGroup/edugo-infrastructure/postgres` de `v0.4.0` → `v0.900.10` en `go.mod`. Sin cambios en la superficie de la API del módulo.
+
 ## [0.1.0] - 2026-05-28
 
 ### Added

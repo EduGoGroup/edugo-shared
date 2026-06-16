@@ -4,6 +4,15 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/middleware/g
 
 ## [Unreleased]
 
+## [v0.900.1] - 2026-06-16
+
+### Added
+- `PostAuthLogging` estampa la **terna de auditoría del representante** en los logs por request (plan 024 F2·S2, ADR 0026 DEC-R-A.1): los campos `actor_mode` y `subject_student_id` se agregan al logger del contexto cuando `active_context` los trae (modo `"ward"`); se omiten en el 99% de requests propios. Backward-compatible; lo heredan las 4 APIs sin cambio.
+- Test `TestPostAuthLogging_StampsGuardianAuditFields` que verifica que los campos de auditoría se inyectan correctamente en el logger.
+
+### Changed
+- Bump de dependencia indirecta `github.com/EduGoGroup/edugo-infrastructure/postgres` de `v0.4.0` → `v0.900.10` en `go.mod`.
+
 ## [0.900.0] - 2026-06-11
 
 Migración a banda `0.900.x` (ADR 0015 / bug 0022). Misma base que `v0.3.0`.

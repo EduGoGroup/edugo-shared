@@ -4,6 +4,19 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/auth` se reg
 
 ## [Unreleased]
 
+## [v0.900.2] - 2026-06-16
+
+### Added
+- Campos de identidad del acudido en `UserContext` (active_context del JWT, ADR 0026 DEC-R-A.1, plan 024 F2·S1):
+  - `SubjectStudentID` (`json:"subject_student_id,omitempty"`) — ID del alumno que el representante está viendo.
+  - `SubjectStudentName` (`json:"subject_student_name,omitempty"`) — nombre del acudido (display only).
+  - `ActorMode` (`json:"actor_mode,omitempty"`) — modo de actor; `"ward"` cuando el guardián actúa en nombre del acudido.
+- Constantes `ActorModeSelf = "self"` y `ActorModeWard = "ward"` exportadas.
+- Campos `SubjectStudentID` / `ActorMode` en `Claims` (raíz del token) para preservar la terna al rotar el refresh token.
+- `GenerateMinimalToken` amplía su firma con 2 argumentos nuevos: `subjectStudentID string` y `actorMode string`; backward-compatible en contexto propio pasando cadenas vacías.
+
+  Todos los campos son `omitempty` → sin ruptura en las 4 APIs para contextos ordinarios (ActorModeSelf se omite).
+
 ## [0.900.1] - 2026-06-13
 
 ### Added

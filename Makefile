@@ -2,6 +2,11 @@
 # Orquesta operaciones y releases en todos los modulos independientes.
 
 MODULE_NAME = github.com/EduGoGroup/edugo-shared
+
+# Versiones fijadas del toolchain de CI (deben coincidir con .github/workflows/ci.yml)
+GO_VERSION   := 1.25
+LINT_VERSION := v2.4.0
+
 MODULES_L0 := $(shell ./scripts/list-modules.sh --set level-0 | tr '\n' ' ')
 MODULES_L1 := $(shell ./scripts/list-modules.sh --set level-1 | tr '\n' ' ')
 MODULES_L2 := $(shell ./scripts/list-modules.sh --set level-2 | tr '\n' ' ')
@@ -122,6 +127,48 @@ check-all: fmt-all vet-all lint-all test-all build-all ## Validacion completa de
 .PHONY: ci
 ci: fmt-all vet-all test-race-all build-all ## Pipeline CI completo
 	@echo "$(GREEN)Pipeline CI completado$(NC)"
+
+.PHONY: fmt-check-all
+fmt-check-all: ## Validar que todos los modulos esten formateados (no muta)
+	@echo "$(BLUE)Validando formato en todos los modulos...$(NC)"
+	@for module in $(MODULES); do \
+		unformatted=$$(cd $$module && gofmt -l .); \
+		if [ -n "$$unformatted" ]; then \
+			echo "$(RED)Archivos sin formatear en $$module:$(NC)"; \
+			echo "$$unformatted"; \
+			exit 1; \
+		fi; \
+		echo "$(GREEN)  $$module formato OK$(NC)"; \
+	done
+	@echo "$(GREEN)Formato validado en todos los modulos$(NC)"
+
+.PHONY: tools
+tools: ## Instalar herramientas de CI (golangci-lint fijado a $(LINT_VERSION))
+	@echo "$(YELLOW)Instalando golangci-lint $(LINT_VERSION)...$(NC)"
+	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(LINT_VERSION)
+	@echo "$(GREEN)Herramientas instaladas$(NC)"
+
+.PHONY: ci-local
+ci-local: fmt-check-all vet-all lint-all test-all ## Pre-push: fmt + vet + lint + tests con herramientas locales
+	@echo "$(GREEN)CI local OK$(NC)"
+
+.PHONY: ci-docker
+ci-docker: ## Simula el CI en Docker (Go $(GO_VERSION) + golangci-lint $(LINT_VERSION)) — requiere Docker
+	@which docker > /dev/null 2>&1 || (echo "$(RED)Docker no instalado$(NC)" && exit 1)
+	@echo "$(YELLOW)Ejecutando CI en Docker (Go $(GO_VERSION) + golangci-lint $(LINT_VERSION))...$(NC)"
+	@docker run --rm \
+		-e GOPRIVATE=github.com/EduGoGroup/* \
+		-e GOFLAGS=-buildvcs=false \
+		-v "$(HOME)/.netrc:/root/.netrc:ro" \
+		-v "$$(go env GOPATH)/pkg/mod:/go/pkg/mod" \
+		-v "$(CURDIR):/workspace" \
+		-w /workspace \
+		golang:$(GO_VERSION)-bookworm \
+		bash -c "set -e; \
+			curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b /usr/local/bin $(LINT_VERSION) && \
+			make fmt-check-all vet-all lint-all test-all" \
+		2>&1
+	@echo "$(GREEN)CI Docker OK$(NC)"
 
 .PHONY: build-parallel
 build-parallel: ## Compilar todos los modulos en paralelo

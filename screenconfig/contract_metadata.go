@@ -81,8 +81,8 @@ func optStringFromSlot(m map[string]any, k string) *string {
 }
 
 // parseResourceFromPermission deriva el nombre del recurso a partir de una
-// permission con forma "prefix.resource.action" (p. ej. "platform.colors.read"
-// => "colors"). Si la permission no tiene la forma esperada, devuelve "".
+// permission con forma "prefix.resource.action" (p. ej. "content.assessments.read"
+// => "assessments"). Si la permission no tiene la forma esperada, devuelve "".
 //
 // TODO(fase-4): esta funcion duplica deliberadamente la logica de
 // edugo-api-platform/internal/core/usecase/screen_instance/compose.go:

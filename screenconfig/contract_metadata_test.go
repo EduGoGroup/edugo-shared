@@ -17,22 +17,22 @@ func TestExtractContractMetadata(t *testing.T) {
 		{
 			name: "completa: todos los campos presentes",
 			slotData: map[string]any{
-				"api_prefix":      "platform",
-				"api_base_path":   "/api/v1/colors",
-				"resource":        "colors",
-				"form_screen_key": "colors-form",
-				"list_screen_key": "colors-list",
+				"api_prefix":      "content",
+				"api_base_path":   "/api/v1/assessments",
+				"resource":        "assessments",
+				"form_screen_key": "assessments-form",
+				"list_screen_key": "assessments-list",
 				"transforms": map[string]any{
 					"submit": "identity",
 				},
 			},
 			requiredPermission: "irrelevant.value.here",
 			want: &ContractMetadata{
-				APIPrefix:     "platform",
-				BasePath:      "/api/v1/colors",
-				Resource:      "colors",
-				FormScreenKey: strPtr("colors-form"),
-				ListScreenKey: strPtr("colors-list"),
+				APIPrefix:     "content",
+				BasePath:      "/api/v1/assessments",
+				Resource:      "assessments",
+				FormScreenKey: strPtr("assessments-form"),
+				ListScreenKey: strPtr("assessments-list"),
 				ParentIDParam: nil,
 				Transforms: map[string]any{
 					"submit": "identity",
@@ -42,13 +42,13 @@ func TestExtractContractMetadata(t *testing.T) {
 		{
 			name: "parcial: resource derivado de permission, defaults aplicados",
 			slotData: map[string]any{
-				"api_prefix": "platform",
+				"api_prefix": "content",
 			},
-			requiredPermission: "platform.colors.read",
+			requiredPermission: "content.assessments.read",
 			want: &ContractMetadata{
-				APIPrefix:     "platform",
-				BasePath:      "/api/v1/colors",
-				Resource:      "colors",
+				APIPrefix:     "content",
+				BasePath:      "/api/v1/assessments",
+				Resource:      "assessments",
 				FormScreenKey: nil,
 				ListScreenKey: nil,
 				ParentIDParam: nil,
@@ -58,11 +58,11 @@ func TestExtractContractMetadata(t *testing.T) {
 		{
 			name: "sin api_prefix: devuelve nil aunque el resto venga",
 			slotData: map[string]any{
-				"resource":        "colors",
-				"api_base_path":   "/api/v1/colors",
-				"form_screen_key": "colors-form",
+				"resource":        "assessments",
+				"api_base_path":   "/api/v1/assessments",
+				"form_screen_key": "assessments-form",
 			},
-			requiredPermission: "platform.colors.read",
+			requiredPermission: "content.assessments.read",
 			want:               nil,
 		},
 		{
@@ -102,8 +102,8 @@ func TestParseResourceFromPermission(t *testing.T) {
 	}{
 		{"", ""},
 		{"platform", ""},
-		{"platform.colors", ""},
-		{"platform.colors.read", "colors"},
+		{"content.assessments", ""},
+		{"content.assessments.read", "assessments"},
 		{"academic.questions.write", "questions"},
 		{"identity.users.roles.assign", "users"},
 	}

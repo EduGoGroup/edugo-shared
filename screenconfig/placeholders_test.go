@@ -16,9 +16,9 @@ func TestResourcePrefixFromPermission_Standard(t *testing.T) {
 }
 
 func TestResourcePrefixFromPermission_TwoSegments(t *testing.T) {
-	got := screenconfig.ResourcePrefixFromPermission("platform.colors.write")
-	if got != "platform.colors" {
-		t.Errorf("got %q, want %q", got, "platform.colors")
+	got := screenconfig.ResourcePrefixFromPermission("content.assessments.write")
+	if got != "content.assessments" {
+		t.Errorf("got %q, want %q", got, "content.assessments")
 	}
 }
 

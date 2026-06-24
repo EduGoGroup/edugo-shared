@@ -56,3 +56,29 @@ El inventario único vive en `scripts/module-manifest.tsv` (alimenta Makefile, c
 - `middleware/gin` evita importar `metrics` directamente: la conexión se hace por duck-typing desde el
   consumidor (ver `SetPermissionMetricsRecorder` en las APIs).
 - Reglas globales: código en inglés, logs/docs en español, fechas UTC.
+
+## Versionado de módulos: migrar hacia adelante, nunca re-taguear (regla anti-conflicto cloud)
+
+> **Por qué existe esta regla:** un "clean reset" del repo + re-taguear el **mismo** número de versión
+> con contenido distinto rompió `audit`/`audit/postgres@v0.1.0`. En local **no se nota** (el `go.work`
+> los resuelve del filesystem, sin checksum); en **CI/cloud sí**: Go descarga el tag de GitHub, lo hashea
+> y lo compara contra el `go.sum` del consumidor → `SECURITY ERROR: checksum mismatch` → el deploy falla.
+> El "historial" que muerde vive en el `go.sum` de cada consumidor (repos privados: **no hay sumdb global**;
+> la fuente de verdad es el `go.sum` commiteado).
+
+**Estándar:** los módulos migran al esquema **`0.900.X`** camino a producción (allí saltan a `1.0.0`). Un
+módulo aún en `v0.1.0` está **"bajo estándar"**.
+
+**Reglas (obligatorias):**
+1. **Nunca re-pushees un tag existente.** Si el contenido de un módulo cambia, **sube el número de versión**
+   (tag nuevo e inmutable). Re-taguear el mismo número es exactamente lo que rompió `audit`.
+2. **Si necesitas modificar un módulo que aún está en `v0.1.0`, migrálo a `0.900.X` en el mismo cambio:**
+   bump del tag **y** bump del `require` en **todos** sus consumidores + `go mod tidy` (regenera `go.sum`
+   con el hash fresco). No lo dejes en `v0.1.0`. Recuerda que migrar un módulo que es dependencia de otro
+   módulo `0.900.X` (p. ej. `audit` ← `middleware/gin`) obliga a **bumpear también a ese intermediario**
+   y a sus consumidores (efecto cascada).
+3. Tras migrar, **retira cualquier `replace` transitorio del `go.work`**: el objetivo es que CI/cloud
+   resuelva contra el tag real, no contra el filesystem. El `replace` en `go.work` es muleta local, no fix.
+
+**Un `v0.1.0` "sano" puede quedarse:** si nunca se re-taguea, es inmutable y seguro. La migración a
+`0.900.X` es **incremental, al tocar** el módulo — no un barrido masivo del catálogo.

@@ -4,6 +4,13 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/middleware/g
 
 ## [Unreleased]
 
+## [v0.900.2] - 2026-06-24
+
+### Changed
+- `go.mod`: bump de `github.com/EduGoGroup/edugo-shared/audit` `v0.1.0` → `v0.900.0` (migración de `audit`
+  a la banda `0.900.x`; ver `../../AGENTS.md` §Versionado). Sin cambios de código ni de API: realinea la
+  dependencia al tag inmutable nuevo para que CI/cloud no choque con el checksum del `v0.1.0` re-tagueado.
+
 ## [v0.900.1] - 2026-06-16
 
 ### Added

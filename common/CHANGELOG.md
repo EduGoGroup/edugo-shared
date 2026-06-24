@@ -4,6 +4,16 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/common` se r
 
 ## [Unreleased]
 
+## [v0.900.5] - 2026-06-24
+
+### Added
+- Permisos del plan 027 (permisología por proceso) en `types/enum/permission.go` y `AllPermissions`:
+  - `PermissionMyTeachingReadOwn` (`academic.my_teaching.read:own`) — el docente lee SOLO las sesiones que dicta.
+  - `PermissionMyAttendanceReadOwn` (`academic.my_attendance.read:own`) — el alumno lee SOLO su propia asistencia.
+
+  Cierran fugas de escritura de los roles de consumo moviendo "ver lo mío" a recursos `my_*` con `read:own`
+  (arquetipo C). Los consume `edugo-api-academic` vía `RequirePermission`.
+
 ## [v0.900.4] - 2026-06-16
 
 ### Added

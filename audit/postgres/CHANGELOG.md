@@ -2,6 +2,14 @@
 
 Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/audit/postgres` se registran aquí.
 
+## [0.900.0] - 2026-06-24
+
+### Changed
+- Migración a la banda `0.900.x` (**rescate** del tag `v0.1.0` re-tagueado; ver `../../AGENTS.md` §Versionado).
+- `go.mod`: `require audit v0.900.0` y **eliminado** el `replace github.com/EduGoGroup/edugo-shared/audit => ../`
+  (un `replace` no debe viajar en un módulo publicado: se ignora aguas abajo y ensucia el hash del go.mod).
+  Sin cambios de API.
+
 ## [0.1.0] - 2026-05-28
 
 ### Added

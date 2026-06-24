@@ -2,6 +2,14 @@
 
 Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/audit` se registran aquí.
 
+## [0.900.0] - 2026-06-24
+
+### Changed
+- Migración a la banda `0.900.x` (estándar de versionado del ecosistema; ver `../AGENTS.md` §Versionado).
+  **Rescate** del tag `v0.1.0`, que fue re-tagueado (contenido cambiado bajo el mismo número) y dejó a los
+  consumidores con `checksum mismatch` (`SECURITY ERROR`) en CI/cloud. Mismo contrato y código que el
+  `v0.1.0` actual; solo cambia el número a un tag nuevo e inmutable. Sin cambios de API.
+
 ## [0.1.0] - 2026-05-28
 
 ### Added

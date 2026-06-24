@@ -3,7 +3,7 @@ module github.com/EduGoGroup/edugo-shared/middleware/gin
 go 1.25.0
 
 require (
-	github.com/EduGoGroup/edugo-shared/audit v0.1.0
+	github.com/EduGoGroup/edugo-shared/audit v0.900.0
 	github.com/EduGoGroup/edugo-shared/auth v0.1.1
 	github.com/EduGoGroup/edugo-shared/common v0.1.0
 	github.com/EduGoGroup/edugo-shared/logger v0.1.0

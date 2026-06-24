@@ -1,3 +1,5 @@
+github.com/EduGoGroup/edugo-shared/audit v0.900.0 h1:mTzSI9syPFmex7o0bg+W26FVLwc22/AjtF0uKjZhV/I=
+github.com/EduGoGroup/edugo-shared/audit v0.900.0/go.mod h1:1jIY8jS7+QNXodPAHUYFcaTG/EXHxrJDdJ1pyCTR+Fc=
 github.com/bytedance/gopkg v0.1.4 h1:oZnQwnX82KAIWb7033bEwtxvTqXcYMxDBaQxo5JJHWM=
 github.com/bytedance/gopkg v0.1.4/go.mod h1:v1zWfPm21Fb+OsyXN2VAHdL6TBb2L88anLQgdyje6R4=
 github.com/bytedance/sonic v1.15.0 h1:/PXeWFaR5ElNcVE84U0dOHjiMHQOwNIx3K4ymzh/uSE=

@@ -119,6 +119,28 @@ const (
 	PermissionMyGradesReadOwn Permission = "academic.my_grades.read:own"
 )
 
+// academic.my_teaching
+const (
+	// PermissionMyTeachingReadOwn permite al docente leer SOLO las sesiones de
+	// materia que dicta ("mis materias"), sin listar la oferta admin completa de
+	// la unidad. Lo usa el rol teacher vía GET /me/teaching, que fuerza la
+	// membresía docente = user_id del JWT (plan 027 / F3). Vive bajo un path
+	// propio (academic.my_teaching.*) para que el gate de menú por path-prefix NO
+	// haga aparecer los items admin "subjects"/"subject_offerings".
+	PermissionMyTeachingReadOwn Permission = "academic.my_teaching.read:own"
+)
+
+// academic.my_attendance
+const (
+	// PermissionMyAttendanceReadOwn permite al alumno leer SOLO su propia
+	// asistencia ("mi asistencia"), sin listar la de otros ni registrar/
+	// sobrescribir asistencia de su unidad. Lo usa el rol student vía
+	// GET /me/attendance, que ya fuerza student_id = user_id del JWT (plan 027 /
+	// F2). Vive bajo un path propio (academic.my_attendance.*) para que el gate
+	// de menú por path-prefix NO haga aparecer el item admin "attendance".
+	PermissionMyAttendanceReadOwn Permission = "academic.my_attendance.read:own"
+)
+
 // academic.my_wards — vistas `:own` del acudido para el rol guardián (plan 024 F1).
 // El lector real que las sirve (handler que fuerza subject = ward, validado por
 // vínculo guardian_relations) llega en F3; aquí solo se declaran.
@@ -333,6 +355,10 @@ var AllPermissions = map[Permission]bool{
 	PermissionMyMembershipsReadOwn: true,
 	// academic.my_grades
 	PermissionMyGradesReadOwn: true,
+	// academic.my_teaching
+	PermissionMyTeachingReadOwn: true,
+	// academic.my_attendance
+	PermissionMyAttendanceReadOwn: true,
 	// academic.my_wards
 	PermissionMyWardsGradesReadOwn:        true,
 	PermissionMyWardsAttendanceReadOwn:    true,

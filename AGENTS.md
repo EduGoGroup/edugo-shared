@@ -2,7 +2,7 @@
 
 > Detalle local. Reglas globales del ecosistema en `../../AGENTS.md` (no las repitas).
 > Norte actual del proyecto en `docs/ACTIVE.md`. Mapa de módulos y arquitectura en `README.md`
-> y `docs/` (phase-1/2/3, roadmap).
+> y `docs/` (phase-3, roadmap; las fases 1 y 2 son históricas y viven en `docs/archive/`).
 
 ## Propósito
 

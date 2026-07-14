@@ -161,7 +161,7 @@ func (pc *PostgresContainer) MappedPort(ctx context.Context) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	return port.Int(), nil
+	return int(port.Num()), nil
 }
 
 // Username retorna el nombre de usuario configurado para PostgreSQL.

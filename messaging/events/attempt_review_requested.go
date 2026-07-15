@@ -56,7 +56,7 @@ func NewAttemptReviewRequestedEvent(eventID, eventType, eventVersion string, pay
 		return AttemptReviewRequestedEvent{}, errors.New("SchoolID no puede estar vacío")
 	}
 	if len(payload.Answers) == 0 {
-		return AttemptReviewRequestedEvent{}, errors.New("Answers no puede estar vacío")
+		return AttemptReviewRequestedEvent{}, errors.New("answers no puede estar vacío")
 	}
 	for _, a := range payload.Answers {
 		if a.AnswerID == "" {

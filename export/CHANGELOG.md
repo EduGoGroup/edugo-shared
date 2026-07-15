@@ -2,6 +2,17 @@
 
 Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/export` se registran aquí.
 
+## [Unreleased]
+
+## [0.1.1] - 2026-07-15
+
+### Changed
+
+- Re-release por tag `v0.1.0` movido/envenenado (checksum mismatch en `go mod verify` en los
+  runners de Actions al resolver el contenido viejo del tag); **sin cambios funcionales**. El
+  contenido del módulo es idéntico al de `v0.1.0`. No se toca el tag `v0.1.0`; se migra hacia
+  adelante con un tag nuevo e inmutable (regla de versionado del repo).
+
 ## [0.1.0] - 2026-05-28
 
 ### Added

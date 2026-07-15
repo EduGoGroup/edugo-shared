@@ -49,6 +49,16 @@ config:
     - "Mantener cobertura actual"
     - "Agregar tests para validaciones complejas"
 
+crypto/envelope:
+  threshold: 80
+  current: 87.5
+  target: 90
+  status: "✅ Cumple"
+  priority: "Mantener"
+  notes: "Envelope crypto (AES-256-GCM + sellado X25519, ADR 0029). Módulo de seguridad: mantener >80%."
+  actions:
+    - "Mantener cobertura de vectores de round-trip y casos de fallo (clave equivocada, manipulación)"
+
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # MÓDULOS DE INFRAESTRUCTURA (Alta Prioridad)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

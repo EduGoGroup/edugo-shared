@@ -4,6 +4,18 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/messaging/ev
 
 ## [Unreleased]
 
+## [0.900.2] - 2026-07-15
+
+### Added
+
+- **`AttemptReviewRequestedEvent` v1.0** (plan 040 F1, D-040.9): nuevo evento que señala que un intento
+  entregado quedó pendiente de revisión humana o asistida por LLM — tiene ≥1 respuesta `open_ended` sin
+  calificar o `short_answer` que falló el matching fuzzy. Lo publica `learning` al hacer submit y lo
+  consume el `worker` para arrancar la revisión asistida. Payload con `attempt_id`, `assessment_id`,
+  `school_id` y la lista `answers` (`answer_id` + `question_type`, para elegir el carril de revisión).
+  Constructor `NewAttemptReviewRequestedEvent` con validación. Empareja con el JSON Schema del evento
+  `attempt.review_requested` en `edugo-infrastructure/schemas`.
+
 ## [0.900.1] - 2026-06-11
 
 ### Added

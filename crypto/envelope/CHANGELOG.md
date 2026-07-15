@@ -4,6 +4,8 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/crypto/envel
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-07-15
+
 ### Added
 
 - Módulo nuevo `crypto/envelope` (plan 025 F0.1): promoción del envelope crypto que el spike F0.2 validó

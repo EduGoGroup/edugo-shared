@@ -11,6 +11,7 @@ audit|0|false|true
 cache/redis|0|false|true
 crypto/envelope|0|false|true
 repository|0|false|true
+textmatch|0|false|true
 auth|1|false|true
 lifecycle|1|false|true
 audit/postgres|1|false|true

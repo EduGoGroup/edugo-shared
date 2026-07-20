@@ -35,7 +35,7 @@ func BindJSON(c *gin.Context, v any) error {
 // getJSONFieldName extrae el nombre del campo JSON desde el tag struct json o usa snake_case como fallback.
 func getJSONFieldName(fe validator.FieldError, v any) string {
 	val := reflect.ValueOf(v)
-	if val.Kind() == reflect.Ptr {
+	if val.Kind() == reflect.Pointer {
 		val = val.Elem()
 	}
 	if val.Kind() != reflect.Struct {

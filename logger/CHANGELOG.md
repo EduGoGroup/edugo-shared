@@ -2,6 +2,12 @@
 
 Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/logger` se registran aquí.
 
+## [0.900.1] - 2026-11-14
+
+### Changed
+- Directiva `go 1.27.4` (plan 054, homologación de Go y dependencias).
+- Dependencias directas: `github.com/sirupsen/logrus` `v1.9.4` → `v1.10.2`, `github.com/stretchr/testify` `v1.11.1` → `v1.12.1`, `go.uber.org/zap` `v1.27.1` → `v1.28.0`.
+
 ## [0.900.0] - 2026-06-08
 
 ### Added

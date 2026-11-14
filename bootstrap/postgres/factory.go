@@ -34,7 +34,7 @@ func (f *Factory) CreateRawConnection(ctx context.Context, cfg bootstrap.Postgre
 	f.applyPoolConfig(db, cfg)
 
 	if err := db.PingContext(ctx); err != nil {
-		_ = db.Close()
+		_ = db.Close() //nolint:errcheck // plan 054: cierre best-effort en la ruta de error
 		return nil, fmt.Errorf("bootstrap/postgres: ping: %w", err)
 	}
 
@@ -68,7 +68,7 @@ func (f *Factory) CreateGORMConnection(
 	f.applyPoolConfig(sqlDB, cfg)
 
 	if err := sqlDB.PingContext(ctx); err != nil {
-		_ = sqlDB.Close()
+		_ = sqlDB.Close() //nolint:errcheck // plan 054: cierre best-effort en la ruta de error
 		return nil, fmt.Errorf("bootstrap/postgres: ping: %w", err)
 	}
 
@@ -90,7 +90,7 @@ func (f *Factory) CreateGORMConnection(
 		Conn: sqlDB,
 	}), gormCfg)
 	if err != nil {
-		_ = sqlDB.Close()
+		_ = sqlDB.Close() //nolint:errcheck // plan 054: cierre best-effort en la ruta de error
 		return nil, fmt.Errorf("bootstrap/postgres: gorm open: %w", err)
 	}
 

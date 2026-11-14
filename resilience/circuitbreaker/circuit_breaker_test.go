@@ -75,7 +75,7 @@ func TestCircuitBreaker_OpensAfterMaxFailures(t *testing.T) {
 
 	// Act - Generar 3 fallos
 	for i := 0; i < 3; i++ {
-		_ = cb.Execute(ctx, func(ctx context.Context) error {
+		_ = cb.Execute(ctx, func(ctx context.Context) error { //nolint:errcheck // plan 054: el test descarta el error a propósito
 			return errors.New("test error")
 		})
 	}
@@ -93,7 +93,7 @@ func TestCircuitBreaker_RejectsWhenOpen(t *testing.T) {
 	ctx := context.Background()
 
 	// Abrir el circuit
-	_ = cb.Execute(ctx, func(ctx context.Context) error {
+	_ = cb.Execute(ctx, func(ctx context.Context) error { //nolint:errcheck // plan 054: el test descarta el error a propósito
 		return errors.New("test error")
 	})
 
@@ -117,7 +117,7 @@ func TestCircuitBreaker_TransitionsToHalfOpen(t *testing.T) {
 	ctx := context.Background()
 
 	// Abrir el circuit
-	_ = cb.Execute(ctx, func(ctx context.Context) error {
+	_ = cb.Execute(ctx, func(ctx context.Context) error { //nolint:errcheck // plan 054: el test descarta el error a propósito
 		return errors.New("test error")
 	})
 
@@ -147,7 +147,7 @@ func TestCircuitBreaker_ClosesAfterSuccessesInHalfOpen(t *testing.T) {
 	ctx := context.Background()
 
 	// Abrir el circuit
-	_ = cb.Execute(ctx, func(ctx context.Context) error {
+	_ = cb.Execute(ctx, func(ctx context.Context) error { //nolint:errcheck // plan 054: el test descarta el error a propósito
 		return errors.New("test error")
 	})
 
@@ -177,7 +177,7 @@ func TestCircuitBreaker_ReopensOnFailureInHalfOpen(t *testing.T) {
 	ctx := context.Background()
 
 	// Abrir el circuit
-	_ = cb.Execute(ctx, func(ctx context.Context) error {
+	_ = cb.Execute(ctx, func(ctx context.Context) error { //nolint:errcheck // plan 054: el test descarta el error a propósito
 		return errors.New("test error")
 	})
 
@@ -185,13 +185,13 @@ func TestCircuitBreaker_ReopensOnFailureInHalfOpen(t *testing.T) {
 	time.Sleep(testWaitForTimeout)
 
 	// Transicionar a half-open con una ejecucion exitosa
-	_ = cb.Execute(ctx, func(ctx context.Context) error {
+	_ = cb.Execute(ctx, func(ctx context.Context) error { //nolint:errcheck // plan 054: el test descarta el error a propósito
 		return nil
 	})
 	assert.Equal(t, StateHalfOpen, cb.State())
 
 	// Act - Fallar en half-open
-	_ = cb.Execute(ctx, func(ctx context.Context) error {
+	_ = cb.Execute(ctx, func(ctx context.Context) error { //nolint:errcheck // plan 054: el test descarta el error a propósito
 		return errors.New("test error")
 	})
 
@@ -210,7 +210,7 @@ func TestCircuitBreaker_LimitsRequestsInHalfOpen(t *testing.T) {
 	ctx := context.Background()
 
 	// Abrir el circuit
-	_ = cb.Execute(ctx, func(ctx context.Context) error {
+	_ = cb.Execute(ctx, func(ctx context.Context) error { //nolint:errcheck // plan 054: el test descarta el error a propósito
 		return errors.New("test error")
 	})
 
@@ -248,7 +248,7 @@ func TestCircuitBreaker_WithMetrics(t *testing.T) {
 	assert.Equal(t, StateClosed, hook.lastState)
 
 	// Act - Trigger a transition to Open
-	_ = cb.Execute(ctx, func(ctx context.Context) error {
+	_ = cb.Execute(ctx, func(ctx context.Context) error { //nolint:errcheck // plan 054: el test descarta el error a propósito
 		return errors.New("test error")
 	})
 
@@ -268,7 +268,7 @@ func TestCircuitBreaker_NilMetrics(t *testing.T) {
 	ctx := context.Background()
 
 	// Act
-	_ = cb.Execute(ctx, func(ctx context.Context) error {
+	_ = cb.Execute(ctx, func(ctx context.Context) error { //nolint:errcheck // plan 054: el test descarta el error a propósito
 		return errors.New("test error")
 	})
 

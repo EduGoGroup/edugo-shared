@@ -4,6 +4,12 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/common` se r
 
 ## [Unreleased]
 
+## [0.900.6] - 2026-11-14
+
+### Changed
+- Directiva `go 1.27.4` (plan 054, homologación de Go y dependencias).
+- Dependencias directas: `github.com/stretchr/testify` `v1.11.1` → `v1.12.1`.
+
 ## [v0.900.5] - 2026-06-24
 
 ### Added

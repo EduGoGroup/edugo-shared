@@ -4,6 +4,14 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/cache/redis`
 
 ## [Unreleased]
 
+## [0.900.0] - 2026-11-14
+
+### Changed
+- Directiva `go 1.27.4` (plan 054, homologación de Go y dependencias).
+- Dependencias directas: `github.com/alicebob/miniredis/v2` `v2.37.0` → `v2.40.0`, `github.com/redis/go-redis/v9` `v9.18.0` → `v9.23.0`.
+- 2 dependencias indirectas suben con `go mod tidy` (ver `go.mod`).
+- El módulo entra a la banda `v0.900.x` (ADR 0010); el tag anterior `v0.1.x` queda como procedencia.
+
 ## [0.1.0] - 2026-05-28
 
 ### Added

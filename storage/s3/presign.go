@@ -33,6 +33,7 @@ func NewPresignClient(s3Client *s3.Client, bucket string, expiry time.Duration) 
 	}
 }
 
+// GenerateUploadURL genera una URL prefirmada de subida.
 func (c *PresignClient) GenerateUploadURL(ctx context.Context, key string) (string, time.Time, error) {
 	result, err := c.presigner.PresignPutObject(ctx, &s3.PutObjectInput{
 		Bucket: aws.String(c.bucket),
@@ -44,6 +45,7 @@ func (c *PresignClient) GenerateUploadURL(ctx context.Context, key string) (stri
 	return result.URL, time.Now().Add(c.expiry), nil
 }
 
+// GenerateDownloadURL genera una URL prefirmada de descarga.
 func (c *PresignClient) GenerateDownloadURL(ctx context.Context, key string) (string, time.Time, error) {
 	result, err := c.presigner.PresignGetObject(ctx, &s3.GetObjectInput{
 		Bucket: aws.String(c.bucket),

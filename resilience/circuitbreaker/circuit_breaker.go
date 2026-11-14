@@ -10,6 +10,7 @@ import (
 // State representa el estado del circuit breaker
 type State int
 
+// Estados posibles del circuit breaker.
 const (
 	StateClosed   State = iota // Permite todas las peticiones
 	StateOpen                  // Rechaza todas las peticiones

@@ -21,6 +21,10 @@ on:
 
   workflow_dispatch:
 
+env:
+  GO_VERSION: '1.27.4'
+  GOWORK: 'off'
+
 jobs:
   validate-coverage:
     name: Validar Umbrales de Coverage
@@ -28,12 +32,12 @@ jobs:
 
     steps:
       - name: Checkout código
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v7
         with:
-          go-version: "1.25"
+          go-version: ${{ env.GO_VERSION }}
           cache: false # Monorepo: cada módulo tiene su propio go.sum
 
       - name: Configurar acceso a repos privados

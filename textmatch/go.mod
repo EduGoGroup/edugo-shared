@@ -1,5 +1,5 @@
 module github.com/EduGoGroup/edugo-shared/textmatch
 
-go 1.25.0
+go 1.27.4
 
-require golang.org/x/text v0.38.0
+require golang.org/x/text v0.44.0

@@ -83,6 +83,7 @@ func TestRabbitMQCheck_Check_ResponseTime(t *testing.T) {
 	result := check.Check(context.Background())
 
 	assert.Equal(t, StatusHealthy, result.Status)
-	responseTime := result.Metadata["response_time_ms"].(int64)
+	responseTime, ok := result.Metadata["response_time_ms"].(int64)
+	assert.True(t, ok, "response_time_ms debe ser int64")
 	assert.GreaterOrEqual(t, responseTime, int64(10))
 }

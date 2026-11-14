@@ -2,6 +2,14 @@
 
 Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/config` se registran aquí.
 
+## [0.900.0] - 2026-11-14
+
+### Changed
+- Directiva `go 1.27.4` (plan 054, homologación de Go y dependencias).
+- Dependencias directas: `github.com/go-playground/validator/v10` `v10.30.2` → `v10.30.6`.
+- 7 dependencias indirectas suben con `go mod tidy` (ver `go.mod`).
+- El módulo entra a la banda `v0.900.x` (ADR 0010); el tag anterior `v0.1.x` queda como procedencia.
+
 ## [0.1.0] - 2026-05-28
 
 ### Added

@@ -38,7 +38,7 @@ func (f *Factory) CreateConnection(ctx context.Context, cfg bootstrap.RabbitMQCo
 
 	// Verificar si el contexto fue cancelado durante la conexion
 	if ctx.Err() != nil {
-		_ = conn.Close()
+		_ = conn.Close() //nolint:errcheck // plan 054: cierre best-effort en la ruta de error
 		return nil, fmt.Errorf("bootstrap/rabbitmq: cancelled: %w", ctx.Err())
 	}
 

@@ -56,6 +56,7 @@ func NewClient(s3Client *s3.Client, bucket string, opts ...ClientOption) *Client
 	return c
 }
 
+// Download descarga el objeto y devuelve su contenido como stream.
 func (c *Client) Download(ctx context.Context, key string) (io.ReadCloser, error) {
 	var lastErr error
 	maxAttempts := 1 + c.maxRetries
@@ -96,6 +97,7 @@ func (c *Client) Upload(ctx context.Context, key string, content io.Reader) erro
 	return nil
 }
 
+// Delete elimina el objeto.
 func (c *Client) Delete(ctx context.Context, key string) error {
 	_, err := c.s3Client.DeleteObject(ctx, &s3.DeleteObjectInput{
 		Bucket: aws.String(c.bucket),
@@ -107,6 +109,7 @@ func (c *Client) Delete(ctx context.Context, key string) error {
 	return nil
 }
 
+// Exists indica si el objeto existe.
 func (c *Client) Exists(ctx context.Context, key string) (bool, error) {
 	_, err := c.s3Client.HeadObject(ctx, &s3.HeadObjectInput{
 		Bucket: aws.String(c.bucket),
@@ -124,6 +127,7 @@ func (c *Client) Exists(ctx context.Context, key string) (bool, error) {
 	return true, nil
 }
 
+// GetMetadata devuelve los metadatos del objeto.
 func (c *Client) GetMetadata(ctx context.Context, key string) (*storage.FileMetadata, error) {
 	output, err := c.s3Client.HeadObject(ctx, &s3.HeadObjectInput{
 		Bucket: aws.String(c.bucket),

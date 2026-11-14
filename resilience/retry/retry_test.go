@@ -217,7 +217,7 @@ func TestWithRetry_NilClassifier_AllTransient(t *testing.T) {
 	}
 
 	callCount := 0
-	_ = WithRetry(context.Background(), cfg, func() error {
+	_ = WithRetry(context.Background(), cfg, func() error { //nolint:errcheck // plan 054: el test descarta el error a propósito
 		callCount++
 		return errPermanent // sin classifier, se trata como transient
 	})

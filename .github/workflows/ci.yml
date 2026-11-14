@@ -8,6 +8,7 @@ on:
 
 env:
   GO_VERSION: '1.27.4'
+  GOVULNCHECK_VERSION: 'v1.9.0'
   GOWORK: 'off'
 
 jobs:
@@ -136,6 +137,13 @@ jobs:
           version: v2.14.0
           working-directory: ${{ matrix.module }}
           args: --timeout=5m
+
+      # Sin continue-on-error: una vulnerabilidad alcanzable pone el job en rojo (plan 054, H.2).
+      - name: govulncheck
+        working-directory: ${{ matrix.module }}
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@${{ env.GOVULNCHECK_VERSION }}
+          "$(go env GOPATH)/bin/govulncheck" ./...
 
   integration:
     name: Integration ${{ matrix.module }}

@@ -4,13 +4,12 @@
 MODULE_NAME = github.com/EduGoGroup/edugo-shared
 
 # Versiones fijadas del toolchain de CI (deben coincidir con .github/workflows/ci.yml)
-GO_VERSION   := 1.25
-LINT_VERSION := v2.4.0
+GO_VERSION   := 1.27.4
+LINT_VERSION := v2.14.0
 
 MODULES_L0 := $(shell ./scripts/list-modules.sh --set level-0 | tr '\n' ' ')
 MODULES_L1 := $(shell ./scripts/list-modules.sh --set level-1 | tr '\n' ' ')
 MODULES_L2 := $(shell ./scripts/list-modules.sh --set level-2 | tr '\n' ' ')
-MODULES_L3 := $(shell ./scripts/list-modules.sh --set level-3 | tr '\n' ' ')
 MODULES := $(shell ./scripts/list-modules.sh --set all | tr '\n' ' ')
 INTEGRATION_MODULES := $(shell ./scripts/list-modules.sh --set integration | tr '\n' ' ')
 
@@ -145,7 +144,7 @@ fmt-check-all: ## Validar que todos los modulos esten formateados (no muta)
 .PHONY: tools
 tools: ## Instalar herramientas de CI (golangci-lint fijado a $(LINT_VERSION))
 	@echo "$(YELLOW)Instalando golangci-lint $(LINT_VERSION)...$(NC)"
-	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(LINT_VERSION)
+	@go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(LINT_VERSION)
 	@echo "$(GREEN)Herramientas instaladas$(NC)"
 
 .PHONY: ci-local
@@ -208,14 +207,6 @@ test-parallel: ## Tests unitarios en paralelo por nivel de dependencia
 	done; \
 	for pid in $$PIDS; do wait $$pid || FAILED=1; done; \
 	if [ $$FAILED -ne 0 ]; then echo "$(RED)Fallos en nivel 2$(NC)"; exit 1; fi
-	@echo "$(BLUE)Tests en paralelo (nivel 3)...$(NC)"
-	@PIDS=""; FAILED=0; \
-	for module in $(MODULES_L3); do \
-		(cd $$module && go test -short ./... && echo "$(GREEN)  $$module$(NC)" || echo "$(RED)  $$module$(NC)") & \
-		PIDS="$$PIDS $$!"; \
-	done; \
-	for pid in $$PIDS; do wait $$pid || FAILED=1; done; \
-	if [ $$FAILED -ne 0 ]; then echo "$(RED)Fallos en nivel 3$(NC)"; exit 1; fi
 	@echo "$(GREEN)Todos los modulos pasaron los tests$(NC)"
 
 .PHONY: lint-parallel

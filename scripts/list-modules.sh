@@ -19,7 +19,6 @@ Sets disponibles:
   level-0
   level-1
   level-2
-  level-3
 USAGE
 }
 
@@ -76,11 +75,16 @@ filter_modules() {
     ' "$MANIFEST_FILE"
 }
 
-mapfile -t MODULES < <(filter_modules)
+# Sin `mapfile`: no existe en el Bash 3.2 de macOS.
+MODULES=()
+while IFS= read -r l; do
+    [[ -n "$l" ]] && MODULES+=("$l")
+done < <(filter_modules)
 
 if [[ "$FORMAT" == "json" ]]; then
     printf '['
-    for i in "${!MODULES[@]}"; do
+    # Bash 3.2 con `set -u` aborta al expandir un array vacio: se itera por indice.
+    for ((i = 0; i < ${#MODULES[@]}; i++)); do
         if [[ "$i" -gt 0 ]]; then
             printf ','
         fi
@@ -90,4 +94,6 @@ if [[ "$FORMAT" == "json" ]]; then
     exit 0
 fi
 
-printf '%s\n' "${MODULES[@]}"
+if [[ ${#MODULES[@]} -gt 0 ]]; then
+    printf '%s\n' "${MODULES[@]}"
+fi

@@ -4,6 +4,8 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/auth` se reg
 
 ## [Unreleased]
 
+## [v0.900.3] - 2026-11-14
+
 ### Added
 - Context Token ES256 (plan 053 T2.1), con **la misma forma de claims** que el access HS256 (`Claims`, incl. `active_context`):
   - `ContextKeyring` / `ContextSigningKey` / `NewContextKeyring(signing, public)`: clave privada P-256 activa opcional (solo quien emite) + claves públicas aceptadas por `kid` (rotación). Rechaza curvas que no son P-256, `kid` vacío o duplicado.

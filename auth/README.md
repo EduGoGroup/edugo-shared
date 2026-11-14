@@ -33,6 +33,41 @@ token, expiresAt, err := manager.GenerateTokenWithContext(userID, email, activeC
 claims, err := manager.ValidateToken(token)
 ```
 
+### Context Token ES256 (plan 053, convive con HS256)
+
+Mismos claims que el access HS256 (`Claims`, con `active_context`), firmados con ES256 y cabecera
+`kid`. HS256 sigue funcionando: sin keyring el `JWTManager` se comporta exactamente como antes.
+
+```go
+cfg, err := auth.ContextKeyConfigFromEnv(os.LookupEnv)
+manager := auth.NewJWTManager(secretKey, issuer)
+if !cfg.IsZero() {
+    keyring, err := auth.NewContextKeyringFromConfig(cfg) // mal configurado = error de arranque
+    manager.WithContextKeyring(keyring)
+}
+
+// Solo edugo-api-identity (tiene la clave privada):
+token, expiresAt, err := manager.GenerateContextToken(userID, email, activeContext, expiresIn)
+
+// Middleware y APIs: sin cambios, ValidateToken acepta HS256 (sin kid) y ES256 (kid conocido).
+claims, err := manager.ValidateToken(token)
+```
+
+Variables de entorno (ninguna clave se versiona; vienen de Secret Manager o de un fichero fuera de git):
+
+| Variable | Contenido | Quién la pone |
+| --- | --- | --- |
+| `AUTH_CONTEXT_SIGNING_KEY` | PEM de la clave privada P-256 activa (PKCS#8 o SEC1) | solo identity |
+| `AUTH_CONTEXT_SIGNING_KID` | `kid` de la clave activa | solo identity |
+| `AUTH_CONTEXT_PUBLIC_KEYS` | JSON `{"<kid>": "<PEM PKIX>"}` con las públicas aceptadas | todas las APIs (y la anterior al rotar) |
+
+Cada una admite la variante `<NOMBRE>_FILE` con la ruta de un fichero (no las dos a la vez). En un
+`.env` usa `AUTH_CONTEXT_SIGNING_KEY_FILE`: el PEM necesita saltos de línea reales y un valor de una
+línea con `\n` escapados no se decodifica. Sin
+ninguna, la API queda solo en HS256. Rotar: se publica la nueva pública en `AUTH_CONTEXT_PUBLIC_KEYS`,
+se cambia la clave y el `kid` activos en identity, y la pública vieja se retira cuando caduquen sus
+tokens.
+
 ### Refresh Tokens
 
 ```go

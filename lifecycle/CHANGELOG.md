@@ -2,6 +2,13 @@
 
 Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/lifecycle` se registran aquí.
 
+## [0.900.0] - 2026-11-14
+
+### Changed
+- Directiva `go 1.27.4` (plan 054, homologación de Go y dependencias).
+- Migración a la banda `0.900.x` (ADR 0010).
+- Dependencia interna: `edugo-shared/logger` `v0.1.0` → `v0.900.1`.
+
 ## [0.1.0] - 2026-05-28
 
 ### Added

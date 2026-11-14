@@ -81,6 +81,7 @@ testing --> bootstrap
 
 - El `Makefile` raiz orquesta los 17 modulos segun niveles de dependencia y separa el set de integracion.
 - Todos los modulos con `go.mod` usan el mismo contrato operativo via `scripts/module-common.mk`.
+- Gates de cada PR (2026-11-14): `make ci-local` corre fmt-check, vet, lint, tests y `make vuln` (`govulncheck` fijado en `GOVULNCHECK_VERSION`) en todos los modulos. La CI (`.github/workflows/ci.yml`) corre el mismo `govulncheck` en la matriz por modulo y falla si encuentra una vulnerabilidad alcanzable.
 - El inventario unico de modulos vive en `scripts/module-manifest.tsv` y alimenta `Makefile`, coverage y workflows CI/release.
 - `cache/redis` y `repository` ya participan del orquestador central, coverage y release.
 - El workflow `release.yml` soporta tags raiz (`vX.Y.Z`) y tags modulares (`modulo/vX.Y.Z` o `sub/modulo/vX.Y.Z`) usando el `CHANGELOG.md` correcto.

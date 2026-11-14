@@ -4,6 +4,20 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/middleware/g
 
 ## [Unreleased]
 
+## [0.900.3] - 2026-11-14
+
+### Changed
+- `go.mod`: directiva `go 1.27.4` (plan 054, HU-E2.1).
+- `go.mod`: **fuera los `replace`** hacia `../../audit` y `../../auth`. El módulo requiere ahora los tags
+  publicados, así que un consumidor resuelve lo mismo que la CI: `audit v0.900.1`, `auth v0.900.4`,
+  `common v0.900.6`, `logger v0.900.1` y `repository v0.900.2`; indirecta
+  `edugo-infrastructure/postgres v0.900.27`.
+- Externos a la última del proxy (2026-11-14): `go-playground/validator/v10 v10.30.6`,
+  `go.opentelemetry.io/otel/trace v1.47.0` y `testify v1.12.1`.
+- Indirecta `github.com/quic-go/quic-go v0.59.1`, que `govulncheck` señalaba en `v0.59.0` (GO-2026-5676).
+
+Sin cambios de código ni de API.
+
 ## [v0.900.2] - 2026-06-24
 
 ### Changed

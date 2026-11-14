@@ -15,6 +15,19 @@ import (
 type JWTManager struct {
 	issuer    string
 	secretKey []byte
+	// contextKeys is the optional ES256 keyring of the Context Token (plan 053
+	// T2.1). nil means HS256 only, exactly as before.
+	contextKeys *ContextKeyring
+	// now is the clock; nil means time.Now. Only tests override it.
+	now func() time.Time
+}
+
+// clock returns the current time from the manager's clock.
+func (m *JWTManager) clock() time.Time {
+	if m.now != nil {
+		return m.now()
+	}
+	return time.Now()
 }
 
 // NewJWTManager crea un nuevo JWTManager
@@ -56,21 +69,12 @@ func (m *JWTManager) GenerateTokenWithContext(
 		return "", time.Time{}, errors.NewValidationError("expiresIn debe ser mayor a 1 minuto")
 	}
 
-	now := time.Now()
+	now := m.clock()
 	expiresAt := now.Add(expiresIn)
 
-	claims := Claims{
-		UserID:        userID,
-		Email:         email,
-		ActiveContext: activeContext,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ID:        uuid.New().String(),
-			Issuer:    m.issuer,
-			Subject:   userID,
-			IssuedAt:  jwt.NewNumericDate(now),
-			ExpiresAt: jwt.NewNumericDate(expiresAt),
-			NotBefore: jwt.NewNumericDate(now),
-		},
+	claims, err := m.accessClaims(userID, email, activeContext, now, expiresAt)
+	if err != nil {
+		return "", time.Time{}, err
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -125,8 +129,21 @@ func (m *JWTManager) parseAndValidateToken(tokenString string) (*Claims, error) 
 }
 
 // ValidateToken valida un JWT token y retorna los claims
+//
+// Without a Context keyring (NewJWTManager) only HS256 is accepted, as always.
+// With one attached (WithContextKeyring) it dispatches on the `alg` header:
+// HS256 without `kid` keeps the HS256 path, ES256 with a known `kid` is
+// verified against the keyring, and every other combination is rejected.
 func (m *JWTManager) ValidateToken(tokenString string) (*Claims, error) {
-	claims, err := m.parseAndValidateToken(tokenString)
+	var (
+		claims *Claims
+		err    error
+	)
+	if m.contextKeys == nil {
+		claims, err = m.parseAndValidateToken(tokenString)
+	} else {
+		claims, err = m.validateDispatched(tokenString)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -168,7 +185,7 @@ func (m *JWTManager) GenerateMinimalToken(
 		return "", time.Time{}, errors.NewValidationError("expiresIn debe ser mayor a 1 minuto")
 	}
 
-	now := time.Now()
+	now := m.clock()
 	expiresAt := now.Add(expiresIn)
 
 	claims := Claims{

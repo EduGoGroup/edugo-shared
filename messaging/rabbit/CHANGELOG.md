@@ -4,6 +4,13 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/messaging/ra
 
 ## [Unreleased]
 
+## [0.900.1] - 2026-11-14
+
+### Changed
+- Directiva `go 1.27.4` (plan 054, homologación de Go y dependencias).
+- Dependencia interna: `edugo-shared/testing` `v0.1.0` → `v0.900.0`.
+- Dependencias directas: `github.com/rabbitmq/amqp091-go` `v1.10.0` → `v1.16.0`, `github.com/stretchr/testify` `v1.11.1` → `v1.12.1`.
+
 ## [0.900.0] - 2026-06-02
 
 ### Changed

@@ -4,6 +4,13 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/repository` 
 
 ## [Unreleased]
 
+## [0.900.2] - 2026-11-14
+
+### Changed
+- Directiva `go 1.27.4` (plan 054, homologación de Go y dependencias).
+- Dependencia interna: `edugo-infrastructure/postgres` `v0.900.10` → `v0.900.27`.
+- Dependencias directas: `gorm.io/gorm` `v1.31.1` → `v1.31.2`.
+
 ## [v0.900.1] - 2026-06-16
 
 ### Changed

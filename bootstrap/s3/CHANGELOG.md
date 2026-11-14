@@ -4,6 +4,14 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/bootstrap/s3
 
 ## [Unreleased]
 
+## [0.900.0] - 2026-11-14
+
+### Changed
+- Directiva `go 1.27.4` (plan 054, homologación de Go y dependencias).
+- Migración a la banda `0.900.x` (ADR 0010).
+- `go.mod`: **eliminado** el `replace github.com/EduGoGroup/edugo-shared/bootstrap => ../`; el módulo requiere el tag publicado `edugo-shared/bootstrap v0.900.0` (HU-E1.2). Sin cambios de API.
+- Dependencias directas: `github.com/aws/aws-sdk-go-v2` `v1.41.5` → `v1.48.0`, `config` `v1.32.14` → `v1.33.18`, `credentials` `v1.19.14` → `v1.21.0`, `service/s3` `v1.98.0` → `v1.114.10`.
+
 ## [0.1.0] - 2026-05-28
 
 ### Added

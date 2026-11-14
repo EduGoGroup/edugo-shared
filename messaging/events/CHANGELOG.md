@@ -4,6 +4,12 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/messaging/ev
 
 ## [Unreleased]
 
+## [0.900.4] - 2026-11-14
+
+### Changed
+- Directiva `go 1.27.4` (plan 054, homologación de Go y dependencias).
+- Dependencias directas: `github.com/stretchr/testify` `v1.11.1` → `v1.12.1`.
+
 ## [0.900.2] - 2026-07-15
 
 ### Added

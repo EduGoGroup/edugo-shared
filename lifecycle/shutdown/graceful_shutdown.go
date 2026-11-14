@@ -12,10 +12,10 @@ import (
 )
 
 // ShutdownFunc representa una función de limpieza
-type ShutdownFunc func(ctx context.Context) error
+type ShutdownFunc func(ctx context.Context) error //nolint:revive // plan 054: renombrar a Func rompe la API pública del módulo
 
 // ShutdownTask representa una tarea de shutdown con nombre y función
-type ShutdownTask struct {
+type ShutdownTask struct { //nolint:revive // plan 054: renombrar a Task rompe la API pública del módulo
 	Name string
 	Fn   ShutdownFunc
 }
@@ -99,10 +99,8 @@ func (gs *GracefulShutdown) Shutdown(ctx context.Context) error {
 					"error", err.Error())
 			}
 			errs = append(errs, fmt.Errorf("%s: %w", task.Name, err))
-		} else {
-			if gs.logger != nil {
-				gs.logger.Info("Tarea de shutdown completada", "task", task.Name)
-			}
+		} else if gs.logger != nil {
+			gs.logger.Info("Tarea de shutdown completada", "task", task.Name)
 		}
 	}
 

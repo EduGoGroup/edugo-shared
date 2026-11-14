@@ -4,6 +4,12 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/textmatch` s
 
 ## [Unreleased]
 
+## [0.900.1] - 2026-11-14
+
+### Changed
+- Directiva `go 1.27.4` (plan 054, homologación de Go y dependencias).
+- Dependencias directas: `golang.org/x/text` `v0.38.0` → `v0.44.0`.
+
 ## [0.900.0] - 2026-07-17
 
 ### Added

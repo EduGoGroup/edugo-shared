@@ -8,6 +8,7 @@ import (
 // Status representa el estado de salud de un componente
 type Status string
 
+// Estados posibles de un componente.
 const (
 	StatusHealthy   Status = "healthy"
 	StatusUnhealthy Status = "unhealthy"
@@ -24,7 +25,7 @@ type CheckResult struct {
 }
 
 // HealthCheck representa un health check individual
-type HealthCheck interface {
+type HealthCheck interface { //nolint:revive // plan 054: renombrar a Check rompe la API pública del módulo
 	Name() string
 	Check(ctx context.Context) CheckResult
 }

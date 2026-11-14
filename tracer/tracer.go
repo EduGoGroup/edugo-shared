@@ -9,7 +9,6 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
-	"go.opentelemetry.io/otel/log/global"
 	"go.opentelemetry.io/otel/propagation"
 	sdklog "go.opentelemetry.io/otel/sdk/log"
 	"go.opentelemetry.io/otel/sdk/resource"
@@ -18,6 +17,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
+// Config holds the settings used by Init to build the tracer and logger providers.
 type Config struct {
 	ServiceName    string
 	ServiceVersion string
@@ -27,6 +27,7 @@ type Config struct {
 	Enabled        bool // false = noop tracer (zero overhead)
 }
 
+// Shutdown flushes and stops the providers created by Init.
 type Shutdown func(context.Context) error
 
 // Init initializes the OpenTelemetry tracer and logger providers and registers
@@ -98,7 +99,7 @@ func Init(ctx context.Context, cfg Config) (Shutdown, error) {
 			sdklog.WithProcessor(sdklog.NewBatchProcessor(logExporter)),
 			sdklog.WithResource(res),
 		)
-		global.SetLoggerProvider(lp)
+		otel.SetLoggerProvider(lp)
 	}
 
 	return func(ctx context.Context) error {

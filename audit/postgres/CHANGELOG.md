@@ -2,6 +2,14 @@
 
 Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/audit/postgres` se registran aquí.
 
+## [0.900.2] - 2026-11-14
+
+### Changed
+- Directiva `go 1.27.4` (plan 054, homologación de Go y dependencias).
+- Dependencia interna: `edugo-shared/audit` `v0.900.0` → `v0.900.1`.
+- Dependencias directas: `gorm.io/gorm` `v1.31.1` → `v1.31.2`.
+- Indirectas por `govulncheck`: `golang.org/x/net` `v0.53.0` → `v0.62.0` (GO-2026-6611, GO-2026-6612, GO-2026-6617) y `github.com/quic-go/quic-go` `v0.59.0` → `v0.59.1`.
+
 ## [0.900.1] - 2026-06-24
 
 ### Changed

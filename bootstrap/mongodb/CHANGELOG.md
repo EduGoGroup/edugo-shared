@@ -4,6 +4,14 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/bootstrap/mo
 
 ## [Unreleased]
 
+## [0.900.0] - 2026-11-14
+
+### Changed
+- Directiva `go 1.27.4` (plan 054, homologación de Go y dependencias).
+- Migración a la banda `0.900.x` (ADR 0010).
+- `go.mod`: **eliminado** el `replace github.com/EduGoGroup/edugo-shared/bootstrap => ../`; el módulo requiere el tag publicado `edugo-shared/bootstrap v0.900.0` (HU-E1.2). Sin cambios de API.
+- Dependencias directas: `go.mongodb.org/mongo-driver/v2` `v2.5.0` → `v2.10.0`.
+
 ## [0.1.0] - 2026-05-28
 
 ### Added

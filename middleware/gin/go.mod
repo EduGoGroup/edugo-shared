@@ -5,7 +5,7 @@ go 1.27.4
 require (
 	github.com/EduGoGroup/edugo-shared/audit v0.900.0
 	github.com/EduGoGroup/edugo-shared/auth v0.1.1
-	github.com/EduGoGroup/edugo-shared/common v0.1.0
+	github.com/EduGoGroup/edugo-shared/common v0.900.6
 	github.com/EduGoGroup/edugo-shared/logger v0.1.0
 	github.com/EduGoGroup/edugo-shared/repository v0.1.0
 	github.com/gin-gonic/gin v1.12.0
@@ -50,10 +50,10 @@ require (
 	go.uber.org/zap v1.27.1 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/arch v0.25.0 // indirect
-	golang.org/x/crypto v0.51.0 // indirect
-	golang.org/x/net v0.53.0 // indirect
-	golang.org/x/sys v0.44.0 // indirect
-	golang.org/x/text v0.37.0 // indirect
+	golang.org/x/crypto v0.59.0 // indirect
+	golang.org/x/net v0.62.0 // indirect
+	golang.org/x/sys v0.50.0 // indirect
+	golang.org/x/text v0.44.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gorm.io/gorm v1.31.1 // indirect
 )

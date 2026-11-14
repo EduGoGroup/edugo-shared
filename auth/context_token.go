@@ -119,7 +119,7 @@ func (k *ContextKeyring) PublicKey(kid string) (*ecdsa.PublicKey, bool) {
 }
 
 func isP256Public(pub *ecdsa.PublicKey) bool {
-	return pub != nil && pub.Curve == elliptic.P256() && pub.X != nil && pub.Y != nil
+	return pub != nil && pub.Curve == elliptic.P256() && pub.X != nil && pub.Y != nil //nolint:staticcheck // plan 054: SA1019 (ecdsa.PublicKey.X/Y obsoletos desde Go 1.26); migrar a PublicKey.Bytes cambia la validación del keyring (plan 053)
 }
 
 // WithContextKeyring attaches an ES256 keyring to the manager and returns it.

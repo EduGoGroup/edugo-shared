@@ -4,6 +4,14 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/database/pos
 
 ## [Unreleased]
 
+## [0.900.0] - 2026-11-14
+
+### Changed
+- Directiva `go 1.27.4` (plan 054, homologación de Go y dependencias).
+- Migración a la banda `0.900.x` (ADR 0010).
+- Dependencia interna: `edugo-shared/testing` `v0.1.0` → `v0.900.0`.
+- Dependencias directas: `gorm.io/gorm` `v1.31.1` → `v1.31.2`, `gorm.io/driver/postgres` `v1.6.0` → `v1.6.3`, `github.com/stretchr/testify` `v1.11.1` → `v1.12.1`.
+
 ## [0.1.0] - 2026-05-28
 
 ### Added

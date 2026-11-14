@@ -6,6 +6,7 @@ MODULE_NAME = github.com/EduGoGroup/edugo-shared
 # Versiones fijadas del toolchain de CI (deben coincidir con .github/workflows/ci.yml)
 GO_VERSION   := 1.27.4
 LINT_VERSION := v2.14.0
+GOVULNCHECK_VERSION := v1.9.0
 
 MODULES_L0 := $(shell ./scripts/list-modules.sh --set level-0 | tr '\n' ' ')
 MODULES_L1 := $(shell ./scripts/list-modules.sh --set level-1 | tr '\n' ' ')
@@ -74,7 +75,7 @@ lint-all: ## Ejecutar linter en todos los modulos
 	@echo "$(BLUE)Ejecutando linter en todos los modulos...$(NC)"
 	@for module in $(MODULES); do \
 		echo "$(YELLOW)Linting $$module...$(NC)"; \
-		(cd $$module && golangci-lint run ./...) || exit 1; \
+		(cd $$module && golangci-lint run --allow-parallel-runners ./...) || exit 1; \
 		echo "$(GREEN)  $$module linted$(NC)"; \
 	done
 	@echo "$(GREEN)Todos los modulos pasaron el linter$(NC)"
@@ -119,6 +120,16 @@ deps-all: ## Actualizar dependencias en todos los modulos
 	done
 	@echo "$(GREEN)Todos los modulos actualizados$(NC)"
 
+.PHONY: vuln
+vuln: ## Ejecutar govulncheck ($(GOVULNCHECK_VERSION)) en todos los modulos
+	@echo "$(BLUE)Ejecutando govulncheck en todos los modulos...$(NC)"
+	@for module in $(MODULES); do \
+		echo "$(YELLOW)govulncheck $$module...$(NC)"; \
+		(cd $$module && GOWORK=off go run golang.org/x/vuln/cmd/govulncheck@$(GOVULNCHECK_VERSION) ./...) || exit 1; \
+		echo "$(GREEN)  $$module sin vulnerabilidades alcanzables$(NC)"; \
+	done
+	@echo "$(GREEN)Todos los modulos pasaron govulncheck$(NC)"
+
 .PHONY: check-all
 check-all: fmt-all vet-all lint-all test-all build-all ## Validacion completa de todos los modulos
 	@echo "$(GREEN)Validacion completa exitosa$(NC)"
@@ -148,7 +159,7 @@ tools: ## Instalar herramientas de CI (golangci-lint fijado a $(LINT_VERSION))
 	@echo "$(GREEN)Herramientas instaladas$(NC)"
 
 .PHONY: ci-local
-ci-local: fmt-check-all vet-all lint-all test-all ## Pre-push: fmt + vet + lint + tests con herramientas locales
+ci-local: fmt-check-all vet-all lint-all test-all vuln ## Pre-push: fmt + vet + lint + tests + govulncheck con herramientas locales
 	@echo "$(GREEN)CI local OK$(NC)"
 
 .PHONY: ci-docker
@@ -165,7 +176,7 @@ ci-docker: ## Simula el CI en Docker (Go $(GO_VERSION) + golangci-lint $(LINT_VE
 		golang:$(GO_VERSION)-bookworm \
 		bash -c "set -e; \
 			curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b /usr/local/bin $(LINT_VERSION) && \
-			make fmt-check-all vet-all lint-all test-all" \
+			make fmt-check-all vet-all lint-all test-all vuln" \
 		2>&1
 	@echo "$(GREEN)CI Docker OK$(NC)"
 

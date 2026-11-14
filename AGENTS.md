@@ -36,6 +36,10 @@ el set de integración. Cada módulo con `go.mod` usa el mismo contrato vía `sc
 El inventario único vive en `scripts/module-manifest.tsv` (alimenta Makefile, coverage y CI).
 - Por módulo: `make -C <modulo> test` / `lint` / `fmt` / `release-check`.
 - Raíz: orquesta build/test/coverage de todos.
+- Gates antes de un PR, desde la raíz y con `GOWORK=off`: `make ci-local` (fmt-check + vet + lint + tests +
+  `make vuln`). `make vuln` corre `govulncheck` (versión en `GOVULNCHECK_VERSION` del `Makefile`, espejo del
+  `env` de `ci.yml`) en los 33 módulos de `scripts/list-modules.sh --set all`; la CI lo corre en la matriz
+  `validate` y **falla** si hay una vulnerabilidad alcanzable (plan 054, H.2; Dependabot apagado).
 
 ## Para agregar / cambiar algo
 

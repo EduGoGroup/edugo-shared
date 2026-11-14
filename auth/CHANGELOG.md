@@ -4,6 +4,18 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/auth` se reg
 
 ## [Unreleased]
 
+## [v0.900.3] - 2026-11-14
+
+### Added
+- Context Token ES256 (plan 053 T2.1), con **la misma forma de claims** que el access HS256 (`Claims`, incl. `active_context`):
+  - `ContextKeyring` / `ContextSigningKey` / `NewContextKeyring(signing, public)`: clave privada P-256 activa opcional (solo quien emite) + claves públicas aceptadas por `kid` (rotación). Rechaza curvas que no son P-256, `kid` vacío o duplicado.
+  - `(*JWTManager).WithContextKeyring`, `NewJWTManagerWithContextKeyring`, `(*JWTManager).ContextKeyring`.
+  - `(*JWTManager).GenerateContextToken` (mismos parámetros que `GenerateTokenWithContext`) y `GenerateContextTokenUntil` (con `expiresAt`, para el `exp ≤` del exchange). Cabecera `kid` siempre presente.
+  - Carga sin claves versionadas: `ContextKeyConfigFromEnv`, `NewContextKeyringFromConfig`, `ParseECPrivateKeyPEM`, `ParseECPublicKeyPEM`, `ParseContextPublicKeysJSON`, `MarshalECPublicKeyPEM`; variables `AUTH_CONTEXT_SIGNING_KEY`, `AUTH_CONTEXT_SIGNING_KID`, `AUTH_CONTEXT_PUBLIC_KEYS` (y sus `_FILE`).
+
+### Changed
+- `ValidateToken`, **solo con keyring adjunto**, despacha por `alg`: HS256 sin `kid` → camino de siempre; ES256 con `kid` conocido → keyring; cualquier otro (none, RS256, ES384, ES256 sin `kid`, HS256 con `kid`) → rechazo. Sin keyring el comportamiento es idéntico al anterior. `ValidateMinimalToken` sigue siendo solo HS256. El issuer del ES256 es el mismo que el del HS256.
+
 ## [v0.900.2] - 2026-06-16
 
 ### Added

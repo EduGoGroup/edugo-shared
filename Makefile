@@ -49,16 +49,20 @@ test-all: ## Ejecutar tests unitarios en todos los modulos
 	done
 	@echo "$(GREEN)Todos los modulos pasaron los tests$(NC)"
 
-.PHONY: test-integration-all
-test-integration-all: ## Ejecutar tests de integracion en modulos que los usan
-	@echo "$(BLUE)Ejecutando tests de integracion...$(NC)"
-	@export INTEGRATION_TESTS=true; \
-	for module in $(INTEGRATION_MODULES); do \
-		echo "$(YELLOW)Integration Testing $$module...$(NC)"; \
-		(cd $$module && go test -v -cover ./...) || exit 1; \
-		echo ""; \
+# Gate local obligatorio (plan 054, S.6): la integracion NO corre en CI.
+# Recorre los modulos integration=true del manifest, en serie (los containers compiten por la
+# maquina: en paralelo los arranques vencen su timeout). Sin -short y con -tags integration corre
+# tanto los ficheros //go:build integration como los tests con Docker sin tag.
+.PHONY: test-integration
+test-integration: ## Gate local: tests de integracion con -tags integration (requiere Docker)
+	@docker info > /dev/null 2>&1 || (echo "$(RED)Docker no esta corriendo: test-integration lo necesita$(NC)" && exit 1)
+	@echo "$(BLUE)Ejecutando tests de integracion (-tags integration)...$(NC)"
+	@for module in $(INTEGRATION_MODULES); do \
+		echo "$(YELLOW)Integration testing $$module...$(NC)"; \
+		(cd $$module && GOWORK=off go test -tags integration -race -count=1 -timeout 15m ./...) || exit 1; \
+		echo "$(GREEN)  $$module integracion OK$(NC)"; \
 	done
-	@echo "$(GREEN)Ejecucion de tests de integracion completada$(NC)"
+	@echo "$(GREEN)Tests de integracion OK en: $(INTEGRATION_MODULES)$(NC)"
 
 .PHONY: test-race-all
 test-race-all: ## Ejecutar tests con race detection en todos los modulos
@@ -71,11 +75,11 @@ test-race-all: ## Ejecutar tests con race detection en todos los modulos
 	@echo "$(GREEN)Todos los modulos pasaron los race tests$(NC)"
 
 .PHONY: lint-all
-lint-all: ## Ejecutar linter en todos los modulos
+lint-all: ## Ejecutar linter en todos los modulos (con el tag integration de .golangci.yml)
 	@echo "$(BLUE)Ejecutando linter en todos los modulos...$(NC)"
 	@for module in $(MODULES); do \
 		echo "$(YELLOW)Linting $$module...$(NC)"; \
-		(cd $$module && golangci-lint run --allow-parallel-runners ./...) || exit 1; \
+		(cd $$module && golangci-lint run ./...) || exit 1; \
 		echo "$(GREEN)  $$module linted$(NC)"; \
 	done
 	@echo "$(GREEN)Todos los modulos pasaron el linter$(NC)"
@@ -91,11 +95,11 @@ fmt-all: ## Formatear codigo en todos los modulos
 	@echo "$(GREEN)Todos los modulos formateados$(NC)"
 
 .PHONY: vet-all
-vet-all: ## Ejecutar go vet en todos los modulos
+vet-all: ## Ejecutar go vet en todos los modulos (sin tag y con -tags integration)
 	@echo "$(BLUE)Ejecutando go vet en todos los modulos...$(NC)"
 	@for module in $(MODULES); do \
 		echo "$(YELLOW)Vetting $$module...$(NC)"; \
-		(cd $$module && go vet ./...) || exit 1; \
+		(cd $$module && go vet ./... && go vet -tags integration ./...) || exit 1; \
 		echo "$(GREEN)  $$module vetted$(NC)"; \
 	done
 	@echo "$(GREEN)Todos los modulos pasaron go vet$(NC)"
@@ -231,19 +235,6 @@ lint-parallel: ## Lint en todos los modulos en paralelo
 	for pid in $$PIDS; do wait $$pid || FAILED=1; done; \
 	if [ $$FAILED -ne 0 ]; then echo "$(RED)Algun modulo fallo el linter$(NC)"; exit 1; fi
 	@echo "$(GREEN)Todos los modulos pasaron el linter$(NC)"
-
-.PHONY: test-integration-parallel
-test-integration-parallel: ## Tests de integracion en paralelo (requiere Docker)
-	@echo "$(BLUE)Tests de integracion en paralelo...$(NC)"
-	@export INTEGRATION_TESTS=true; \
-	PIDS=""; FAILED=0; \
-	for module in $(INTEGRATION_MODULES); do \
-		(cd $$module && go test -v -cover ./... && echo "$(GREEN)  $$module$(NC)" || echo "$(RED)  $$module$(NC)") & \
-		PIDS="$$PIDS $$!"; \
-	done; \
-	for pid in $$PIDS; do wait $$pid || FAILED=1; done; \
-	if [ $$FAILED -ne 0 ]; then echo "$(RED)Algun modulo fallo los tests de integracion$(NC)"; exit 1; fi
-	@echo "$(GREEN)Ejecucion de tests de integracion completada$(NC)"
 
 .PHONY: changelog-module
 changelog-module: ## Actualizar changelog de un modulo (MODULE=path VERSION=vX.Y.Z)

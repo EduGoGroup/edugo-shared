@@ -25,18 +25,12 @@ jobs:
     name: Prepare Module Matrix
     runs-on: ubuntu-latest
     outputs:
-      target:      ${{ steps.scope.outputs.target }}
-      integration: ${{ steps.modules.outputs.integration }}
+      target: ${{ steps.scope.outputs.target }}
     steps:
       - name: Checkout codigo
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
-
-      - name: Exportar modulos
-        id: modules
-        run: |
-          echo "integration=$(./scripts/list-modules.sh --set integration --format json)" >> "$GITHUB_OUTPUT"
 
       - name: Determinar modulos objetivo
         id: scope
@@ -127,6 +121,11 @@ jobs:
         working-directory: ${{ matrix.module }}
         run: go vet ./...
 
+      # Segunda pasada: los ficheros //go:build integration solo se compilan con el tag.
+      - name: Analisis estatico (go vet -tags integration)
+        working-directory: ${{ matrix.module }}
+        run: go vet -tags integration ./...
+
       - name: Ejecutar tests con race detection
         working-directory: ${{ matrix.module }}
         run: go test -short -v -race ./...
@@ -145,14 +144,26 @@ jobs:
           go install golang.org/x/vuln/cmd/govulncheck@${{ env.GOVULNCHECK_VERSION }}
           "$(go env GOPATH)/bin/govulncheck" ./...
 
-  integration:
-    name: Integration ${{ matrix.module }}
+  # ──────────────────────────────────────────────────────────────
+  # Tests con Docker que NO llevan build tag (plan 054, S.6).
+  #
+  # Esto NO es la integracion: los ficheros //go:build integration no corren en CI, por decision
+  # del dueño (2026-11-14). La integracion es gate local obligatorio: `make test-integration`.
+  #
+  # Lo que corre aqui es lo unico que `validate` no cubre: los tests sin tag que se saltan con
+  # `-short` (testing.Short()) porque levantan containers con testcontainers. Medido el
+  # 2026-11-14: 5 en testing (containers/manager_test.go) y 2 en database/postgres
+  # (transaction_test.go). bootstrap, database/mongodb y messaging/rabbit no tienen ninguno:
+  # alli este job repetia los tests unitarios de `validate`, y por eso salieron de la matriz.
+  # Si un modulo gana un test asi, se añade a mano a esta lista.
+  # ──────────────────────────────────────────────────────────────
+  docker-untagged:
+    name: Docker tests sin tag ${{ matrix.module }}
     runs-on: ubuntu-latest
-    needs: prepare-modules
     strategy:
       fail-fast: false
       matrix:
-        module: ${{ fromJson(needs.prepare-modules.outputs.integration) }}
+        module: [testing, database/postgres]
 
     steps:
       - name: Checkout codigo
@@ -169,8 +180,6 @@ jobs:
         working-directory: ${{ matrix.module }}
         run: go mod download
 
-      - name: Ejecutar tests de integracion
+      - name: Ejecutar tests con Docker sin tag (sin -short)
         working-directory: ${{ matrix.module }}
-        env:
-          INTEGRATION_TESTS: 'true'
-        run: go test -v -cover -timeout 10m ./...
+        run: go test -v -race -count=1 -timeout 10m ./...

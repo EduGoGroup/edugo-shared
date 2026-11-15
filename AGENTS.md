@@ -7,7 +7,7 @@
 ## Propósito
 
 **Librería compartida multi-módulo** en Go que consumen las 4 APIs y el worker. No es un servicio:
-no tiene `cmd/` ni se "levanta". Es un repo con ~17 módulos Go independientes (cada uno con su `go.mod`,
+no tiene `cmd/` ni se "levanta". Es un repo con 33 módulos Go independientes (cada uno con su `go.mod`,
 `README.md`, `CHANGELOG.md` y `docs/`), versionados y publicados por separado.
 
 ## Módulos (foco de cada uno)
@@ -40,6 +40,25 @@ El inventario único vive en `scripts/module-manifest.tsv` (alimenta Makefile, c
   `make vuln`). `make vuln` corre `govulncheck` (versión en `GOVULNCHECK_VERSION` del `Makefile`, espejo del
   `env` de `ci.yml`) en los 33 módulos de `scripts/list-modules.sh --set all`; la CI lo corre en la matriz
   `validate` y **falla** si hay una vulnerabilidad alcanzable (plan 054, H.2; Dependabot apagado).
+- **Integración: gate local obligatorio, no CI** (decisión del dueño, 2026-11-14; plan 054, S.6). Antes de
+  cada PR que toque un módulo con `integration=true` en `scripts/module-manifest.tsv` (`testing`,
+  `bootstrap`, `database/postgres`, `database/mongodb`, `messaging/rabbit`), con Docker arrancado:
+  `GOWORK=off make test-integration`. Recorre esos módulos **en serie** con
+  `go test -tags integration -race -count=1 ./...` (sin `-short`), así que corre los ficheros
+  `//go:build integration` y también los tests con Docker sin tag. El código de salida se lee sin pipe.
+  - **La CI no corre la integración.** El job `docker-untagged` de `ci.yml` solo corre los tests con
+    Docker que no llevan tag (los que se saltan con `-short`) de `testing` y `database/postgres`; lo que
+    lleva `//go:build integration` solo lo ve este gate local.
+  - No hay variable de entorno que active nada: `INTEGRATION_TESTS` no la leía ningún test y se retiró.
+    Los dos interruptores reales son `-tags integration` y la ausencia de `-short`.
+  - Con la máquina cargada, los containers de RabbitMQ vencen su timeout de arranque (60 s) y el gate
+    falla sin que el código tenga culpa: se corre con la máquina libre y nunca en paralelo.
+- **Lint y vet ven los ficheros de integración**: `.golangci.yml` fija `build-tags: [integration]` y no
+  recorta hallazgos (`max-same-issues: 0`, `max-issues-per-linter: 0`). `make vet-all` y la CI corren
+  `go vet` dos veces: sin tag y con `-tags integration`.
+  - **No crees ficheros `//go:build !integration`**: con el tag fijo en la configuración dejarían de
+    lintarse (`--build-tags` en la línea de comandos no lo quita). Hoy no hay ninguno. Un test sin Docker
+    va sin build tag y corre en los dos modos.
 
 ## Para agregar / cambiar algo
 

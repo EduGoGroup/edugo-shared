@@ -42,12 +42,26 @@ if [[ ! -f "$CHANGELOG_FILE" ]]; then
 fi
 
 VERSION_NO_V="${VERSION#v}"
-START_LINE=$(grep -n "^## \[$VERSION_NO_V\]" "$CHANGELOG_FILE" | head -n 1 | cut -d: -f1 || true)
 
-if [[ -z "$START_LINE" ]]; then
-    echo "No se encontro la version $VERSION_NO_V en $CHANGELOG_FILE" >&2
-    exit 1
+# One awk pass: print from the "## [X.Y.Z]" heading (also "## [vX.Y.Z]") up to the line before
+# the next "## [" heading, or to EOF for the last section. The version is compared as a literal
+# string, not as a regex, so "0.900.1" never matches "0.90011". Trailing blank lines are dropped.
+# Exit code 3 = version not found (a plain "exit" inside a rule would still run END).
+if awk -v version="$VERSION_NO_V" '
+    BEGIN { plain = "## [" version "]"; prefixed = "## [v" version "]" }
+    /^## \[/ {
+        if (found) { exit }
+        if (index($0, plain) == 1 || index($0, prefixed) == 1) { found = 1 }
+    }
+    found {
+        if ($0 ~ /^[[:space:]]*$/) { pending++; next }
+        for (; pending > 0; pending--) { print "" }
+        print
+    }
+    END { if (!found) { exit 3 } }
+' "$CHANGELOG_FILE"; then
+    exit 0
 fi
 
-END_LINE=$(awk -v start="$START_LINE" 'NR > start && /^## \[/ { print NR - 1; exit } END { if (NR >= start) print NR }' "$CHANGELOG_FILE")
-sed -n "${START_LINE},${END_LINE}p" "$CHANGELOG_FILE"
+echo "No se encontro la version $VERSION_NO_V en $CHANGELOG_FILE" >&2
+exit 1

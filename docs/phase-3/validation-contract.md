@@ -17,7 +17,7 @@
 - `make build-all`
 - `make test-all`
 - `make test-race-all`
-- `make test-integration-all`
+- `make test-integration` (gate local obligatorio, con Docker: `-tags integration -race`, en serie; la CI no lo corre)
 - `make lint-all`
 - `make vet-all`
 - `make check-all`

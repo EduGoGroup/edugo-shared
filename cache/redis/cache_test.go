@@ -1,5 +1,3 @@
-//go:build integration
-
 package redis
 
 import (
@@ -20,31 +18,6 @@ func newUnavailableRedisClient() *goredis.Client {
 		PoolTimeout:  20 * time.Millisecond,
 		MaxRetries:   0,
 	})
-}
-
-func TestConnectRedis_InvalidURL(t *testing.T) {
-	_, err := ConnectRedis(RedisConfig{URL: "not-a-valid-redis-url"})
-	if err == nil {
-		t.Fatal("expected error for invalid redis URL")
-	}
-	if !strings.Contains(err.Error(), "parsing redis URL") {
-		t.Fatalf("expected parsing redis URL error, got: %v", err)
-	}
-}
-
-func TestConnectRedis_PingFailure(t *testing.T) {
-	client, err := ConnectRedis(RedisConfig{URL: "redis://127.0.0.1:1/0"})
-	if err == nil {
-		if client != nil {
-			if closeErr := client.Close(); closeErr != nil {
-				t.Fatalf("unexpected close error: %v", closeErr)
-			}
-		}
-		t.Fatal("expected ping failure error")
-	}
-	if !strings.Contains(err.Error(), "pinging redis") {
-		t.Fatalf("expected pinging redis error, got: %v", err)
-	}
 }
 
 func TestCacheService_Get_ReturnsRedisError(t *testing.T) {

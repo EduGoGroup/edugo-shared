@@ -233,7 +233,7 @@ testing:
   target: 55
   status: "✅ Incremento mínimo - Requiere más tests unitarios"
   priority: "Media"
-  notes: "Tests unitarios de helpers agregados (+1%). Tests de integración requieren INTEGRATION_TESTS=true. Para alcanzar meta 55% se requieren tests unitarios de options.go, config.go y manager.go sin containers"
+  notes: "Tests unitarios de helpers agregados (+1%). Tests de integración: `make test-integration` (-tags integration, con Docker). Para alcanzar meta 55% se requieren tests unitarios de options.go, config.go y manager.go sin containers"
   exclude_files:
     - "*_integration_test.go" # Tests de integración requieren containers
   coverage_breakdown:

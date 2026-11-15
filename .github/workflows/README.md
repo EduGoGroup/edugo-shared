@@ -67,24 +67,16 @@ edugo-shared **NO tiene auto-versionado**. El versionado es manual para permitir
 - ✅ Push directo a `main` (red de seguridad)
 
 **Ejecuta:**
-- ✅ **Matrix Strategy**: Tests en paralelo de 7 módulos
-  - common
-  - logger
-  - auth
-  - middleware/gin
-  - messaging/rabbit
-  - database/postgres
-  - database/mongodb
+- **`validate`**, un job por módulo de `scripts/module-manifest.tsv` (los 33 en PR a `main` y en push; en
+  PR a `dev`, solo los modificados, o todos si cambian `Makefile`, `scripts/` o `.github/`): `gofmt`,
+  `go vet` (sin tag y con `-tags integration`), `go test -short -race`, `golangci-lint` (con el tag
+  `integration` de `.golangci.yml`) y
+  `govulncheck`.
+- **`docker-untagged`**, solo en `testing` y `database/postgres`: los tests con Docker que no llevan build
+  tag y que `validate` se salta con `-short`.
 
-**Jobs por módulo:**
-- ✅ Verificación de formato (gofmt)
-- ✅ Análisis estático (go vet)
-- ✅ Tests con race detection
-- ✅ Build verification
-
-**Jobs adicionales:**
-- ✅ Linter (opcional, no bloquea CI)
-- ✅ Compatibilidad con Go 1.23, 1.24, 1.25
+**No ejecuta la integración.** Los ficheros `//go:build integration` no corren en CI (decisión del dueño,
+2026-11-14): son gate local obligatorio, `GOWORK=off make test-integration` con Docker. Ver `AGENTS.md`.
 
 **Cuándo se ejecuta:**
 ```bash

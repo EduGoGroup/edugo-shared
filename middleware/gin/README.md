@@ -18,8 +18,11 @@ El módulo se descarga como `middleware/gin`, principal consumo vía package `gi
 package main
 
 import (
-	"github.com/gin-gonic/gin"
+	"log"
 	"log/slog"
+	"os"
+
+	"github.com/EduGoGroup/edugo-shared/auth"
 	"github.com/EduGoGroup/edugo-shared/middleware/gin"
 )
 
@@ -27,11 +30,21 @@ func main() {
 	router := gin.Default()
 	baseLogger := slog.Default()
 
+	// Verificador del Context Token ES256 (AUTH_CONTEXT_PUBLIC_KEYS); sin claves no arranca.
+	cfg, err := auth.ContextKeyConfigFromEnv(os.LookupEnv)
+	if err != nil {
+		log.Fatal(err)
+	}
+	jwtManager, err := auth.NewContextTokenManagerFromConfig("edugo-central", cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Cadena de middleware recomendada (orden importante)
 	router.Use(gin.Recovery())
 	router.Use(gin.RequestLogging(baseLogger))
 	router.Use(gin.CORS())
-	router.Use(gin.JWTAuthMiddleware("your-secret-key"))
+	router.Use(gin.JWTAuthMiddleware(jwtManager))
 	router.Use(gin.PostAuthLogging())
 
 	// Rutas protegidas
@@ -65,7 +78,7 @@ import (
 func main() {
 	router := gin.Default()
 
-	router.Use(gin.JWTAuthMiddleware("secret-key"))
+	router.Use(gin.JWTAuthMiddleware(jwtManager))
 	router.Use(gin.PostAuthLogging())
 
 	// Requiere permiso específico
@@ -117,7 +130,7 @@ func main() {
 	router.Use(gin.Recovery())
 	router.Use(gin.RequestLogging(baseLogger))
 	router.Use(gin.CORS())
-	router.Use(gin.JWTAuthMiddleware("secret-key"))
+	router.Use(gin.JWTAuthMiddleware(jwtManager))
 	router.Use(gin.PostAuthLogging())
 	router.Use(gin.AuditMiddleware(auditLogger))
 
@@ -142,7 +155,7 @@ import (
 func main() {
 	router := gin.Default()
 
-	router.Use(gin.JWTAuthMiddleware("secret-key"))
+	router.Use(gin.JWTAuthMiddleware(jwtManager))
 
 	// Endpoint con filtrado: GET /api/v1/users?page=1&limit=25&search=john&is_active=true
 	router.GET("/api/v1/users", listUsersHandler)
@@ -186,7 +199,7 @@ func listAssessmentsHandler(c *gin.Context) {
 
 ## Componentes principales
 
-- **JWT Authentication**: Validación segura de tokens JWT con claims poblados en contexto
+- **JWT Authentication**: Verificación del Context Token ES256 (solo ES256 con `kid` conocido) con claims poblados en contexto. Sin blacklist. En tests, el token se acuña con `auth/authtest`
 - **Permission Authorization**: Validación granular de permisos (RequirePermission, RequireAnyPermission, RequireAllPermissions)
 - **Request Logging**: Enriquecimiento automático de logs con request_id, correlation_id, user_id, school_id
 - **Audit Logging**: Registro automático de operaciones mutantes (POST, PUT, PATCH, DELETE)

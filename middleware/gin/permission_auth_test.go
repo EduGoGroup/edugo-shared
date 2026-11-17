@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/EduGoGroup/edugo-shared/auth"
+	"github.com/EduGoGroup/edugo-shared/auth/authtest"
 	"github.com/EduGoGroup/edugo-shared/common/types/enum"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -535,7 +536,7 @@ func TestPermissionMiddleware_Integration(t *testing.T) {
 
 	t.Run("integración completa con token JWT real", func(t *testing.T) {
 		// Crear JWTManager y generar token con contexto
-		jwtManager := auth.NewJWTManager("test-secret-key", "test-issuer")
+		jwtManager := authtest.MustNew("test-issuer").Manager()
 
 		activeContext := &auth.UserContext{
 			RoleID:     "role-teacher",
@@ -545,7 +546,7 @@ func TestPermissionMiddleware_Integration(t *testing.T) {
 			Grants:     auth.Grants{Allow: []string{"content.materials.create", "content.materials.read", "content.materials.update"}},
 		}
 
-		token, _, err := jwtManager.GenerateTokenWithContext(
+		token, _, err := jwtManager.GenerateContextToken(
 			"user-123",
 			"teacher@edugo.com",
 			activeContext,
@@ -572,7 +573,7 @@ func TestPermissionMiddleware_Integration(t *testing.T) {
 	})
 
 	t.Run("integración rechaza acceso sin permiso", func(t *testing.T) {
-		jwtManager := auth.NewJWTManager("test-secret-key", "test-issuer")
+		jwtManager := authtest.MustNew("test-issuer").Manager()
 
 		activeContext := &auth.UserContext{
 			RoleID:   "role-student",
@@ -580,7 +581,7 @@ func TestPermissionMiddleware_Integration(t *testing.T) {
 			Grants:   auth.Grants{Allow: []string{"content.materials.read"}}, // Solo lectura
 		}
 
-		token, _, err := jwtManager.GenerateTokenWithContext(
+		token, _, err := jwtManager.GenerateContextToken(
 			"user-456",
 			"student@edugo.com",
 			activeContext,

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/EduGoGroup/edugo-shared/auth"
+	"github.com/EduGoGroup/edugo-shared/auth/authtest"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -91,11 +92,10 @@ func TestServiceJWTAuthMiddleware_InvalidToken(t *testing.T) {
 	assert.Contains(t, w.Body.String(), "INVALID_SERVICE_TOKEN")
 }
 
-// TestServiceJWTAuthMiddleware_RejectsUserToken: un JWT de usuario (mismo
-// secret, sin token_use="service") NO debe pasar el middleware de servicio.
+// TestServiceJWTAuthMiddleware_RejectsUserToken: un Context Token de usuario
+// (ES256) NO debe pasar el middleware de servicio.
 func TestServiceJWTAuthMiddleware_RejectsUserToken(t *testing.T) {
-	userManager := auth.NewJWTManager(svcSecret, svcIssuer)
-	userToken, _, err := userManager.GenerateTokenWithContext(
+	userToken, err := authtest.MustNew(svcIssuer).Token(
 		"user-123", "user@edugo.com",
 		&auth.UserContext{RoleID: "r", RoleName: "Student"},
 		time.Hour,

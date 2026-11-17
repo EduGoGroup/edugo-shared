@@ -4,8 +4,9 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/auth` se reg
 
 ## [Unreleased]
 
-> Se publicará como `auth/v0.900.5` (tag aún no creado). **Cambio rompedor** (plan 053, T6.2): el
-> token de usuario pasa a ser solo el Context Token ES256.
+## [0.900.5] - 2026-11-17
+
+> **Cambio rompedor** (plan 053, T6.2): el token de usuario pasa a ser solo el Context Token ES256.
 
 ### Added
 - `NewContextTokenManager(issuer, keyring) (*JWTManager, error)` y

@@ -6,40 +6,27 @@ Documentación completa de componentes, métodos, flujos comunes e integración 
 
 ### JWTAuthMiddleware
 
-Valida el token JWT del header `Authorization: Bearer ...` y puebla el contexto con claims.
+Verifica el Context Token ES256 del header `Authorization: Bearer ...` y puebla el contexto con claims.
 
 ```go
-func JWTAuthMiddleware(jwtSecret string) gin.HandlerFunc
+func JWTAuthMiddleware(jwtManager *auth.JWTManager) gin.HandlerFunc
 ```
+
+`jwtManager` sale de `auth.NewContextTokenManager(issuer, keyring)` o
+`auth.NewContextTokenManagerFromConfig(issuer, cfg)`.
 
 **Comportamiento:**
 - Extrae token del header `Authorization: Bearer ...`
-- Valida y parsea el JWT usando `auth.JWTManager`
+- Lo verifica con `jwtManager.ValidateToken`: solo ES256 con un `kid` del keyring (un HS256 se rechaza)
 - Puebla el contexto con claves estándar: `ContextKeyUserID`, `ContextKeyEmail`, `ContextKeyRole`, `ContextKeyClaims`
 - Retorna HTTP 401 Unauthorized si el token es inválido o no existe
+- No hay blacklist (`JWTAuthMiddlewareWithBlacklist` se retiró en el plan 053, T6.2)
 
 **Context Keys pobladas:**
 - `user_id` (string): ID del usuario
 - `email` (string): Email del usuario
 - `role` (string): Rol principal del usuario
 - `jwt_claims` (*auth.Claims): Estructura completa de claims JWT
-
-### JWTAuthMiddlewareWithBlacklist
-
-Extiende la validación JWT con verificación de tokens en lista negra.
-
-```go
-func JWTAuthMiddlewareWithBlacklist(jwtSecret string, checker auth.BlacklistChecker) gin.HandlerFunc
-```
-
-**Parámetros:**
-- `jwtSecret`: Clave secreta para validación de firma JWT
-- `checker`: Implementación de `auth.BlacklistChecker` para verificar tokens revocados
-
-**Casos de uso:**
-- Cierre de sesiones explícito
-- Invalidación preventiva de tokens comprometidos
-- Gestión de permisos modificados en tiempo real
 
 ### RequirePermission
 
@@ -146,7 +133,7 @@ func PostAuthLogging() gin.HandlerFunc
 router.Use(gin.Recovery())
 router.Use(gin.RequestLogging(baseLogger))
 router.Use(gin.CORS())
-router.Use(gin.JWTAuthMiddleware(secret))
+router.Use(gin.JWTAuthMiddleware(jwtManager))
 router.Use(gin.PostAuthLogging())
 router.Use(gin.AuditMiddleware(auditLogger))
 ```
@@ -242,7 +229,7 @@ var (
 ```go
 // Middleware setup
 router.Use(gin.RequestLogging(slog.Default()))
-router.Use(gin.JWTAuthMiddleware(secret))
+router.Use(gin.JWTAuthMiddleware(jwtManager))
 router.Use(gin.PostAuthLogging())
 
 // Handler
@@ -265,7 +252,7 @@ router.GET("/api/v1/profile", func(c *gin.Context) {
 ### Flujo 2: Autorización con permisos múltiples
 
 ```go
-router.Use(gin.JWTAuthMiddleware(secret))
+router.Use(gin.JWTAuthMiddleware(jwtManager))
 
 // Requiere permiso específico
 router.DELETE("/api/v1/users/:id",
@@ -301,7 +288,7 @@ router.PATCH("/api/v1/school-settings",
 ### Flujo 3: Auditoría automática de operaciones
 
 ```go
-router.Use(gin.JWTAuthMiddleware(secret))
+router.Use(gin.JWTAuthMiddleware(jwtManager))
 router.Use(gin.AuditMiddleware(auditLogger))
 
 // POST /api/v1/assessments

@@ -4,10 +4,9 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/middleware/g
 
 ## [Unreleased]
 
-> **Cambio rompedor** (plan 053, T6.2). Requiere `auth/v0.900.5`, que aún no existe: el `go.mod`
-> sigue en `auth v0.900.4` y este módulo solo compila con el `go.work` del ecosistema hasta que se
-> publique ese tag y se suba el `require` (`go get github.com/EduGoGroup/edugo-shared/auth@v0.900.5`
-> + `go mod tidy`).
+## [0.900.4] - 2026-11-17
+
+> **Cambio rompedor** (plan 053, T6.2). Requiere `auth/v0.900.5`.
 
 ### Changed
 - `JWTAuthMiddleware(jwtManager *auth.JWTManager)` queda como el único middleware de usuario y

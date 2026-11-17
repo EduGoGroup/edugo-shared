@@ -4,7 +4,7 @@ go 1.27.4
 
 require (
 	github.com/EduGoGroup/edugo-shared/audit v0.900.1
-	github.com/EduGoGroup/edugo-shared/auth v0.900.4
+	github.com/EduGoGroup/edugo-shared/auth v0.900.5
 	github.com/EduGoGroup/edugo-shared/common v0.900.6
 	github.com/EduGoGroup/edugo-shared/logger v0.900.1
 	github.com/EduGoGroup/edugo-shared/repository v0.900.2

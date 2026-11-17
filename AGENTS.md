@@ -17,7 +17,7 @@ no tiene `cmd/` ni se "levanta". Es un repo con 33 módulos Go independientes (c
 | `common` | Base: env, errores, validator, UUID, enums (incl. `enum.Permission*`). |
 | `logger` | Logging estructurado (interfaz + backends Zap/Logrus/slog). |
 | `config` | Carga de configuración desde archivo + entorno. |
-| `auth` | JWT con contexto activo, passwords, refresh tokens, blacklist. |
+| `auth` | Context Token ES256 con contexto activo (+ `auth/authtest` para tests), JWT M2M, passwords. |
 | `middleware/gin` | Auth, `RequirePermission`, contexto, CORS, request logging, auditoría para Gin. |
 | `screenconfig` | Transformación/validación de configuración SDUI (la usa `edugo-api-platform`). |
 | `audit`, `audit/postgres` | Contrato de eventos auditables + persistencia GORM. |

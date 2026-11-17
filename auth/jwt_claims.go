@@ -52,28 +52,13 @@ type Grants struct {
 	Deny  []string `json:"deny"`
 }
 
-// Claims representa los claims personalizados del JWT.
+// Claims representa los claims del Context Token ES256.
 //
-// El access_token usa `ActiveContext` (estructura completa con nombres y grants,
-// que el middleware lee en cada request sin pegarle a la BD).
-//
-// El refresh_token (`token_use = "refresh"`) usa `ActiveContext = nil` y solo
-// lleva el snapshot mínimo del contexto activo en `SchoolID`, `AcademicUnitID`
-// y `RoleID`. Eso le alcanza al refresh use case para re-emitir el siguiente
-// access_token con los mismos claims sin reconstruir nada arbitrariamente.
-// Los grants y nombres NO se guardan en el refresh — pueden cambiar entre
-// rotaciones y el access_token nuevo los recompone consultando IAM.
+// `ActiveContext` lleva la estructura completa con nombres y grants, que el
+// middleware lee en cada request sin pegarle a la BD.
 type Claims struct {
-	UserID         string       `json:"user_id"`
-	Email          string       `json:"email"`
-	ActiveContext  *UserContext `json:"active_context"`
-	TokenUse       string       `json:"token_use,omitempty"`
-	SchoolID       string       `json:"school_id,omitempty"`
-	AcademicUnitID string       `json:"academic_unit_id,omitempty"`
-	RoleID         string       `json:"role_id,omitempty"`
-	// Viven en la raíz para que el snapshot del refresh preserve la terna
-	// (sujeto + modo de actor) al rotar el access token (ADR 0026).
-	SubjectStudentID string `json:"subject_student_id,omitempty"`
-	ActorMode        string `json:"actor_mode,omitempty"`
+	UserID        string       `json:"user_id"`
+	Email         string       `json:"email"`
+	ActiveContext *UserContext `json:"active_context"`
 	jwt.RegisteredClaims
 }

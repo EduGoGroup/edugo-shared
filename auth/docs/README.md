@@ -1,6 +1,6 @@
 # Auth — Documentación técnica
 
-Servicios compartidos de autenticación: hashing de password, JWT de acceso, refresh tokens y blacklist de revocación.
+Servicios compartidos de autenticación: hashing de password, el Context Token ES256 de usuario y el JWT M2M entre servicios. El HS256 de usuario, el refresh token propio y la blacklist en memoria se retiraron en el plan 053 (T6.2).
 
 ## Propósito
 
@@ -30,60 +30,40 @@ Contexto activo del usuario embebido en JWT:
 - `Permissions` — Lista de permisos
 
 **Claims**
-Claims personalizados que heredan `jwt.RegisteredClaims`:
+Claims del Context Token, que heredan `jwt.RegisteredClaims`:
 - `UserID`, `Email` — Identidad del usuario
-- `ActiveContext` — UserContext embebido (obligatorio para access tokens)
-- `TokenUse` — Tipo de token: access (vacío), refresh, etc.
-- `SchoolID` — Se preserva en refresh tokens
+- `ActiveContext` — UserContext embebido (obligatorio)
 
-### jwt_manager.go — Generación y validación de tokens
+### jwt_manager.go y context_token.go — Context Token ES256
 
 **JWTManager**
-Encapsula issuer y secret para generación/validación.
+Encapsula issuer y keyring ES256. Solo acepta ES256 con un `kid` del keyring.
 
 Métodos principales:
-- `NewJWTManager(secretKey, issuer) *JWTManager`
-- `GenerateTokenWithContext(userID, email, activeContext, expiresIn) (string, time.Time, error)` — Access token con contexto
-- `ValidateToken(token) (*Claims, error)` — Valida access token, requiere ActiveContext
-- `GenerateMinimalToken(userID, email, schoolID, expiresIn) (string, time.Time, error)` — Token sin contexto (para refresh)
-- `ValidateMinimalToken(token) (*Claims, error)` — Valida refresh token
+- `NewContextTokenManager(issuer, keyring) (*JWTManager, error)`
+- `NewContextTokenManagerFromConfig(issuer, cfg) (*JWTManager, error)`
+- `GenerateContextToken(userID, email, activeContext, expiresIn) (string, time.Time, error)` — requiere clave de firma
+- `GenerateContextTokenUntil(userID, email, activeContext, expiresAt) (string, time.Time, error)` — para el canje
+- `ValidateToken(token) (*Claims, error)` — exige ES256, `kid` conocido, issuer, `exp` y ActiveContext
+
+### context_keys_config.go — Carga de claves
+
+`ContextKeyConfigFromEnv`, `NewContextKeyringFromConfig` y los parsers PEM. Variables
+`AUTH_CONTEXT_SIGNING_KEY`, `AUTH_CONTEXT_SIGNING_KID`, `AUTH_CONTEXT_PUBLIC_KEYS` (y sus `_FILE`).
 
 ### jwt_extract.go — Helpers para extracción
 
 **ExtractUserID(token string) (string, error)**
 Extrae userID de un token sin validar completamente. Útil solo para logging/debugging, NO para autenticación.
 
-### refresh_token.go — Tokens criptográficos
+### authtest — Helper de tests
 
-**RefreshToken**
-Representa un refresh token:
-- `Token` — Texto plano (retorna al cliente)
-- `TokenHash` — SHA-256 en hex (guarda en BD)
-- `ExpiresAt` — Timestamp de expiración
+Par ES256 en memoria para acuñar tokens y configurar el verificador en tests. Uso en el
+[README del módulo](../README.md).
 
-**GenerateRefreshToken(ttl time.Duration) (*RefreshToken, error)**
-Genera 32 bytes aleatorios con crypto/rand, codifica en base64 URL-safe, calcula SHA-256.
+### service_claims.go — JWT M2M
 
-**HashToken(token string) string**
-Calcula SHA-256 hex del token.
-
-**VerifyTokenHash(token, hash string) bool**
-Compara token contra su hash almacenado.
-
-### blacklist.go — Revocación de tokens
-
-**TokenBlacklist (interfaz)**
-Contrato para revocación:
-- `Revoke(jti string, expiresAt time.Time)` — Agregar a blacklist
-- `IsRevoked(jti string) bool` — Verificar si está revocado
-
-**InMemoryBlacklist**
-Implementación en memoria usando sync.Map con TTL:
-- `NewInMemoryBlacklist(ctx context.Context) *InMemoryBlacklist` — Constructor con cleanup goroutine
-- Cleanup automático de entradas expiradas
-- Seguro para concurrencia
-
-Nota: Para producción con escalabilidad, reemplazar con Redis.
+`ServiceJWTManager`, HS256 entre servicios (`SERVICE_JWT_SECRET` y afines). No es el token de usuario.
 
 ## Flujos comunes
 
@@ -107,78 +87,32 @@ if err == nil {
 }
 ```
 
-### 3. Generar access y refresh tokens
+### 3. Emitir un Context Token (solo identity)
 
 ```go
-manager := auth.NewJWTManager(issuer, secret)
-
-// Access token con contexto
-userCtx := &auth.UserContext{
-    RoleID:      "admin",
-    RoleName:    "Administrator",
-    SchoolID:    "sch-123",
-    Permissions: []string{"users:read", "users:write"},
-}
-accessToken, _ := manager.GenerateTokenWithContext(ctx, userID, email, userCtx)
-
-// Refresh token minimal
-refreshToken, _ := auth.GenerateRefreshToken(7 * 24 * time.Hour)
-// Guardar refreshToken.TokenHash en BD
-// Retornar accessToken y refreshToken.Token al cliente
+manager, err := auth.NewContextTokenManagerFromConfig(issuer, cfg) // cfg con clave de firma
+userCtx := &auth.UserContext{RoleID: "admin", RoleName: "Administrator", SchoolID: "sch-123"}
+token, expiresAt, err := manager.GenerateContextToken(userID, email, userCtx, 15*time.Minute)
 ```
 
-### 4. Validar access token
+### 4. Validar el token (cualquier API)
 
 ```go
-claims, err := manager.ValidateToken(accessToken)
+claims, err := manager.ValidateToken(token)
 if err != nil {
     return errors.Unauthorized
 }
-if claims.ActiveContext == nil {
-    return errors.InvalidToken
-}
-// Usar claims.UserID, claims.ActiveContext.Permissions, etc.
+// Usar claims.UserID, claims.ActiveContext.Grants, etc.
 ```
 
-### 5. Refresh token (obtener nuevo access token)
-
-```go
-// Cliente envía refresh token
-claims, err := manager.ValidateMinimalToken(refreshToken)
-if err != nil {
-    return errors.Unauthorized
-}
-
-// Recuperar hash de BD y verificar
-storedHash := getRefreshTokenHash(claims.UserID)
-if !auth.VerifyTokenHash(refreshToken, storedHash) {
-    return errors.Unauthorized
-}
-
-// Generar nuevo access token
-newAccessToken, _ := manager.GenerateTokenWithContext(ctx, claims.UserID, claims.Email, newUserContext)
-```
-
-### 6. Revocar token (logout)
-
-```go
-blacklist := auth.NewInMemoryBlacklist(ctx)
-// En middleware o durante logout
-blacklist.Revoke(claims.ID, claims.ExpiresAt)
-
-// En validación, verificar antes de usar
-if blacklist.IsRevoked(claims.ID) {
-    return errors.TokenRevoked
-}
-```
+La renovación no pasa por este módulo: el cliente re-canjea en edugo-api-identity.
 
 ## Testing
 
 El módulo incluye tests completos y benchmarks:
 - Password hashing/verification
 - Token generation/validation
-- Refresh token flows
-- Blacklist concurrency (race detector)
+- Alg confusion, `kid` y rotación de claves
 - Benchmarks de bcrypt y JWT
 
 Ejecutar:
@@ -190,8 +124,6 @@ make check         # Tests + linting + format
 
 ## Notas de diseño
 
-- **Access tokens**: Requieren ActiveContext con rol y permisos. Ideales para autorización en handlers.
-- **Refresh tokens**: Flujo mínimal separado, stateless. Ideales para renovación.
+- **Context Token**: requiere ActiveContext con rol y grants. Ideal para autorización en handlers.
+- **Sin revocación local**: la vida corta del token y el re-canje sustituyen a la blacklist.
 - **Password límite**: 72 bytes es restricción de bcrypt, no del módulo. Usar validación en cliente.
-- **Blacklist**: En memoria para baja latencia. Redis recomendado para múltiples instancias.
-- **Claims personalizados**: UserContext permite RBAC flexible sin JTI externo.

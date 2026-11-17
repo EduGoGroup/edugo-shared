@@ -39,7 +39,8 @@ type ContextKeyConfig struct {
 	PublicKeysJSON string
 }
 
-// IsZero reports whether nothing is configured: the API keeps HS256 only.
+// IsZero reports whether nothing is configured. Since T6.2 that means the
+// API cannot verify user tokens and must not start.
 func (c ContextKeyConfig) IsZero() bool {
 	return strings.TrimSpace(c.SigningKeyPEM) == "" &&
 		strings.TrimSpace(c.SigningKID) == "" &&
@@ -88,8 +89,8 @@ func envOrFile(lookup func(string) (string, bool), name string) (string, error) 
 }
 
 // NewContextKeyringFromConfig builds the keyring from cfg. A zero config is
-// an error: callers check IsZero first and keep HS256 only. A config that is
-// set but invalid is always an error, never a silent fallback to HS256.
+// an error (there is no other way to verify a user token), and so is a config
+// that is set but invalid.
 func NewContextKeyringFromConfig(cfg ContextKeyConfig) (*ContextKeyring, error) {
 	if cfg.IsZero() {
 		return nil, stdErrors.New("context keys: nothing configured")

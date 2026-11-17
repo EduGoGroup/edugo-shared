@@ -21,7 +21,7 @@ Repositorio multi-modulo de librerias compartidas en Go. Esta documentacion fue 
 | --- | --- | --- | --- |
 | `audit` | Contrato y composicion de eventos auditables. | [README](audit/README.md) | [Docs](audit/docs/README.md) |
 | `audit/postgres` | Persistencia de auditoria en PostgreSQL mediante GORM. | [README](audit/postgres/README.md) | [Docs](audit/postgres/docs/README.md) |
-| `auth` | JWT con contexto activo, passwords y refresh tokens. | [README](auth/README.md) | [Docs](auth/docs/README.md) |
+| `auth` | Context Token ES256 con contexto activo, JWT M2M y passwords. | [README](auth/README.md) | [Docs](auth/docs/README.md) |
 | `bootstrap` | Inicializacion ordenada de recursos de infraestructura. | [README](bootstrap/README.md) | [Docs](bootstrap/docs/README.md) |
 | `cache/redis` | Conexion Redis y cache JSON generico. | [README](cache/redis/README.md) | [Docs](cache/redis/docs/README.md) |
 | `common` | Subpaquetes base: env, errores, validator, UUID y enums. | [README](common/README.md) | [Docs](common/docs/README.md) |

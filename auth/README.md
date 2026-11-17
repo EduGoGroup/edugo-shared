@@ -1,6 +1,7 @@
 # Auth
 
-Servicios compartidos de autenticación: hashing de password, JWT de acceso, refresh tokens y blacklist.
+Servicios compartidos de autenticación: hashing de password, el Context Token ES256 de usuario
+(con su contexto activo) y el JWT HS256 entre servicios (M2M).
 
 ## Instalación
 
@@ -20,38 +21,26 @@ hashed, err := auth.HashPassword("my-password")
 err := auth.VerifyPassword(hashed, "my-password")
 ```
 
-### JWT Tokens
+### Context Token ES256 (el token de usuario)
 
-```go
-// Crear JWTManager
-manager := auth.NewJWTManager(secretKey, issuer)
-
-// Generar access token
-token, expiresAt, err := manager.GenerateTokenWithContext(userID, email, activeContext, expiresIn)
-
-// Validar token
-claims, err := manager.ValidateToken(token)
-```
-
-### Context Token ES256 (plan 053, convive con HS256)
-
-Mismos claims que el access HS256 (`Claims`, con `active_context`), firmados con ES256 y cabecera
-`kid`. HS256 sigue funcionando: sin keyring el `JWTManager` se comporta exactamente como antes.
+Es el único token de sesión de usuario del ecosistema: ES256 con cabecera `kid` y claims `Claims`
+(con `active_context`). El HS256 de usuario, el refresh token propio y la blacklist en memoria se
+retiraron en el plan 053 (T6.2); la renovación es un re-canje en edugo-api-identity.
+`ValidateToken` rechaza un token HS256, uno sin `kid` y uno con un `kid` que el keyring no conoce.
 
 ```go
 cfg, err := auth.ContextKeyConfigFromEnv(os.LookupEnv)
-manager := auth.NewJWTManager(secretKey, issuer)
-if !cfg.IsZero() {
-    keyring, err := auth.NewContextKeyringFromConfig(cfg) // mal configurado = error de arranque
-    manager.WithContextKeyring(keyring)
-}
+// Sin claves configuradas es un error: la API no arranca.
+manager, err := auth.NewContextTokenManagerFromConfig(issuer, cfg)
 
 // Solo edugo-api-identity (tiene la clave privada):
 token, expiresAt, err := manager.GenerateContextToken(userID, email, activeContext, expiresIn)
 
-// Middleware y APIs: sin cambios, ValidateToken acepta HS256 (sin kid) y ES256 (kid conocido).
+// Todas las APIs (y el middleware de Gin):
 claims, err := manager.ValidateToken(token)
 ```
+
+Si ya tienes el keyring: `auth.NewContextTokenManager(issuer, keyring)`.
 
 Variables de entorno (ninguna clave se versiona; vienen de Secret Manager o de un fichero fuera de git):
 
@@ -63,48 +52,54 @@ Variables de entorno (ninguna clave se versiona; vienen de Secret Manager o de u
 
 Cada una admite la variante `<NOMBRE>_FILE` con la ruta de un fichero (no las dos a la vez). En un
 `.env` usa `AUTH_CONTEXT_SIGNING_KEY_FILE`: el PEM necesita saltos de línea reales y un valor de una
-línea con `\n` escapados no se decodifica. Sin
-ninguna, la API queda solo en HS256. Rotar: se publica la nueva pública en `AUTH_CONTEXT_PUBLIC_KEYS`,
-se cambia la clave y el `kid` activos en identity, y la pública vieja se retira cuando caduquen sus
-tokens.
+línea con `\n` escapados no se decodifica. Rotar: se publica la nueva pública en
+`AUTH_CONTEXT_PUBLIC_KEYS`, se cambia la clave y el `kid` activos en identity, y la pública vieja se
+retira cuando caduquen sus tokens.
 
-### Refresh Tokens
+### Tests: `auth/authtest`
 
-```go
-// Generar refresh token (retorna token en plaintext y hash para BD)
-refreshToken, err := auth.GenerateRefreshToken(7 * 24 * time.Hour)
-
-// Validar refresh token
-claims, err := manager.ValidateMinimalToken(refreshToken.Token)
-```
-
-### Token Blacklist (Revocación)
+Es el helper único del ecosistema para tokens de usuario en tests (reemplaza a la constante
+`TestJWTSecret` de los consumidores). Genera el par ES256 **en memoria** en cada corrida; ninguna
+clave se versiona.
 
 ```go
-// Crear blacklist
-blacklist := auth.NewInMemoryBlacklist(ctx)
+import "github.com/EduGoGroup/edugo-shared/auth/authtest"
 
-// Revocar un token
-blacklist.Revoke(jti, expiresAt)
+keys := authtest.Default() // un par por proceso, issuer "edugo-central"
 
-// Verificar si está revocado
-if blacklist.IsRevoked(jti) {
-    // Token revocado
-}
+// (a) Acuñar un Context Token válido:
+token, err := keys.Token(userID, email, &auth.UserContext{RoleName: "teacher", SchoolID: schoolID}, 15*time.Minute)
+
+// (b) Configurar el verificador como en producción:
+t.Setenv(auth.EnvContextPublicKeys, keys.PublicKeysJSON()) // o keys.Env() para un proceso hijo
+verifier := keys.Verifier()                                // o *auth.JWTManager listo, solo verifica
 ```
+
+- `authtest.New(issuer)` / `MustNew(issuer)`: un par nuevo (p. ej. para un token que el servidor no
+  debe aceptar).
+- `keys.Sign(auth.Claims{...})`: firma claims arbitrarios sin validar (caducado, otro issuer, sin
+  `active_context`).
+- `keys.Manager()` firma y verifica; `keys.PrivateKeyPEM()` y `keys.KID()` alimentan
+  `AUTH_CONTEXT_SIGNING_KEY`/`_KID` de un proceso que deba firmar.
+- No importa `testing`: sirve desde `TestMain` y helpers de paquete.
+
+### JWT entre servicios (M2M, HS256)
+
+`ServiceJWTManager` (`NewServiceJWTManager(secret, issuer, audience)`) firma y valida los tokens
+servicio→servicio. No es el token de usuario y no cambia con el plan 053.
 
 ## Características principales
 
 - **HashPassword**: Bcrypt con costo 12 (~250ms), límite 72 bytes
-- **JWTManager**: Generación y validación con contexto RBAC embebido
-- **UserContext**: Rol, permisos, escuela y unidad académica
-- **RefreshToken**: Tokens criptográficos con hash SHA-256 para almacenamiento seguro
-- **TokenBlacklist**: Revocación en memoria con TTL automático
+- **JWTManager**: emisión y verificación del Context Token ES256 con contexto RBAC embebido
+- **ContextKeyring**: clave de firma opcional + públicas aceptadas por `kid` (rotación)
+- **UserContext**: Rol, grants, escuela, unidad académica y acudido
+- **ServiceJWTManager**: JWT M2M HS256
 
 ## Documentación
 
-- [Documentación técnica](docs/README.md)
-- [Changelog](CHANGELOG.md)
+- [Documentación técnica](./docs/README.md)
+- [Changelog](./CHANGELOG.md)
 
 ## Operación local
 
@@ -117,7 +112,6 @@ make check    # Validar (fmt, vet, lint, test)
 
 ## Notas de diseño
 
-- Access tokens requieren `ActiveContext` con rol y permisos.
-- Refresh tokens usan flujo mínimal separado para escalabilidad.
-- TokenBlacklist es en memoria; adapta a Redis para producción.
+- El Context Token requiere `ActiveContext` con rol y grants.
+- No hay revocación local: la vida corta del token y el re-canje en identity la sustituyen.
 - Límite de password de 72 bytes es restricción de bcrypt, no del módulo.

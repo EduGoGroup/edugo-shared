@@ -50,14 +50,20 @@ func TestServiceJWTManager_GenerateValidations(t *testing.T) {
 }
 
 func TestServiceJWTManager_RejectsUserToken(t *testing.T) {
-	// Un JWT de usuario (mismo secret, sin token_use="service") NO debe pasar
-	// la validación de servicio.
-	userManager := NewJWTManager(testServiceSecret, testServiceIssuer)
-	userToken, _, err := userManager.GenerateTokenWithContext(
-		"user-123", "user@edugo.com",
-		&UserContext{RoleID: "r", RoleName: "Student"},
-		time.Hour,
-	)
+	// Un JWT con forma de usuario firmado con el mismo secret (sin
+	// token_use="service") NO debe pasar la validación de servicio.
+	now := time.Now()
+	userToken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
+		UserID:        "user-123",
+		Email:         "user@edugo.com",
+		ActiveContext: &UserContext{RoleID: "r", RoleName: "Student"},
+		RegisteredClaims: jwt.RegisteredClaims{
+			Issuer:    testServiceIssuer,
+			Subject:   "user-123",
+			IssuedAt:  jwt.NewNumericDate(now),
+			ExpiresAt: jwt.NewNumericDate(now.Add(time.Hour)),
+		},
+	}).SignedString([]byte(testServiceSecret))
 	require.NoError(t, err)
 
 	m := newTestServiceManager()

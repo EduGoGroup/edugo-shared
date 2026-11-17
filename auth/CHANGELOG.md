@@ -4,6 +4,33 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/auth` se reg
 
 ## [Unreleased]
 
+> Se publicará como `auth/v0.900.5` (tag aún no creado). **Cambio rompedor** (plan 053, T6.2): el
+> token de usuario pasa a ser solo el Context Token ES256.
+
+### Added
+- `NewContextTokenManager(issuer, keyring) (*JWTManager, error)` y
+  `NewContextTokenManagerFromConfig(issuer, cfg) (*JWTManager, error)`: constructores sin secreto. Un
+  keyring nil, un issuer vacío o una configuración vacía son error (la API no arranca).
+- `(*JWTManager).Issuer()`.
+- Paquete `auth/authtest`: helper único de tests. Par ES256 generado en memoria (`Default`, `New`,
+  `MustNew`) con `Token`, `Sign`, `PublicKeysJSON`, `Env`, `PrivateKeyPEM`, `KID`, `Manager` y
+  `Verifier`.
+
+### Changed
+- `ValidateToken` solo acepta ES256 con un `kid` del keyring. Un token HS256 (con o sin `kid`) se
+  rechaza siempre.
+
+### Removed
+- HS256 de usuario: `NewJWTManager`, `NewJWTManagerWithContextKeyring`, `(*JWTManager).WithContextKeyring`,
+  `GenerateTokenWithContext`, `GenerateMinimalToken` y `ValidateMinimalToken`.
+- Claims raíz del refresh HS256 en `Claims`: `TokenUse`, `SchoolID`, `AcademicUnitID`, `RoleID`,
+  `SubjectStudentID` y `ActorMode`. El contexto viaja solo en `ActiveContext`.
+- `refresh_token.go`: `RefreshToken`, `GenerateRefreshToken`, `HashToken`.
+- `blacklist.go`: `TokenBlacklist`, `InMemoryBlacklist`, `NewInMemoryBlacklist`, `NoOpBlacklist`. Nadie llamaba a `Revoke` fuera de tests.
+
+### Sin cambios
+- M2M: `ServiceJWTManager` / `ServiceClaims` (HS256 entre servicios) se quedan tal cual.
+
 ## [0.900.4] - 2026-11-14
 
 ### Changed

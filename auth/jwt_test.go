@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"crypto/ecdsa"
 	"testing"
 	"time"
 
@@ -11,23 +12,34 @@ import (
 )
 
 const (
+	// testSecretKey only builds HS256 tokens that the manager must reject.
 	testSecretKey = "test-secret-key-at-least-32-chars-long-for-security"
 	testIssuer    = "edugo-test"
 	testEmail     = "test@example.com"
+	testKID       = "kid-test"
 )
 
-func TestNewJWTManager(t *testing.T) {
-	t.Run("crea JWTManager correctamente", func(t *testing.T) {
-		manager := NewJWTManager(testSecretKey, testIssuer)
-
-		assert.NotNil(t, manager)
-		assert.Equal(t, []byte(testSecretKey), manager.secretKey)
-		assert.Equal(t, testIssuer, manager.issuer)
-	})
+// testManager builds an ES256 manager with a fresh in-memory key and returns
+// the key so tests can hand-sign tokens.
+func testManager(t *testing.T, issuer string) (*JWTManager, *ecdsa.PrivateKey) {
+	t.Helper()
+	priv := newP256(t)
+	kr, err := NewContextKeyring(&ContextSigningKey{ID: testKID, Private: priv}, nil)
+	require.NoError(t, err)
+	m, err := NewContextTokenManager(issuer, kr)
+	require.NoError(t, err)
+	return m, priv
 }
 
-func TestGenerateTokenWithContext(t *testing.T) {
-	manager := NewJWTManager(testSecretKey, testIssuer)
+// signTestES signs claims with priv under testKID.
+func signTestES(priv *ecdsa.PrivateKey, claims Claims) (string, error) {
+	tok := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
+	tok.Header["kid"] = testKID
+	return tok.SignedString(priv)
+}
+
+func TestGenerateContextToken(t *testing.T) {
+	manager, _ := testManager(t, testIssuer)
 	userID := uuid.New().String()
 	email := testEmail
 	expiresIn := 24 * time.Hour
@@ -41,7 +53,7 @@ func TestGenerateTokenWithContext(t *testing.T) {
 	}
 
 	t.Run("genera token con contexto válido exitosamente", func(t *testing.T) {
-		token, expiresAt, err := manager.GenerateTokenWithContext(userID, email, activeContext, expiresIn)
+		token, expiresAt, err := manager.GenerateContextToken(userID, email, activeContext, expiresIn)
 
 		require.NoError(t, err)
 		assert.NotEmpty(t, token)
@@ -50,7 +62,7 @@ func TestGenerateTokenWithContext(t *testing.T) {
 	})
 
 	t.Run("token contiene claims con ActiveContext correctos", func(t *testing.T) {
-		token, _, err := manager.GenerateTokenWithContext(userID, email, activeContext, expiresIn)
+		token, _, err := manager.GenerateContextToken(userID, email, activeContext, expiresIn)
 		require.NoError(t, err)
 
 		claims, err := manager.ValidateToken(token)
@@ -67,44 +79,44 @@ func TestGenerateTokenWithContext(t *testing.T) {
 	})
 
 	t.Run("rechaza userID vacío", func(t *testing.T) {
-		_, _, err := manager.GenerateTokenWithContext("", email, activeContext, expiresIn)
+		_, _, err := manager.GenerateContextToken("", email, activeContext, expiresIn)
 
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "userID no puede estar vacío")
 	})
 
 	t.Run("rechaza email vacío", func(t *testing.T) {
-		_, _, err := manager.GenerateTokenWithContext(userID, "", activeContext, expiresIn)
+		_, _, err := manager.GenerateContextToken(userID, "", activeContext, expiresIn)
 
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "email no puede estar vacío")
 	})
 
 	t.Run("rechaza activeContext nil", func(t *testing.T) {
-		_, _, err := manager.GenerateTokenWithContext(userID, email, nil, expiresIn)
+		_, _, err := manager.GenerateContextToken(userID, email, nil, expiresIn)
 
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "activeContext no puede ser nil")
 	})
 
 	t.Run("rechaza expiresIn menor a 1 minuto", func(t *testing.T) {
-		_, _, err := manager.GenerateTokenWithContext(userID, email, activeContext, 30*time.Second)
+		_, _, err := manager.GenerateContextToken(userID, email, activeContext, 30*time.Second)
 
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "expiresIn debe ser mayor a 1 minuto")
 	})
 
 	t.Run("acepta expiresIn de exactamente 1 minuto", func(t *testing.T) {
-		token, _, err := manager.GenerateTokenWithContext(userID, email, activeContext, time.Minute)
+		token, _, err := manager.GenerateContextToken(userID, email, activeContext, time.Minute)
 
 		require.NoError(t, err)
 		assert.NotEmpty(t, token)
 	})
 
 	t.Run("genera tokens únicos con mismo contexto", func(t *testing.T) {
-		token1, _, err1 := manager.GenerateTokenWithContext(userID, email, activeContext, expiresIn)
+		token1, _, err1 := manager.GenerateContextToken(userID, email, activeContext, expiresIn)
 		time.Sleep(10 * time.Millisecond)
-		token2, _, err2 := manager.GenerateTokenWithContext(userID, email, activeContext, expiresIn)
+		token2, _, err2 := manager.GenerateContextToken(userID, email, activeContext, expiresIn)
 
 		require.NoError(t, err1)
 		require.NoError(t, err2)
@@ -118,7 +130,7 @@ func TestGenerateTokenWithContext(t *testing.T) {
 			Grants:   Grants{Allow: []string{"admin.users.create", "admin.schools.manage"}},
 		}
 
-		token, _, err := manager.GenerateTokenWithContext(userID, email, minimalContext, expiresIn)
+		token, _, err := manager.GenerateContextToken(userID, email, minimalContext, expiresIn)
 		require.NoError(t, err)
 
 		claims, err := manager.ValidateToken(token)
@@ -142,7 +154,7 @@ func TestGenerateTokenWithContext(t *testing.T) {
 			Grants:           Grants{Allow: []string{"academic.units.create", "content.materials.create"}},
 		}
 
-		token, _, err := manager.GenerateTokenWithContext(userID, email, contextWithUnit, expiresIn)
+		token, _, err := manager.GenerateContextToken(userID, email, contextWithUnit, expiresIn)
 		require.NoError(t, err)
 
 		claims, err := manager.ValidateToken(token)
@@ -154,7 +166,7 @@ func TestGenerateTokenWithContext(t *testing.T) {
 
 	t.Run("tiempo de expiración es correcto", func(t *testing.T) {
 		expiresIn := 2 * time.Hour
-		_, expiresAt, err := manager.GenerateTokenWithContext(userID, email, activeContext, expiresIn)
+		_, expiresAt, err := manager.GenerateContextToken(userID, email, activeContext, expiresIn)
 
 		require.NoError(t, err)
 
@@ -170,7 +182,7 @@ func TestGenerateTokenWithContext(t *testing.T) {
 			Grants:   Grants{Allow: []string{}, Deny: []string{}},
 		}
 
-		token, _, err := manager.GenerateTokenWithContext(userID, email, contextNoPerms, expiresIn)
+		token, _, err := manager.GenerateContextToken(userID, email, contextNoPerms, expiresIn)
 		require.NoError(t, err)
 
 		claims, err := manager.ValidateToken(token)
@@ -183,7 +195,7 @@ func TestGenerateTokenWithContext(t *testing.T) {
 }
 
 func TestValidateToken(t *testing.T) {
-	manager := NewJWTManager(testSecretKey, testIssuer)
+	manager, managerKey := testManager(t, testIssuer)
 	userID := uuid.New().String()
 	email := testEmail
 	activeContext := &UserContext{
@@ -193,7 +205,7 @@ func TestValidateToken(t *testing.T) {
 	}
 
 	t.Run("valida token válido exitosamente", func(t *testing.T) {
-		token, _, err := manager.GenerateTokenWithContext(userID, email, activeContext, 24*time.Hour)
+		token, _, err := manager.GenerateContextToken(userID, email, activeContext, 24*time.Hour)
 		require.NoError(t, err)
 
 		claims, err := manager.ValidateToken(token)
@@ -217,8 +229,8 @@ func TestValidateToken(t *testing.T) {
 	})
 
 	t.Run("rechaza token con firma incorrecta", func(t *testing.T) {
-		wrongManager := NewJWTManager("wrong-secret-key", testIssuer)
-		token, _, err := wrongManager.GenerateTokenWithContext(userID, email, activeContext, 24*time.Hour)
+		wrongManager, _ := testManager(t, testIssuer)
+		token, _, err := wrongManager.GenerateContextToken(userID, email, activeContext, 24*time.Hour)
 		require.NoError(t, err)
 
 		_, err = manager.ValidateToken(token)
@@ -241,8 +253,7 @@ func TestValidateToken(t *testing.T) {
 				NotBefore: jwt.NewNumericDate(now.Add(-2 * time.Hour)),
 			},
 		}
-		expiredToken := jwt.NewWithClaims(jwt.SigningMethodHS256, expiredClaims)
-		expiredTokenString, err := expiredToken.SignedString([]byte(testSecretKey))
+		expiredTokenString, err := signTestES(managerKey, expiredClaims)
 		require.NoError(t, err)
 
 		_, err = manager.ValidateToken(expiredTokenString)
@@ -267,8 +278,7 @@ func TestValidateToken(t *testing.T) {
 			},
 		}
 
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-		tokenString, err := token.SignedString([]byte(testSecretKey))
+		tokenString, err := signTestES(managerKey, claims)
 		require.NoError(t, err)
 
 		_, err = manager.ValidateToken(tokenString)
@@ -277,200 +287,8 @@ func TestValidateToken(t *testing.T) {
 	})
 }
 
-func TestGenerateMinimalToken(t *testing.T) {
-	manager := NewJWTManager(testSecretKey, testIssuer)
-	userID := uuid.New().String()
-	email := testEmail
-
-	t.Run("genera token minimal válido exitosamente", func(t *testing.T) {
-		token, expiresAt, err := manager.GenerateMinimalToken(userID, email, "", "", "", "", "", 24*time.Hour)
-
-		require.NoError(t, err)
-		assert.NotEmpty(t, token)
-		assert.False(t, expiresAt.IsZero())
-		assert.True(t, expiresAt.After(time.Now()))
-	})
-
-	t.Run("token contiene claims correctos sin ActiveContext", func(t *testing.T) {
-		token, _, err := manager.GenerateMinimalToken(userID, email, "", "", "", "", "", 24*time.Hour)
-		require.NoError(t, err)
-
-		claims, err := manager.ValidateMinimalToken(token)
-		require.NoError(t, err)
-
-		assert.Equal(t, userID, claims.UserID)
-		assert.Equal(t, email, claims.Email)
-		assert.Nil(t, claims.ActiveContext)
-		assert.Equal(t, "refresh", claims.TokenUse)
-	})
-
-	t.Run("rechaza userID vacío", func(t *testing.T) {
-		_, _, err := manager.GenerateMinimalToken("", email, "", "", "", "", "", 24*time.Hour)
-
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "userID no puede estar vacío")
-	})
-
-	t.Run("rechaza email vacío", func(t *testing.T) {
-		_, _, err := manager.GenerateMinimalToken(userID, "", "", "", "", "", "", 24*time.Hour)
-
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "email no puede estar vacío")
-	})
-
-	t.Run("rechaza expiresIn menor a 1 minuto", func(t *testing.T) {
-		_, _, err := manager.GenerateMinimalToken(userID, email, "", "", "", "", "", 30*time.Second)
-
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "expiresIn debe ser mayor a 1 minuto")
-	})
-
-	t.Run("tiempo de expiración es correcto", func(t *testing.T) {
-		expiresIn := 7 * 24 * time.Hour
-		_, expiresAt, err := manager.GenerateMinimalToken(userID, email, "", "", "", "", "", expiresIn)
-
-		require.NoError(t, err)
-
-		expectedExpiration := time.Now().Add(expiresIn)
-		assert.WithinDuration(t, expectedExpiration, expiresAt, 5*time.Second)
-	})
-
-	t.Run("genera tokens únicos", func(t *testing.T) {
-		token1, _, err1 := manager.GenerateMinimalToken(userID, email, "", "", "", "", "", 24*time.Hour)
-		time.Sleep(10 * time.Millisecond)
-		token2, _, err2 := manager.GenerateMinimalToken(userID, email, "", "", "", "", "", 24*time.Hour)
-
-		require.NoError(t, err1)
-		require.NoError(t, err2)
-		assert.NotEqual(t, token1, token2)
-	})
-	t.Run("preserva schoolID en el token y lo recupera al validar", func(t *testing.T) {
-		schoolID := uuid.New().String()
-		token, _, err := manager.GenerateMinimalToken(userID, email, schoolID, "", "", "", "", 24*time.Hour)
-		require.NoError(t, err)
-
-		claims, err := manager.ValidateMinimalToken(token)
-		require.NoError(t, err)
-
-		assert.Equal(t, schoolID, claims.SchoolID)
-		assert.Nil(t, claims.ActiveContext)
-	})
-
-	t.Run("schoolID vacío no rompe el token", func(t *testing.T) {
-		token, _, err := manager.GenerateMinimalToken(userID, email, "", "", "", "", "", 24*time.Hour)
-		require.NoError(t, err)
-
-		claims, err := manager.ValidateMinimalToken(token)
-		require.NoError(t, err)
-
-		assert.Empty(t, claims.SchoolID)
-	})
-}
-
-func TestValidateMinimalToken(t *testing.T) {
-	manager := NewJWTManager(testSecretKey, testIssuer)
-	userID := uuid.New().String()
-	email := testEmail
-
-	t.Run("valida token minimal válido exitosamente", func(t *testing.T) {
-		token, _, err := manager.GenerateMinimalToken(userID, email, "", "", "", "", "", 24*time.Hour)
-		require.NoError(t, err)
-
-		claims, err := manager.ValidateMinimalToken(token)
-		require.NoError(t, err)
-
-		assert.Equal(t, userID, claims.UserID)
-		assert.Equal(t, email, claims.Email)
-		assert.Equal(t, "refresh", claims.TokenUse)
-		assert.Nil(t, claims.ActiveContext)
-	})
-
-	t.Run("rechaza token expirado", func(t *testing.T) {
-		now := time.Now()
-		expiredClaims := Claims{
-			UserID:   userID,
-			Email:    email,
-			TokenUse: "refresh",
-			RegisteredClaims: jwt.RegisteredClaims{
-				ID:        uuid.New().String(),
-				Issuer:    testIssuer,
-				Subject:   userID,
-				IssuedAt:  jwt.NewNumericDate(now.Add(-2 * time.Hour)),
-				ExpiresAt: jwt.NewNumericDate(now.Add(-1 * time.Hour)),
-				NotBefore: jwt.NewNumericDate(now.Add(-2 * time.Hour)),
-			},
-		}
-		expiredToken := jwt.NewWithClaims(jwt.SigningMethodHS256, expiredClaims)
-		expiredTokenString, err := expiredToken.SignedString([]byte(testSecretKey))
-		require.NoError(t, err)
-
-		_, err = manager.ValidateMinimalToken(expiredTokenString)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "token expired")
-	})
-
-	t.Run("rechaza access token (sin token_use refresh)", func(t *testing.T) {
-		activeContext := &UserContext{
-			RoleID:   "role-123",
-			RoleName: "Teacher",
-			Grants:   Grants{Allow: []string{"admin.users.read"}},
-		}
-		accessToken, _, err := manager.GenerateTokenWithContext(userID, email, activeContext, 24*time.Hour)
-		require.NoError(t, err)
-
-		_, err = manager.ValidateMinimalToken(accessToken)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "invalid token type: expected refresh token")
-	})
-
-	t.Run("rechaza token con token_use incorrecto", func(t *testing.T) {
-		now := time.Now()
-		badClaims := Claims{
-			UserID:   userID,
-			Email:    email,
-			TokenUse: "access",
-			RegisteredClaims: jwt.RegisteredClaims{
-				ID:        uuid.New().String(),
-				Issuer:    testIssuer,
-				Subject:   userID,
-				IssuedAt:  jwt.NewNumericDate(now),
-				ExpiresAt: jwt.NewNumericDate(now.Add(time.Hour)),
-				NotBefore: jwt.NewNumericDate(now),
-			},
-		}
-		badToken := jwt.NewWithClaims(jwt.SigningMethodHS256, badClaims)
-		badTokenString, err := badToken.SignedString([]byte(testSecretKey))
-		require.NoError(t, err)
-
-		_, err = manager.ValidateMinimalToken(badTokenString)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "invalid token type: expected refresh token")
-	})
-
-	t.Run("rechaza token vacío", func(t *testing.T) {
-		_, err := manager.ValidateMinimalToken("")
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "invalid token")
-	})
-
-	t.Run("rechaza token malformado", func(t *testing.T) {
-		_, err := manager.ValidateMinimalToken("invalid-token")
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "invalid token")
-	})
-
-	t.Run("rechaza token con firma incorrecta", func(t *testing.T) {
-		wrongManager := NewJWTManager("wrong-secret-key", testIssuer)
-		token, _, err := wrongManager.GenerateMinimalToken(userID, email, "", "", "", "", "", 24*time.Hour)
-		require.NoError(t, err)
-
-		_, err = manager.ValidateMinimalToken(token)
-		assert.Error(t, err)
-	})
-}
-
 func TestExtractUserID(t *testing.T) {
-	manager := NewJWTManager(testSecretKey, testIssuer)
+	manager, managerKey := testManager(t, testIssuer)
 	userID := uuid.New().String()
 	email := testEmail
 	activeContext := &UserContext{
@@ -480,7 +298,7 @@ func TestExtractUserID(t *testing.T) {
 	}
 
 	t.Run("extrae userID de token válido", func(t *testing.T) {
-		token, _, err := manager.GenerateTokenWithContext(userID, email, activeContext, 24*time.Hour)
+		token, _, err := manager.GenerateContextToken(userID, email, activeContext, 24*time.Hour)
 		require.NoError(t, err)
 
 		extractedID, err := ExtractUserID(token)
@@ -504,8 +322,7 @@ func TestExtractUserID(t *testing.T) {
 				NotBefore: jwt.NewNumericDate(now.Add(-2 * time.Hour)),
 			},
 		}
-		expiredToken := jwt.NewWithClaims(jwt.SigningMethodHS256, expiredClaims)
-		expiredTokenString, err := expiredToken.SignedString([]byte(testSecretKey))
+		expiredTokenString, err := signTestES(managerKey, expiredClaims)
 		require.NoError(t, err)
 
 		extractedID, err := ExtractUserID(expiredTokenString)
@@ -565,7 +382,7 @@ func TestUserContext(t *testing.T) {
 }
 
 func TestConcurrentTokenGeneration(t *testing.T) {
-	manager := NewJWTManager(testSecretKey, testIssuer)
+	manager, _ := testManager(t, testIssuer)
 	activeContext := &UserContext{
 		RoleID:   "role-123",
 		RoleName: "Teacher",
@@ -579,7 +396,7 @@ func TestConcurrentTokenGeneration(t *testing.T) {
 		for range numTokens {
 			go func() {
 				userID := uuid.New().String()
-				_, _, err := manager.GenerateTokenWithContext(
+				_, _, err := manager.GenerateContextToken(
 					userID,
 					testEmail,
 					activeContext,
@@ -607,8 +424,8 @@ func TestConcurrentTokenGeneration(t *testing.T) {
 }
 
 func TestTokenSecurity(t *testing.T) {
-	manager1 := NewJWTManager("secret-key-1", "issuer-1")
-	manager2 := NewJWTManager("secret-key-2", "issuer-2")
+	manager1, _ := testManager(t, "issuer-1")
+	manager2, _ := testManager(t, "issuer-2")
 
 	userID := uuid.New().String()
 	activeContext := &UserContext{
@@ -617,8 +434,8 @@ func TestTokenSecurity(t *testing.T) {
 		Grants:   Grants{Allow: []string{"admin.users.read"}},
 	}
 
-	t.Run("tokens con diferentes secrets no son intercambiables", func(t *testing.T) {
-		token, _, err := manager1.GenerateTokenWithContext(userID, testEmail, activeContext, time.Hour)
+	t.Run("tokens con claves distintas no son intercambiables", func(t *testing.T) {
+		token, _, err := manager1.GenerateContextToken(userID, testEmail, activeContext, time.Hour)
 		require.NoError(t, err)
 
 		_, err = manager2.ValidateToken(token)

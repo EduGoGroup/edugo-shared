@@ -38,7 +38,9 @@ func newKeyring(t *testing.T, kid string, priv *ecdsa.PrivateKey, extra map[stri
 
 func esManager(t *testing.T, kr *ContextKeyring) *JWTManager {
 	t.Helper()
-	return NewJWTManagerWithContextKeyring(testSecretKey, testIssuer, kr)
+	m, err := NewContextTokenManager(testIssuer, kr)
+	require.NoError(t, err)
+	return m
 }
 
 func selfContext() *UserContext {
@@ -116,59 +118,35 @@ func signES(t *testing.T, claims Claims, kid string, priv *ecdsa.PrivateKey) str
 	return s
 }
 
-// TestContextToken_GoldenShape is REQ-C4: for the same user and context the
-// ES256 Context Token and the HS256 access token carry identical claims. The
-// only allowed differences are explicit: header alg/kid and the jti (uuid).
+// TestContextToken_GoldenShape freezes the wire shape of the Context Token
+// (REQ-C4): header alg/kid and the payload (minus the jti, a uuid).
 func TestContextToken_GoldenShape(t *testing.T) {
 	fixed := time.Date(2026, 11, 14, 3, 0, 0, 0, time.UTC)
-	cases := map[string]*UserContext{
-		"self context":                   selfContext(),
-		"ward context with allow & deny": wardContext(),
-		"no school chosen yet":           {},
-	}
-	for name, ac := range cases {
-		t.Run(name, func(t *testing.T) {
-			m := esManager(t, newKeyring(t, "kid-a", newP256(t), nil))
-			m.now = func() time.Time { return fixed }
+	m := esManager(t, newKeyring(t, "kid-a", newP256(t), nil))
+	m.now = func() time.Time { return fixed }
 
-			hs, hsExp, err := m.GenerateTokenWithContext("user-1", testEmail, ac, 15*time.Minute)
-			require.NoError(t, err)
-			es, esExp, err := m.GenerateContextToken("user-1", testEmail, ac, 15*time.Minute)
-			require.NoError(t, err)
-			assert.Equal(t, hsExp, esExp)
+	es, esExp, err := m.GenerateContextToken("user-1", testEmail, wardContext(), 15*time.Minute)
+	require.NoError(t, err)
+	assert.Equal(t, fixed.Add(15*time.Minute), esExp)
 
-			hsHeader, esHeader := decodeSegment(t, hs, 0), decodeSegment(t, es, 0)
-			assert.Equal(t, map[string]any{"alg": "HS256", "typ": "JWT"}, hsHeader)
-			assert.Equal(t, map[string]any{"alg": "ES256", "typ": "JWT", "kid": "kid-a"}, esHeader)
+	assert.Equal(t, map[string]any{"alg": "ES256", "typ": "JWT", "kid": "kid-a"}, decodeSegment(t, es, 0))
+	payload := decodeSegment(t, es, 1)
+	assert.NotEmpty(t, payload["jti"])
+	delete(payload, "jti")
+	assert.Equal(t, frozenWardPayload(fixed), payload, "frozen wire shape (REQ-C4)")
 
-			hsPayload, esPayload := decodeSegment(t, hs, 1), decodeSegment(t, es, 1)
-			assert.NotEmpty(t, hsPayload["jti"])
-			assert.NotEmpty(t, esPayload["jti"])
-			delete(hsPayload, "jti")
-			delete(esPayload, "jti")
-			assert.Equal(t, hsPayload, esPayload, "raw payload JSON must be identical")
-			if name == "ward context with allow & deny" {
-				assert.Equal(t, frozenWardPayload(fixed), esPayload, "frozen wire shape (REQ-C4)")
-			}
-
-			// The decoded *Claims (what the middleware stores) match too.
-			realNow := time.Now()
-			m.now = func() time.Time { return realNow }
-			hs2, _, err := m.GenerateTokenWithContext("user-1", testEmail, ac, 15*time.Minute)
-			require.NoError(t, err)
-			es2, _, err := m.GenerateContextToken("user-1", testEmail, ac, 15*time.Minute)
-			require.NoError(t, err)
-			hsClaims, err := m.ValidateToken(hs2)
-			require.NoError(t, err)
-			esClaims, err := m.ValidateToken(es2)
-			require.NoError(t, err)
-			hsClaims.ID, esClaims.ID = "", ""
-			assert.Equal(t, hsClaims, esClaims)
-		})
-	}
+	// What the middleware stores round-trips with the same context.
+	m.now = nil
+	tok, _, err := m.GenerateContextToken("user-1", testEmail, wardContext(), 15*time.Minute)
+	require.NoError(t, err)
+	claims, err := m.ValidateToken(tok)
+	require.NoError(t, err)
+	assert.Equal(t, wardContext(), claims.ActiveContext)
+	assert.Equal(t, "user-1", claims.UserID)
+	assert.Equal(t, testEmail, claims.Email)
 }
 
-// frozenWardPayload is the literal wire shape of today's access token for the
+// frozenWardPayload is the literal wire shape of the Context Token for the
 // ward case (minus jti). Any drift in the shared claims builder breaks it.
 func frozenWardPayload(now time.Time) map[string]any {
 	iat := float64(now.Unix())
@@ -207,34 +185,33 @@ func TestContextToken_ValidatesAndKeepsIssuer(t *testing.T) {
 	assert.Equal(t, []string{"grades:write", "attendance:delete"}, claims.ActiveContext.Grants.Deny)
 }
 
-func TestContextToken_HS256StillWorksWithKeyring(t *testing.T) {
-	m := esManager(t, newKeyring(t, "kid-a", newP256(t), nil))
-	tok, _, err := m.GenerateTokenWithContext("user-1", testEmail, selfContext(), time.Hour)
-	require.NoError(t, err)
-	_, err = m.ValidateToken(tok)
-	require.NoError(t, err)
+func TestNewContextTokenManager_Rejects(t *testing.T) {
+	kr := newKeyring(t, "kid-a", newP256(t), nil)
+	_, err := NewContextTokenManager(testIssuer, nil)
+	require.Error(t, err, "keyring required")
+	_, err = NewContextTokenManager("  ", kr)
+	require.Error(t, err, "issuer required")
+	_, err = NewContextTokenManagerFromConfig(testIssuer, ContextKeyConfig{})
+	require.Error(t, err, "empty config")
 
-	refresh, _, err := m.GenerateMinimalToken("user-1", testEmail, "s", "u", "r", "", "", time.Hour)
+	m, err := NewContextTokenManager(testIssuer, kr)
 	require.NoError(t, err)
-	_, err = m.ValidateMinimalToken(refresh)
-	require.NoError(t, err)
+	assert.Equal(t, testIssuer, m.Issuer())
+	assert.Same(t, kr, m.ContextKeyring())
 }
 
-func TestContextToken_WithoutKeyringBehavesAsToday(t *testing.T) {
+func TestNewContextTokenManagerFromConfig_VerifyOnly(t *testing.T) {
 	priv := newP256(t)
-	es := signES(t, validClaims(time.Now(), testIssuer), "kid-a", priv)
-
-	plain := NewJWTManager(testSecretKey, testIssuer)
-	assert.Nil(t, plain.ContextKeyring())
-	_, err := plain.ValidateToken(es)
-	require.Error(t, err, "an HS256-only manager rejects ES256")
-
-	_, _, err = plain.GenerateContextToken("user-1", testEmail, selfContext(), time.Hour)
-	require.Error(t, err, "cannot sign ES256 without keyring")
-
-	same := NewJWTManagerWithContextKeyring(testSecretKey, testIssuer, nil)
-	_, err = same.ValidateToken(es)
-	require.Error(t, err)
+	pubPEM, err := MarshalECPublicKeyPEM(&priv.PublicKey)
+	require.NoError(t, err)
+	m, err := NewContextTokenManagerFromConfig(testIssuer, ContextKeyConfig{
+		PublicKeysJSON: mustJSON(t, map[string]string{"kid-a": pubPEM}),
+	})
+	require.NoError(t, err)
+	_, err = m.ValidateToken(signES(t, validClaims(time.Now(), testIssuer), "kid-a", priv))
+	require.NoError(t, err)
+	_, _, err = m.GenerateContextToken("user-1", testEmail, selfContext(), time.Hour)
+	require.Error(t, err, "verify-only manager cannot sign")
 }
 
 func TestContextToken_AlgConfusion(t *testing.T) {
@@ -244,8 +221,6 @@ func TestContextToken_AlgConfusion(t *testing.T) {
 	now := time.Now()
 
 	es, _, err := m.GenerateContextToken("user-1", testEmail, selfContext(), time.Hour)
-	require.NoError(t, err)
-	hs, _, err := m.GenerateTokenWithContext("user-1", testEmail, selfContext(), time.Hour)
 	require.NoError(t, err)
 
 	der, err := x509.MarshalPKIXPublicKey(&priv.PublicKey)
@@ -281,7 +256,8 @@ func TestContextToken_AlgConfusion(t *testing.T) {
 	cases := map[string]string{
 		"ES256 token relabelled HS256 (kid kept)":   rewriteHeader(t, es, map[string]any{"alg": "HS256", "typ": "JWT", "kid": "kid-a"}),
 		"ES256 token relabelled HS256 (kid gone)":   rewriteHeader(t, es, map[string]any{"alg": "HS256", "typ": "JWT"}),
-		"HS256 token relabelled ES256 (known kid)":  rewriteHeader(t, hs, map[string]any{"alg": "ES256", "typ": "JWT", "kid": "kid-a"}),
+		"HS256 token relabelled ES256 (known kid)":  rewriteHeader(t, hmacWith([]byte(testSecretKey), ""), map[string]any{"alg": "ES256", "typ": "JWT", "kid": "kid-a"}),
+		"HS256 user token (retired in T6.2)":        hmacWith([]byte(testSecretKey), ""),
 		"HMAC signed with public PEM, no kid":       hmacWith(pubPEM, ""),
 		"HMAC signed with public PEM, known kid":    hmacWith(pubPEM, "kid-a"),
 		"HMAC signed with public DER, known kid":    hmacWith(der, "kid-a"),
@@ -294,10 +270,6 @@ func TestContextToken_AlgConfusion(t *testing.T) {
 		"garbage":                                   "not.a.jwt",
 		"ES256 token into HS256 parser via relabel": rewriteHeader(t, es, map[string]any{"alg": "HS256"}),
 	}
-	t.Run("positive control: hand-built HS256 without kid validates", func(t *testing.T) {
-		_, vErr := m.ValidateToken(hmacWith([]byte(testSecretKey), ""))
-		require.NoError(t, vErr)
-	})
 	for name, tok := range cases {
 		t.Run(name, func(t *testing.T) {
 			_, vErr := m.ValidateToken(tok)
@@ -305,10 +277,6 @@ func TestContextToken_AlgConfusion(t *testing.T) {
 		})
 	}
 
-	t.Run("ES256 never accepted as refresh", func(t *testing.T) {
-		_, vErr := m.ValidateMinimalToken(es)
-		require.Error(t, vErr)
-	})
 }
 
 func TestContextToken_KIDChecks(t *testing.T) {
@@ -374,7 +342,7 @@ func TestContextToken_ClaimChecks(t *testing.T) {
 		_, _, err = m.GenerateContextTokenUntil("user-1", testEmail, selfContext(), time.Now().Add(-time.Second))
 		require.Error(t, err)
 	})
-	t.Run("same input validation as HS256", func(t *testing.T) {
+	t.Run("input validation", func(t *testing.T) {
 		_, _, err := m.GenerateContextToken("", testEmail, selfContext(), time.Hour)
 		require.Error(t, err)
 		_, _, err = m.GenerateContextToken("u", "", selfContext(), time.Hour)

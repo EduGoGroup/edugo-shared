@@ -16,8 +16,8 @@ import (
 
 // Plan 053 · T2.1: the EduGo Context Token signed with ES256.
 //
-// The Context Token carries exactly the same claims as today's HS256 access
-// token (Claims, including active_context); only the signature changes. The
+// The Context Token is the only user session token of EduGo (the HS256 user
+// token was retired in T6.2). It carries Claims, including active_context. The
 // keyring holds an optional active P-256 private key (only the issuer of the
 // token, edugo-api-identity, has it) plus every public key accepted for
 // verification, indexed by `kid`, so a key can be rotated while tokens signed
@@ -122,28 +122,11 @@ func isP256Public(pub *ecdsa.PublicKey) bool {
 	return pub != nil && pub.Curve == elliptic.P256() && pub.X != nil && pub.Y != nil //nolint:staticcheck // plan 054: SA1019 (ecdsa.PublicKey.X/Y obsoletos desde Go 1.26); migrar a PublicKey.Bytes cambia la validación del keyring (plan 053)
 }
 
-// WithContextKeyring attaches an ES256 keyring to the manager and returns it.
-//
-// Once attached, ValidateToken dispatches on the `alg` header: HS256 (without
-// `kid`) keeps today's path, ES256 with a known `kid` goes to the keyring, and
-// anything else is rejected. A nil keyring leaves the manager exactly as
-// NewJWTManager built it.
-func (m *JWTManager) WithContextKeyring(keyring *ContextKeyring) *JWTManager {
-	m.contextKeys = keyring
-	return m
-}
-
-// NewJWTManagerWithContextKeyring is NewJWTManager plus WithContextKeyring.
-func NewJWTManagerWithContextKeyring(secretKey, issuer string, keyring *ContextKeyring) *JWTManager {
-	return NewJWTManager(secretKey, issuer).WithContextKeyring(keyring)
-}
-
-// ContextKeyring returns the attached keyring, or nil.
+// ContextKeyring returns the manager's keyring.
 func (m *JWTManager) ContextKeyring() *ContextKeyring { return m.contextKeys }
 
-// GenerateContextToken signs an ES256 Context Token with the same parameters,
-// validations and claims as GenerateTokenWithContext. It fails if the manager
-// has no keyring or the keyring cannot sign.
+// GenerateContextToken signs an ES256 Context Token that expires in expiresIn
+// (at least one minute). It fails if the keyring cannot sign.
 func (m *JWTManager) GenerateContextToken(
 	userID, email string,
 	activeContext *UserContext,
@@ -188,8 +171,7 @@ func (m *JWTManager) GenerateContextTokenUntil(
 	return signedToken, expiresAt, nil
 }
 
-// accessClaims builds the access-token claims. HS256 and ES256 share it so the
-// shape of both tokens is identical by construction (REQ-C4).
+// accessClaims builds the Context Token claims.
 func (m *JWTManager) accessClaims(
 	userID, email string,
 	activeContext *UserContext,
@@ -226,24 +208,19 @@ func validateAccessInputs(userID, email string, activeContext *UserContext) erro
 	return nil
 }
 
-// validateDispatched is ValidateToken's path when a keyring is attached: it
-// reads `alg` and `kid` from the unverified header and routes to a parser
-// pinned to that single algorithm.
+// validateDispatched reads `alg` and `kid` from the unverified header and only
+// lets ES256 with a kid reach the parser pinned to ES256.
 func (m *JWTManager) validateDispatched(tokenString string) (*Claims, error) {
 	alg, kid, err := peekHeader(tokenString)
 	if err != nil {
 		return nil, errors.NewUnauthorizedError("invalid token")
 	}
 
-	switch {
-	case alg == jwt.SigningMethodHS256.Alg() && kid == "":
-		return m.parseAndValidateToken(tokenString)
-	case alg == jwt.SigningMethodES256.Alg() && kid != "":
-		return m.parseContextToken(tokenString)
-	default:
-		// none, RS256, ES384, ES256 without kid, HS256 with kid...
+	if alg != jwt.SigningMethodES256.Alg() || kid == "" {
+		// HS256 (retirado en la T6.2), none, RS256, ES384, ES256 sin kid...
 		return nil, errors.NewUnauthorizedError("invalid token")
 	}
+	return m.parseContextToken(tokenString)
 }
 
 // peekHeader decodes the header without verifying anything. `kid`, when
@@ -266,8 +243,9 @@ func peekHeader(tokenString string) (alg, kid string, err error) {
 	return alg, kid, nil
 }
 
-// parseContextToken verifies an ES256 Context Token: same issuer, `exp`
-// required and leeway as the HS256 path; the key is the one named by `kid`.
+// parseContextToken verifies an ES256 Context Token: issuer, `exp` required
+// (SH-1) and 30 s of leeway for clock skew (SH-2); the key is the one named by
+// `kid`.
 func (m *JWTManager) parseContextToken(tokenString string) (*Claims, error) {
 	parser := jwt.NewParser(
 		jwt.WithIssuer(m.issuer),

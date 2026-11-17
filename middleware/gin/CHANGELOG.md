@@ -4,6 +4,19 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/middleware/g
 
 ## [Unreleased]
 
+## [0.900.4] - 2026-11-17
+
+> **Cambio rompedor** (plan 053, T6.2). Requiere `auth/v0.900.5`.
+
+### Changed
+- `JWTAuthMiddleware(jwtManager *auth.JWTManager)` queda como el único middleware de usuario y
+  verifica solo el Context Token ES256 (el manager sale de `auth.NewContextTokenManager*`).
+
+### Removed
+- `JWTAuthMiddlewareWithBlacklist` (la blacklist en memoria se retiró de `auth`).
+- `auth_client.go`: `AuthClient`, `AuthClientConfig` (con `JWTSecret`), `NewAuthClient`, `TokenInfo`.
+- `remote_auth.go`: `RemoteAuthMiddleware` y `ContextKeyActiveContext`. Nadie del ecosistema los usaba.
+
 ## [0.900.3] - 2026-11-14
 
 ### Changed

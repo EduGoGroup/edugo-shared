@@ -76,3 +76,13 @@ func SplitTokens(s string) []string {
 	}
 	return out
 }
+
+// NormalizeBase es la forma base de la que parten las reglas de lengua (ADR 0049):
+// minúsculas, composición NFC y espacios colapsados, SIN quitar tildes. Quitar la
+// tilde es la regla `accents`, que la docente puede apagar. Es pura. Normalize
+// sigue siendo el contrato de la cercanía y no cambia: NormalizeBase más la regla
+// `accents` da exactamente Normalize.
+func NormalizeBase(s string) string {
+	s = norm.NFC.String(strings.ToLower(s))
+	return strings.Join(strings.Fields(s), " ")
+}

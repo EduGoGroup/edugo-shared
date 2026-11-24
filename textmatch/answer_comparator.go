@@ -64,10 +64,12 @@ func (c *AnswerComparator) Compare(_ context.Context, expected, candidate string
 	switch {
 	case strings.TrimSpace(targetForm) == "":
 		return c.result(OutcomeUncertain, 0, "la esperada queda vacía tras las reglas"), nil
-	case candidateForm == "" || candidateAll == "":
+	case candidateForm == "":
 		return c.result(OutcomeNoMatch, 0, "respuesta vacía"), nil
 	case candidateForm == targetForm:
 		return c.result(OutcomeMatch, 1, "iguales con las reglas encendidas: "+strings.Join(c.on(guarded), ", ")), nil
+	case candidateAll == "":
+		return c.result(OutcomeNoMatch, 0, "respuesta vacía"), nil
 	case candidateAll == canonicalAll(expected):
 		return c.result(OutcomeNoMatch, 0, "solo difieren en lo que la pregunta exige: "+strings.Join(c.off(guarded), ", ")), nil
 	default:

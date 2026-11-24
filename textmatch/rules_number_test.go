@@ -46,7 +46,7 @@ func TestParseNumber(t *testing.T) {
 		{"1.000.000", "1000000"},
 		{"8.848", "8848"},
 		{"1 000 000", "1000000"},
-		{"1.000,5", "2001/2"},
+		{"1.000,5", ""},
 		{"1.0", "1"},
 		{"-5", "-5"},
 		{"1234567", "1234567"},
@@ -103,6 +103,40 @@ func TestParseQuantityUnits(t *testing.T) {
 		}
 		if ok && (q.unit != tc.unit || q.value.Cmp(big.NewRat(tc.val, 1)) != 0) {
 			t.Errorf("parseQuantity(%q) = %s %q, quiero %d %q", tc.in, q.value.RatString(), q.unit, tc.val, tc.unit)
+		}
+	}
+}
+
+// Un número se compara como número y la unidad no es opcional.
+func TestQuantityEquality(t *testing.T) {
+	c, err := NewAnswerComparator(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cases := []struct {
+		a, b string
+		same bool
+	}{
+		{"5 cm", "5cm", true},
+		{"5 cm", "5 centímetros", true},
+		{"5 m", "5 cm", false},
+		{"1000 g", "1000 kg", false},
+		{"12", "12 kg", false},
+		{"1234567", "1234568", false},
+		{"1/2", "0,5", true},
+		{"3,5", "3.5", true},
+	}
+	for _, tc := range cases {
+		fa, _ := c.canonical(tc.a, nil)
+		fb, _ := c.canonical(tc.b, nil)
+		qa, okA := parseQuantity(fa, c.units)
+		qb, okB := parseQuantity(fb, c.units)
+		if !okA || !okB {
+			t.Errorf("%q o %q no se leen como número", tc.a, tc.b)
+			continue
+		}
+		if qa.equal(qb) != tc.same {
+			t.Errorf("%q y %q: iguales=%v, quiero %v", tc.a, tc.b, qa.equal(qb), tc.same)
 		}
 	}
 }

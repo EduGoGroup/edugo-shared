@@ -109,8 +109,10 @@ func TestAnswerComparatorUnknownRule(t *testing.T) {
 	}
 }
 
-// Las sondas de fuera del banco que lista el informe de las reglas, con el
-// resultado que dice allí («pendiente» es no darla por buena).
+// Las sondas de fuera del banco que lista el informe de las reglas, en su
+// dirección (esperada / alumno) y con el resultado que dice allí. «Pendiente» es no
+// darla por buena: NoMatch, o Uncertain cuando la cercanía tampoco llega
+// (TestReportProbesStayPending).
 func TestAnswerComparatorReportProbes(t *testing.T) {
 	runComparator(t, nil, []comparatorCase{
 		{"oxígeno", "oxígena", OutcomeNoMatch},
@@ -121,6 +123,7 @@ func TestAnswerComparatorReportProbes(t *testing.T) {
 		{"1/2", "0,5", OutcomeMatch},
 		{"veintiuno", "21", OutcomeMatch},
 		{"cien", "100", OutcomeMatch},
+		{"ciento uno", "101", OutcomeUncertain},
 		{"101", "ciento uno", OutcomeNoMatch},
 		{"8848", "8.848", OutcomeMatch},
 	})
@@ -129,7 +132,33 @@ func TestAnswerComparatorReportProbes(t *testing.T) {
 		{"neuronas", "neurona", OutcomeMatch},
 		{"la circunferencia", "el circunferencia", OutcomeNoMatch},
 		{"12", "12 kg", OutcomeNoMatch},
+		{"3,5", "3.5", OutcomeMatch},
+		{"1/2", "0,5", OutcomeMatch},
+		{"veintiuno", "21", OutcomeMatch},
+		{"cien", "100", OutcomeMatch},
+		{"8848", "8.848", OutcomeMatch},
+		{"ciento uno", "101", OutcomeUncertain},
 		{"101", "ciento uno", OutcomeNoMatch},
+	})
+}
+
+// Las sondas que el comparador no opina tampoco las da por buenas la cercanía.
+func TestReportProbesStayPending(t *testing.T) {
+	r, err := NewFuzzy(0).Compare(context.Background(), "ciento uno", "101")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r.Outcome == OutcomeMatch {
+		t.Errorf("la cercanía da por buena «101» por «ciento uno» (%s)", r.Evidence)
+	}
+}
+
+// Con una regla apagada, la igualdad gana al vacío: si la docente exige la
+// puntuación, «?» por «?» casa.
+func TestAnswerComparatorEqualBeatsEmpty(t *testing.T) {
+	runComparator(t, map[string]bool{RulePunctuation: false}, []comparatorCase{
+		{"?", "?", OutcomeMatch},
+		{"Lima", "...", OutcomeNoMatch},
 	})
 }
 

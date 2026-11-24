@@ -108,9 +108,8 @@ var unitAliases = map[string][]string{
 var quantityPattern = regexp.MustCompile(`^(-?\d+(?:[.,/ ]\d+)*)\s*(.*)$`)
 
 var (
-	thousandsDot      = regexp.MustCompile(`^\d{1,3}(\.\d{3})+$`)
-	thousandsDotComma = regexp.MustCompile(`^\d{1,3}(\.\d{3})+,\d+$`)
-	thousandsSpace    = regexp.MustCompile(`^\d{1,3}( \d{3})+$`)
+	thousandsDot   = regexp.MustCompile(`^\d{1,3}(\.\d{3})+$`)
+	thousandsSpace = regexp.MustCompile(`^\d{1,3}( \d{3})+$`)
 )
 
 // quantity es un número con su unidad ("" si no lleva).
@@ -180,8 +179,6 @@ func parseNumber(s string) (*big.Rat, bool) {
 		literal = strings.ReplaceAll(s, " ", "")
 	case thousandsDot.MatchString(s):
 		literal = strings.ReplaceAll(s, ".", "")
-	case thousandsDotComma.MatchString(s):
-		literal = strings.Replace(strings.ReplaceAll(s, ".", ""), ",", ".", 1)
 	case strings.Count(s, ".")+strings.Count(s, ",")+strings.Count(s, "/") > 1:
 		return nil, false
 	case strings.Contains(s, "/"):

@@ -12,6 +12,16 @@
 //     de esperados, con una política de completitud (Strict/Lenient) que es
 //     decisión de negocio, ortogonal a cómo se compara un par.
 //
+// Las reglas de lengua de la respuesta corta (ADR 0049) van delante de ese nivel 1:
+// cada Rule tiene un nombre estable, un valor por defecto y da la forma canónica de
+// un texto (punctuation, accents, number_words, leading_article, gender_number, en
+// ese orden). AnswerComparator arma con ellas el comparador de una pregunta: una
+// regla encendida perdona, una apagada exige, y un número se compara como número,
+// sin cercanía. Da tres resultados: Match casa, NoMatch no se da por buena y
+// Uncertain no opina (decide Fuzzy). No va dentro de una Cascade delante de Fuzzy:
+// la cascada escala también en NoMatch y deshace lo que una regla apagada exige;
+// quien lo usa compone a mano.
+//
 // El paquete NO decide negocio: qué significa un no-match (ítem ausente → red del
 // profesor) lo interpreta el caller. La estrategia LLM NO vive aquí: depende de
 // infra/red, así que se define donde vive el provider y se inyecta en la cascada

@@ -46,6 +46,30 @@ rep, err := m.MatchAnswer(ctx,
 - `PolicyStrict` (aula/learning): todos los esperados cubiertos **y** ningún token foráneo (un ítem extra no reconocido invalida).
 - `PolicyLenient` (worker triturado): todos los esperados cubiertos; los sobrantes se ignoran.
 
+### Reglas de lengua de la respuesta corta (AnswerComparator)
+
+La pregunta corta arma su comparador con su mapa de reglas (`answer_spec.rules`, ADR 0049). Cada regla es una implementación del contrato `Rule`: un nombre estable, un valor por defecto y la forma canónica de **un** texto. Se encadenan en un orden fijo, que es parte del contrato:
+
+| Regla | Qué perdona | Nace |
+|---|---|---|
+| `punctuation` | Los signos: «Lima.» y «lima». Conserva la coma, el punto y la barra entre cifras, el signo menos, «%» y el grado | encendida |
+| `accents` | La tilde: «oxigeno» y «oxígeno» (la «ñ» se conserva) | encendida |
+| `number_words` | Cifra y letra del 0 al 100: «once» y «11». «un» y «una» no son números; «ciento uno» no se convierte | encendida |
+| `leading_article` | El artículo inicial: «la fotosíntesis» y «fotosíntesis». Si la esperada lo lleva, se exige | encendida |
+| `gender_number` | El género y el número: «blanca» y «blanco», «aves» y «ave» | **apagada** |
+
+```go
+cmp, err := textmatch.NewAnswerComparator(map[string]bool{"accents": false}) // solo lo que la docente cambió
+r, _ := cmp.Compare(ctx, "canté", "cante")
+// r.Outcome == textmatch.OutcomeNoMatch: solo difieren en lo que la regla apagada exige
+```
+
+- **`OutcomeMatch`** (casa): las formas canónicas con las reglas encendidas son iguales y no vacías.
+- **`OutcomeNoMatch`** (no se da por buena): solo difieren en lo que perdonaría una regla apagada; o la esperada es un número (con o sin unidad de la tabla cerrada) y no vale lo mismo; o la respuesta está vacía. **No pasa a la cercanía.**
+- **`OutcomeUncertain`** (no opina): decide quien llama, con `Fuzzy` sobre el texto crudo.
+
+Cada texto esperado (la respuesta y cada alternativa) se compara por su lado: una alternativa «12 kg» se compara como número; una «la capital», exige su artículo. **No lo metas en una `Cascade` delante de `Fuzzy`**: la cascada escala también en `NoMatch`. `Normalize`, `Fuzzy`, `Cascade` y `SetMatcher` no cambian.
+
 ## Componentes principales
 
 - **Normalize / SplitTokens**: contrato canónico de normalización (minúsculas, sin tildes/diéresis, **preserva la «ñ»**, colapsa espacios) y tokenización (frontera no-alfanumérica unicode, descarta conectores «y»/«e»).
@@ -53,6 +77,8 @@ rep, err := m.MatchAnswer(ctx,
 - **Strategy / Comparator / Cascade**: contrato de comparación de un par y su orquestador con escalado explícito.
 - **Exact / Fuzzy**: estrategias deterministas puras (Fuzzy = el escalón ortográfico que faltaba entre el match exacto y el juicio del LLM).
 - **SetMatcher / Policy / GenerateCandidates / MatchReport**: match de conjunto con generación de candidatos y política de estrictez.
+- **Rule / TargetGuard / Rules / RuleNames / LookupRule / ResolveRules**: el contrato de regla de lengua y su registro (nombres, valores por defecto, orden). Una regla desconocida da `ErrUnknownRule`.
+- **AnswerComparator / NormalizeBase**: el comparador que arma una pregunta corta y la forma base sin quitar tildes de la que parten las reglas.
 
 ## Operación local
 
@@ -74,3 +100,4 @@ make check      # Validar (fmt, vet, lint, test)
 
 - [Changelog](CHANGELOG.md)
 - ADR 0035 · plan 045 (`docs/plans/045-motor-comparacion-cascada/`).
+- ADR 0049 (las reglas de la respuesta corta) · ficha HU-INF.4 del MVP-INF, en el repo raíz del ecosistema.

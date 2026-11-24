@@ -4,6 +4,8 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/textmatch` s
 
 ## [Unreleased]
 
+## [0.900.2] - 2026-11-23
+
 ### Added
 - **Reglas de lengua de la respuesta corta** (ADR 0049, HU-INF.4 del MVP-INF): el contrato `Rule` (nombre estable, valor por defecto, forma canónica de un texto) y el opcional `TargetGuard`; el registro con sus cinco reglas en orden fijo (`punctuation`, `accents`, `number_words`, `leading_article` y `gender_number`, esta apagada por defecto), con `Rules`, `RuleNames`, `LookupRule`, `ResolveRules` y el error tipado `ErrUnknownRule`.
 - `AnswerComparator` (`NewAnswerComparator`): el comparador que arma una pregunta con su mapa de reglas. Implementa `Strategy` y da `OutcomeMatch` (casa), `OutcomeNoMatch` (no se da por buena: una regla apagada lo exige, o un número que no vale lo mismo) u `OutcomeUncertain` (no opina: decide `Fuzzy`). Un número, con o sin unidad de una tabla cerrada, se compara con aritmética exacta y sin cercanía.

@@ -4,6 +4,8 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/messaging/ra
 
 ## [Unreleased]
 
+## [0.900.2] - 2026-11-25
+
 ### Fixed
 - `ConsumeWithDLQ`: el mensaje que va a la cola muerta se publica **persistente** (`DeliveryMode` 2);
   antes salía transitorio y se perdía al reiniciar el broker (bug 0157, HU-IA.3).

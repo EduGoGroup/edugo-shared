@@ -150,28 +150,18 @@ func (c *RabbitMQConsumer) setupDLQ(ch *amqp.Channel) error {
 	return nil
 }
 
-// sendToDLQ envía un mensaje al Dead Letter Queue
-func (c *RabbitMQConsumer) sendToDLQ(ch *amqp.Channel, msg amqp.Delivery) error {
-	// Agregar metadata al mensaje
-	headers := msg.Headers
-	if headers == nil {
-		headers = amqp.Table{}
-	}
-	headers["x-original-exchange"] = msg.Exchange
-	headers["x-original-routing-key"] = msg.RoutingKey
-	headers["x-failed-at"] = time.Now().Unix()
-	headers["x-retry-count"] = getRetryCount(msg.Headers)
-
-	// Publicar a DLX
+// sendToDLQ publica el mensaje en la cola muerta: persistente, con el motivo y el error.
+func (c *RabbitMQConsumer) sendToDLQ(ch *amqp.Channel, msg *amqp.Delivery, reason string, cause error) error {
 	return ch.Publish(
 		c.config.DLQ.DLXExchange,   // exchange
 		c.config.DLQ.DLXRoutingKey, // routing key
 		false,                      // mandatory
 		false,                      // immediate
 		amqp.Publishing{
-			ContentType: msg.ContentType,
-			Body:        msg.Body,
-			Headers:     headers,
+			ContentType:  msg.ContentType,
+			Body:         msg.Body,
+			Headers:      deadLetterHeaders(msg, reason, cause, time.Now()),
+			DeliveryMode: amqp.Persistent,
 		},
 	)
 }
@@ -184,14 +174,20 @@ func (c *RabbitMQConsumer) processMessage(
 	msg amqp.Delivery,
 ) {
 	retries := getRetryCount(msg.Headers)
-	err := handler(ctx, msg.Body)
+	handlerCtx := withDeliveryInfo(ctx, DeliveryInfo{
+		Queue:             queueName,
+		Retry:             retries,
+		MaxRetries:        c.config.DLQ.MaxRetries,
+		DeadLetterEnabled: c.config.DLQ.Enabled,
+	})
+	err := handler(handlerCtx, msg.Body)
 
 	if c.config.AutoAck {
 		return
 	}
 
 	if err != nil {
-		c.handleProcessingError(ctx, ch, queueName, msg, retries)
+		c.handleProcessingError(ctx, ch, queueName, msg, retries, err)
 		return
 	}
 
@@ -204,57 +200,85 @@ func (c *RabbitMQConsumer) handleProcessingError(
 	queueName string,
 	msg amqp.Delivery,
 	retries int,
+	cause error,
 ) {
-	nextRetry := retries + 1
+	dlq := c.config.DLQ
+	// El clasificador solo se consulta con la cola muerta habilitada.
+	permanent := dlq.Enabled && c.config.IsPermanent != nil && c.config.IsPermanent(cause)
+	action, reason := decideFailure(dlq.Enabled, permanent, retries, dlq.MaxRetries)
 
-	if c.config.DLQ.Enabled {
-		if nextRetry > c.config.DLQ.MaxRetries {
-			if err := c.sendToDLQ(ch, msg); err != nil {
-				_ = msg.Nack(false, true) //nolint:errcheck // Error de Nack en fallback se ignora
-			} else {
-				_ = msg.Ack(false) //nolint:errcheck // Error de Ack en DLQ exitoso se ignora
-			}
+	// Con el contexto cancelado, lo permanente no se da por muerto: un apagado puede
+	// disfrazar el error. El mensaje vuelve a la cola y se clasifica al reprocesarlo.
+	if action == actionDeadLetter && reason == DeadReasonPermanent && ctx.Err() != nil {
+		action = actionRequeue
+	}
+
+	event := newFailureEvent(queueName, &msg, retries, dlq.MaxRetries, cause)
+
+	switch action {
+	case actionDeadLetter:
+		if err := c.sendToDLQ(ch, &msg, reason, cause); err != nil {
+			_ = msg.Nack(false, true) //nolint:errcheck // Error de Nack en fallback se ignora
 			return
 		}
-
-		backoff := c.config.DLQ.CalculateBackoff(retries)
-		timer := time.NewTimer(backoff)
-		defer timer.Stop()
-
-		select {
-		case <-ctx.Done():
-			_ = msg.Nack(false, true) //nolint:errcheck // Error de Nack en cancelación se ignora
-			return
-		case <-timer.C:
+		_ = msg.Ack(false) //nolint:errcheck // Error de Ack en DLQ exitoso se ignora
+		if c.config.OnDeadLetter != nil {
+			event.Reason = reason
+			c.config.OnDeadLetter(event)
 		}
-
-		retryHeaders := cloneHeaders(msg.Headers)
-		retryHeaders["x-retry-count"] = nextRetry
-
-		publishErr := ch.PublishWithContext(
-			ctx,
-			"",
-			queueName,
-			false,
-			false,
-			amqp.Publishing{
-				ContentType:  msg.ContentType,
-				Body:         msg.Body,
-				Headers:      retryHeaders,
-				DeliveryMode: amqp.Persistent,
-				Priority:     msg.Priority,
-			},
-		)
-		if publishErr != nil {
-			_ = msg.Nack(false, true) //nolint:errcheck // Error de Nack en fallo de publish se ignora
-			return
+	case actionRetry:
+		event.Backoff = dlq.CalculateBackoff(retries)
+		if c.config.OnRetry != nil {
+			c.config.OnRetry(event)
 		}
+		c.retryAfterBackoff(ctx, ch, queueName, &msg, retries+1, event.Backoff)
+	default:
+		_ = msg.Nack(false, true) //nolint:errcheck // Error de Nack sin DLQ se ignora
+	}
+}
 
-		_ = msg.Ack(false) //nolint:errcheck // Error de Ack en retry exitoso se ignora
+// retryAfterBackoff espera y republica el mensaje en su cola con el contador subido.
+func (c *RabbitMQConsumer) retryAfterBackoff(
+	ctx context.Context,
+	ch *amqp.Channel,
+	queueName string,
+	msg *amqp.Delivery,
+	nextRetry int,
+	backoff time.Duration,
+) {
+	timer := time.NewTimer(backoff)
+	defer timer.Stop()
+
+	select {
+	case <-ctx.Done():
+		_ = msg.Nack(false, true) //nolint:errcheck // Error de Nack en cancelación se ignora
+		return
+	case <-timer.C:
+	}
+
+	retryHeaders := withFirstRoute(msg.Headers, msg.Exchange, msg.RoutingKey)
+	retryHeaders[HeaderRetryCount] = nextRetry
+
+	publishErr := ch.PublishWithContext(
+		ctx,
+		"",
+		queueName,
+		false,
+		false,
+		amqp.Publishing{
+			ContentType:  msg.ContentType,
+			Body:         msg.Body,
+			Headers:      retryHeaders,
+			DeliveryMode: amqp.Persistent,
+			Priority:     msg.Priority,
+		},
+	)
+	if publishErr != nil {
+		_ = msg.Nack(false, true) //nolint:errcheck // Error de Nack en fallo de publish se ignora
 		return
 	}
 
-	_ = msg.Nack(false, true) //nolint:errcheck // Error de Nack sin DLQ se ignora
+	_ = msg.Ack(false) //nolint:errcheck // Error de Ack en retry exitoso se ignora
 }
 
 // getRetryCount extrae el número de reintentos del header
@@ -262,15 +286,15 @@ func getRetryCount(headers amqp.Table) int {
 	if headers == nil {
 		return 0
 	}
-	if count, ok := headers["x-retry-count"].(int); ok {
+	if count, ok := headers[HeaderRetryCount].(int); ok {
 		return count
 	}
 	// Intentar con int32 (tipo que RabbitMQ puede usar)
-	if count, ok := headers["x-retry-count"].(int32); ok {
+	if count, ok := headers[HeaderRetryCount].(int32); ok {
 		return int(count)
 	}
 	// Intentar con int64 (algunos clientes usan este tipo)
-	if count, ok := headers["x-retry-count"].(int64); ok {
+	if count, ok := headers[HeaderRetryCount].(int64); ok {
 		return int(count)
 	}
 	return 0

@@ -22,6 +22,9 @@ El modulo se puede versionar y consumir de forma independiente gracias a su `go.
 2. Declarar exchanges, queues, bindings y QoS/prefetch segun configuracion.
 3. Publicar mensajes serializados a JSON con prioridad y contexto.
 4. Consumir mensajes, ejecutar handlers y hacer ack o nack segun resultado.
+5. Reintentar con backoff o mandar a la cola muerta: el mensaje muerto es persistente y lleva el error
+   (`x-error`) y el motivo (`x-dead-reason`); un error permanente (`ConsumerConfig.IsPermanent`) muere
+   sin reintentos. Detalle en la documentacion del modulo.
 
 ## Navegacion
 

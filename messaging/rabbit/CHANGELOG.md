@@ -4,6 +4,30 @@ Todos los cambios relevantes de `github.com/EduGoGroup/edugo-shared/messaging/ra
 
 ## [Unreleased]
 
+### Fixed
+- `ConsumeWithDLQ`: el mensaje que va a la cola muerta se publica **persistente** (`DeliveryMode` 2);
+  antes salía transitorio y se perdía al reiniciar el broker (bug 0157, HU-IA.3).
+- El error del handler ya no se pierde: viaja en la cabecera `x-error` del mensaje muerto, acotado a
+  1024 bytes en frontera de runa y con marca de corte.
+- `sendToDLQ` ya no muta las cabeceras de la entrega.
+
+### Added
+- `ConsumerConfig.IsPermanent func(error) bool`: si devuelve `true`, el mensaje va a la cola muerta sin
+  reintentos (deuda 140). Con `nil`, la conducta es la de siempre. Solo se consulta con la cola muerta
+  habilitada, y con el contexto cancelado el mensaje vuelve a la cola en vez de morir.
+- `ConsumerConfig.OnRetry` y `ConsumerConfig.OnDeadLetter`, ganchos opcionales que reciben un
+  `FailureEvent` (cola, reintento, máximo, espera, motivo, error, tamaño y hash corto del cuerpo).
+- Cabeceras nuevas del mensaje muerto: `x-error`, `x-dead-reason` (`permanent` o `max_retries`),
+  `x-first-exchange` y `x-first-routing-key` (el exchange y la clave por los que entró; se guardan en el
+  primer fallo y sobreviven a los reintentos). `x-original-*`, `x-failed-at` y `x-retry-count` no cambian.
+- `DeliveryFromContext(ctx)` devuelve `DeliveryInfo` (cola, reintento, máximo, `IsLastAttempt()`) dentro
+  del handler de `ConsumeWithDLQ`. `MessageHandler` y `Consume` no cambian.
+- Constantes exportadas con los nombres de cabecera (`Header*`) y los motivos (`DeadReason*`).
+- Primeros tests de `ConsumeWithDLQ` contra un broker (`consumer_dlq_integration_test.go`).
+
+### Changed
+- `ConsumerConfig` lleva campos de función y deja de ser comparable con `==`.
+
 ## [0.900.1] - 2026-11-14
 
 ### Changed

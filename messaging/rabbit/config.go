@@ -71,6 +71,15 @@ type ConsumerConfig struct {
 	NoLocal       bool      // No recibir mensajes publicados en la misma conexión
 	PrefetchCount int       // Número de mensajes a prefetch
 	DLQ           DLQConfig // Configuracion Dead Letter Queue
+
+	// IsPermanent clasifica el error del handler. Si devuelve true, ConsumeWithDLQ manda
+	// el mensaje a la cola muerta sin reintentos. Con nil todo error se reintenta. Solo
+	// se consulta con la cola muerta habilitada.
+	IsPermanent func(error) bool
+	// OnRetry se llama cuando un fallo se va a reintentar, antes de la espera. Opcional.
+	OnRetry func(FailureEvent)
+	// OnDeadLetter se llama cuando el mensaje quedó publicado en la cola muerta. Opcional.
+	OnDeadLetter func(FailureEvent)
 }
 
 // DefaultConfig retorna una configuración con valores por defecto

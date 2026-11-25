@@ -338,10 +338,68 @@ func TestConsumerDLQ_HandleProcessingError_CanceledContextNacks(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel() // fuerza la rama ctx.Done antes del publish de retry
 
-	consumer.handleProcessingError(ctx, nil, "queue.unit", msg, 0)
+	consumer.handleProcessingError(ctx, nil, "queue.unit", msg, 0, errors.New("handler error"))
 
 	if got := atomic.LoadInt32(&rec.nackCalls); got != 1 {
 		t.Fatalf("expected nack once after context cancelation, got %d", got)
+	}
+}
+
+func TestConsumerDLQ_PermanentWithCanceledContext_Nacks(t *testing.T) {
+	consumer := newUnitConsumer(ConsumerConfig{
+		AutoAck:     false,
+		IsPermanent: func(error) bool { return true },
+		OnDeadLetter: func(FailureEvent) {
+			t.Error("nothing must reach the dead letter queue with a canceled context")
+		},
+		DLQ: DLQConfig{
+			Enabled:    true,
+			MaxRetries: 5,
+			RetryDelay: 100 * time.Millisecond,
+		},
+	})
+
+	rec := &ackRecorder{}
+	msg := amqp.Delivery{
+		Body:         []byte("permanent"),
+		DeliveryTag:  14,
+		Acknowledger: rec,
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	// Con canal nil, publicar en la cola muerta entraría en pánico: la prueba exige que no se intente.
+	consumer.handleProcessingError(ctx, nil, "queue.unit", msg, 0, errors.New("permanent error"))
+
+	if got := atomic.LoadInt32(&rec.nackCalls); got != 1 {
+		t.Fatalf("expected nack once, got %d", got)
+	}
+	if got := atomic.LoadInt32(&rec.ackCalls); got != 0 {
+		t.Fatalf("expected no ack calls, got %d", got)
+	}
+}
+
+func TestConsumerDLQ_DisabledDLQIgnoresPermanent(t *testing.T) {
+	classifierCalls := 0
+	consumer := newUnitConsumer(ConsumerConfig{
+		AutoAck: false,
+		IsPermanent: func(error) bool {
+			classifierCalls++
+			return true
+		},
+	})
+
+	rec := &ackRecorder{}
+	msg := amqp.Delivery{Body: []byte("x"), DeliveryTag: 15, Acknowledger: rec}
+
+	consumer.handleProcessingError(context.Background(), nil, "queue.unit", msg, 0, errors.New("permanent error"))
+
+	if got := atomic.LoadInt32(&rec.nackCalls); got != 1 {
+		t.Fatalf("expected nack once, got %d", got)
+	}
+	if classifierCalls != 0 {
+		t.Fatalf("expected the classifier not to be consulted, got %d calls", classifierCalls)
 	}
 }
 

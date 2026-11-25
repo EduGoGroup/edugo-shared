@@ -77,6 +77,7 @@ type ConsumerConfig struct {
 	// se consulta con la cola muerta habilitada.
 	IsPermanent func(error) bool
 	// OnRetry se llama cuando un fallo se va a reintentar, antes de la espera. Opcional.
+	// Los dos ganchos se llaman desde varias goroutines: deben ser seguros en concurrencia.
 	OnRetry func(FailureEvent)
 	// OnDeadLetter se llama cuando el mensaje quedó publicado en la cola muerta. Opcional.
 	OnDeadLetter func(FailureEvent)
